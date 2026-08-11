@@ -1,0 +1,44 @@
+doctrine:
+    dbal:
+        dbname: '%env(string:DB_NAME)%'
+        host: '%env(string:DB_HOST)%'
+        port: '%env(int:DB_PORT)%'
+        user: '%env(string:DB_USER)%'
+        password: '%env(string:DB_PASSWORD)%'
+        server_version: '%env(string:DB_VERSION)%'
+        driver: pdo_pgsql
+        profiling_collect_backtrace: '%kernel.debug%'
+    orm:
+        validate_xml_mapping: true
+        naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+        auto_mapping: true
+        mappings:
+            App:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Entity'
+                prefix: 'App\Entity'
+                alias: App
+
+when@test:
+    doctrine:
+        dbal:
+            dbname_suffix: '_test_%env(default::TEST_TOKEN)%'
+
+when@prod:
+    doctrine:
+        orm:
+            query_cache_driver:
+                type: pool
+                pool: doctrine.system_cache_pool
+            result_cache_driver:
+                type: pool
+                pool: doctrine.result_cache_pool
+
+    framework:
+        cache:
+            pools:
+                doctrine.result_cache_pool:
+                    adapter: cache.app
+                doctrine.system_cache_pool:
+                    adapter: cache.system

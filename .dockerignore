@@ -1,0 +1,13 @@
+.git/
+.github/
+.claude/
+_bmad/
+_bmad-output/
+assets/node_modules/
+docker/volumes/
+public/build/
+public/uploads/
+var/
+vendor/
+.env.local
+.phpunit.cache/

@@ -1,0 +1,81 @@
+{
+    "name": "benjaminjonard/goshuin",
+    "description": "Self-hosted manager for a collection of goshuin and goshuincho",
+    "type": "project",
+    "license": "MIT",
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require": {
+        "php": ">=8.5",
+        "ext-ctype": "*",
+        "ext-iconv": "*",
+        "doctrine/doctrine-bundle": "3.3.1",
+        "doctrine/doctrine-migrations-bundle": "4.0.0",
+        "doctrine/orm": "3.6.8",
+        "symfony/asset": "8.1.0",
+        "symfony/console": "8.1.4",
+        "symfony/dotenv": "8.1.2",
+        "symfony/flex": "2.11.0",
+        "symfony/framework-bundle": "8.1.4",
+        "symfony/monolog-bundle": "4.0.2",
+        "symfony/routing": "8.1.2",
+        "symfony/runtime": "8.1.0",
+        "symfony/twig-bundle": "8.1.2",
+        "symfony/webpack-encore-bundle": "2.4.1",
+        "symfony/yaml": "8.1.2",
+        "twig/twig": "3.28.0"
+    },
+    "require-dev": {
+        "brianium/paratest": "7.24.0",
+        "dama/doctrine-test-bundle": "8.6.0",
+        "phpunit/phpunit": "13.3.0",
+        "symfony/debug-bundle": "8.1.0",
+        "symfony/web-profiler-bundle": "8.1.4",
+        "zenstruck/foundry": "2.11.3"
+    },
+    "config": {
+        "allow-plugins": {
+            "symfony/flex": true,
+            "symfony/runtime": true
+        },
+        "optimize-autoloader": true,
+        "preferred-install": {
+            "*": "dist"
+        },
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "App\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "symfony": {
+            "allow-contrib": false,
+            "docker": false,
+            "require": "8.1.*"
+        },
+        "runtime": {
+            "class": "Symfony\\Component\\Runtime\\SymfonyRuntime"
+        }
+    },
+    "scripts": {
+        "test:phpunit": [
+            "Composer\\Config::disableProcessTimeout",
+            "./vendor/bin/phpunit"
+        ],
+        "test:paratest": [
+            "Composer\\Config::disableProcessTimeout",
+            "./vendor/bin/paratest --runner=WrapperRunner"
+        ],
+        "auto-scripts": {
+            "cache:clear": "symfony-cmd",
+            "assets:install %PUBLIC_DIR%": "symfony-cmd"
+        }
+    }
+}

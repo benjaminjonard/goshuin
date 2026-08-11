@@ -1,0 +1,46 @@
+FROM dunglas/frankenphp:php8.5
+
+ENV APP_ENV=dev
+ENV PUID=1000
+ENV PGID=1000
+ENV USER=goshuin
+ENV FRANKENPHP_SERVER_NAME=":80"
+ENV COMPOSER_ALLOW_SUPERUSER=1
+ENV FRANKENPHP_RESET_KERNEL=1
+
+COPY ./docker/Caddyfile-dev /etc/caddy/Caddyfile
+
+RUN set -eux ; \
+    addgroup --gid "$PGID" "$USER" ; \
+    adduser --gecos '' --no-create-home --disabled-password --uid "$PUID" --gid "$PGID" "$USER" ; \
+    apt-get update -qq ; \
+    apt-get install -qqy --no-install-recommends \
+    ca-certificates \
+    curl \
+    gnupg \
+    git \
+    openssl \
+    unzip ; \
+    install-php-extensions opcache pdo_pgsql intl gd zip apcu ; \
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer ; \
+    mkdir -p /etc/apt/keyrings ; \
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg ; \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_26.x nodistro main" > /etc/apt/sources.list.d/nodesource.list ; \
+    apt-get update -qq ; \
+    apt-get install -qqy --no-install-recommends nodejs ; \
+    npm install -g corepack ; \
+    corepack enable ; \
+    apt-get clean ; \
+    rm -rf /var/lib/apt/lists/* ; \
+    mkdir /run/php
+
+VOLUME /uploads
+
+EXPOSE 80
+EXPOSE 443
+
+WORKDIR /app/public
+
+HEALTHCHECK CMD curl --fail http://localhost:80/ || exit 1
+
+ENTRYPOINT ["sh", "/app/public/docker/entrypoint-dev.sh"]

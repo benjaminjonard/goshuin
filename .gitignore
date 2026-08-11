@@ -1,0 +1,15 @@
+/.env.local
+/.env.local.php
+/.env.*.local
+/composer.phar
+/config/secrets/prod/prod.decrypt.private.php
+/vendor/
+/var/
+/public/build/
+/public/bundles/
+/public/uploads/
+/assets/node_modules/
+/assets/.yarn/
+/assets/yarn-error.log
+/.phpunit.cache/
+/docker/volumes/

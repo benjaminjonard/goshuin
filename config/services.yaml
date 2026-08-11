@@ -1,0 +1,19 @@
+parameters:
+    default_locale: 'en'
+    .container.dumper.inline_factories: true
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+when@test:
+    services:
+        App\Tests\Factory\:
+            resource: '../tests/Factory'

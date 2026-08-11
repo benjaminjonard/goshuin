@@ -1,0 +1,14 @@
+when@dev: &dev
+    zenstruck_foundry:
+        instantiator:
+            use_constructor: true
+        orm:
+            reset:
+                connections: [default]
+                entity_managers: [default]
+                mode: migrate
+        persistence:
+            flush_once: true
+        enable_auto_refresh_with_lazy_objects: true
+
+when@test: *dev

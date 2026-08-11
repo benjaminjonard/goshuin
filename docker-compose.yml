@@ -1,0 +1,42 @@
+# Development only. A self-hosted instance uses the published image and its own
+# compose file — see the README.
+services:
+    goshuin:
+        container_name: goshuin
+        build:
+            dockerfile: Dockerfile.dev
+        restart: unless-stopped
+        ports:
+            - "${APP_PORT:-81}:80"
+        environment:
+            - APP_ENV=dev
+            - APP_DEBUG=1
+            - DB_HOST=database
+            - DB_PORT=5432
+            - DB_NAME=goshuin
+            - DB_USER=postgres
+            - DB_PASSWORD=password
+            - DB_VERSION=18
+            - PHP_TZ=Europe/Paris
+            - PHP_MEMORY_LIMIT=1G
+            - UPLOAD_MAX_FILESIZE=100M
+        depends_on:
+            - database
+        volumes:
+            - "./docker/volumes/goshuin/uploads:/uploads"
+            - ./:/app/public
+
+    database:
+        container_name: goshuin-database
+        image: postgres:18
+        restart: unless-stopped
+        environment:
+            - POSTGRES_DB=goshuin
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=password
+        # Not published by default: a development machine usually already has a
+        # PostgreSQL on 5432. Uncomment to reach this one from the host.
+        # ports:
+        #     - "5433:5432"
+        volumes:
+            - "./docker/volumes/postgres:/var/lib/postgresql"
