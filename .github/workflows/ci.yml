@@ -1,0 +1,157 @@
+name: Goshuin CI
+
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+
+jobs:
+  build_ci_image:
+    name: Build the CI image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build the image
+        uses: docker/build-push-action@v7
+        with:
+          file: Dockerfile
+          tags: ci-image
+          push: false
+          outputs: type=docker,dest=/tmp/ci-image.tar
+
+      - name: Upload the image
+        uses: actions/upload-artifact@v7
+        with:
+          name: ci-image
+          path: /tmp/ci-image.tar
+          retention-days: 1
+
+  security_checker:
+    name: Security advisories
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/cache@v6
+        with:
+          path: ~/.symfony/cache
+          key: security-advisories-db
+      - uses: symfonycorp/security-checker-action@v5
+
+  doctrine_schema_validator:
+    name: Doctrine schema matches the migrations
+    runs-on: ubuntu-latest
+    needs: [build_ci_image]
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: root
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval=10s --health-timeout=5s --health-retries=5
+    steps:
+      - name: Download the image
+        uses: actions/download-artifact@v8
+        with:
+          name: ci-image
+          path: /tmp
+
+      - name: Load the image
+        run: docker load --input /tmp/ci-image.tar
+
+      # A schema that has drifted from the migrations means an upgrade would
+      # need manual SQL, which NFR-8 forbids.
+      - name: Validate
+        run: |
+          docker run --rm \
+            --add-host=host.docker.internal:host-gateway \
+            -e APP_ENV=dev \
+            -e APP_DEBUG=0 \
+            -e APP_SECRET=ci \
+            -e DB_HOST=host.docker.internal \
+            -e DB_PORT=5432 \
+            -e DB_NAME=goshuin \
+            -e DB_USER=postgres \
+            -e DB_PASSWORD=root \
+            -e DB_VERSION=18 \
+            --entrypoint sh \
+            ci-image -c '
+              bin/console doctrine:database:create --if-not-exists &&
+              bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration &&
+              bin/console doctrine:schema:validate
+            '
+
+  phpunit:
+    name: Tests on PostgreSQL ${{ matrix.postgres }}
+    runs-on: ubuntu-latest
+    needs: [build_ci_image]
+    strategy:
+      fail-fast: false
+      matrix:
+        postgres: [17, 18]
+    services:
+      postgres:
+        image: postgres:${{ matrix.postgres }}
+        env:
+          POSTGRES_PASSWORD: root
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval=10s --health-timeout=5s --health-retries=5
+    steps:
+      - name: Download the image
+        uses: actions/download-artifact@v8
+        with:
+          name: ci-image
+          path: /tmp
+
+      - name: Load the image
+        run: docker load --input /tmp/ci-image.tar
+
+      - name: Run the suite
+        run: |
+          docker run --rm \
+            --add-host=host.docker.internal:host-gateway \
+            -e APP_ENV=test \
+            -e APP_DEBUG=1 \
+            -e APP_SECRET=ci \
+            -e DB_HOST=host.docker.internal \
+            -e DB_PORT=5432 \
+            -e DB_NAME=goshuin \
+            -e DB_USER=postgres \
+            -e DB_PASSWORD=root \
+            -e DB_VERSION=${{ matrix.postgres }} \
+            --entrypoint sh \
+            ci-image -c '
+              bin/console doctrine:database:create --if-not-exists &&
+              bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration &&
+              php -d memory_limit=512M ./vendor/bin/paratest --runner=WrapperRunner --passthru-php="-d memory_limit=512M"
+            '
+
+  assets:
+    name: Front assets build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build
+        working-directory: assets
+        run: |
+          npm install -g corepack
+          corepack enable
+          yarn install --immutable
+          yarn build
+
+  remove_ci_image:
+    name: Remove the CI image artifact
+    if: always()
+    runs-on: ubuntu-latest
+    needs: [build_ci_image, doctrine_schema_validator, phpunit]
+    steps:
+      - uses: geekyeggo/delete-artifact@v6
+        with:
+          name: ci-image

@@ -46,6 +46,7 @@ WORKDIR /app/assets
 COPY ./assets/ ./
 
 RUN set -eux ; \
+    mkdir -p /app/public/build ; \
     npm install -g corepack ; \
     corepack enable ; \
     yarn install --immutable ; \
