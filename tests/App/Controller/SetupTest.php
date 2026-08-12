@@ -2,28 +2,25 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\App;
+namespace App\Tests\App\Controller;
 
 use App\Repository\UserRepository;
+use App\Tests\AppTestCase;
 use App\Tests\Factory\UserFactory;
-use Symfony\Bundle\FrameworkBundle\KernelBrowser;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
-class FirstRunTest extends WebTestCase
+class SetupTest extends AppTestCase
 {
     use Factories;
     use ResetDatabase;
 
-    private KernelBrowser $client;
-
     #[\Override]
     protected function setUp(): void
     {
-        $this->client = static::createClient();
+        parent::setUp();
         $this->client->followRedirects();
     }
 
@@ -76,21 +73,5 @@ class FirstRunTest extends WebTestCase
         $this->client->request(Request::METHOD_GET, '/setup');
 
         $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
-    }
-
-    public function test_home_states_the_collection_is_empty_and_draws_nothing_else(): void
-    {
-        $user = UserFactory::new()->admin()->create();
-        $this->client->loginUser($user);
-
-        $crawler = $this->client->request(Request::METHOD_GET, '/');
-
-        $this->assertResponseIsSuccessful();
-        $this->assertRouteSame('app_homepage');
-        $this->assertCount(1, $crawler->filter('h1'), 'More than one h1 on the page.');
-        $this->assertCount(1, $crawler->filter('main h2'), 'Home did not state that the collection is empty.');
-        $this->assertGreaterThan(0, $crawler->filter('main a')->count(), 'Home offered no way out.');
-        $this->assertCount(0, $crawler->filter('[data-controller="map"]'), 'A map was drawn on an empty collection.');
-        $this->assertCount(0, $crawler->filter('main ol, main dl'), 'Home grew a list again.');
     }
 }

@@ -10,7 +10,7 @@ use Symfony\Component\Uid\Uuid;
 
 final readonly class ImageStore
 {
-    public const array WIDTHS = [96, 384, 1200];
+    public const array WIDTHS = ['mini' => 96, 'card' => 384, 'full' => 1200];
 
     private const array TYPES = [
         'image/jpeg' => 'jpg',
@@ -23,7 +23,7 @@ final readonly class ImageStore
     ) {
     }
 
-    public function store(File $file): string
+    public function store(File $file): StoredImage
     {
         $extension = self::TYPES[(string) $file->getMimeType()] ?? null;
 
@@ -38,10 +38,13 @@ final readonly class ImageStore
         try {
             $this->makeDirectory($this->root.'/'.$directory);
             $source = $this->read($file, $extension);
-            $written[] = $this->write($source, $directory.'/'.$name.'.'.$extension, $extension, null);
+            $original = $this->write($source, $directory.'/'.$name.'.'.$extension, $extension, null);
+            $written[] = $original;
+            $derivatives = [];
 
-            foreach (self::WIDTHS as $width) {
-                $written[] = $this->write($source, $directory.'/'.$name.'-'.$width.'.'.$extension, $extension, $width);
+            foreach (self::WIDTHS as $slot => $width) {
+                $derivatives[$slot] = $this->write($source, $directory.'/'.$name.'-'.$width.'.'.$extension, $extension, $width);
+                $written[] = $derivatives[$slot];
             }
         } catch (\Throwable $failure) {
             foreach ($written as $path) {
@@ -51,7 +54,7 @@ final readonly class ImageStore
             throw $failure instanceof ImageRefused ? $failure : new ImageRefused('The image could not be stored.', previous: $failure);
         }
 
-        return $directory.'/'.$name.'.'.$extension;
+        return new StoredImage($original, $derivatives['mini'], $derivatives['card'], $derivatives['full']);
     }
 
     public function remove(?string $path): void
@@ -60,21 +63,7 @@ final readonly class ImageStore
             return;
         }
 
-        $extension = pathinfo($path, \PATHINFO_EXTENSION);
-        $base = substr($path, 0, -\strlen($extension) - 1);
-
         @unlink($this->root.'/'.$path);
-
-        foreach (self::WIDTHS as $width) {
-            @unlink($this->root.'/'.$base.'-'.$width.'.'.$extension);
-        }
-    }
-
-    public function derivative(string $path, int $width): string
-    {
-        $extension = pathinfo($path, \PATHINFO_EXTENSION);
-
-        return substr($path, 0, -\strlen($extension) - 1).'-'.$width.'.'.$extension;
     }
 
     private function read(File $file, string $extension): \GdImage

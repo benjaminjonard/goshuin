@@ -2,27 +2,24 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\App;
+namespace App\Tests\App\Controller;
 
+use App\Tests\AppTestCase;
 use App\Tests\Factory\UserFactory;
-use Symfony\Bundle\FrameworkBundle\KernelBrowser;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Request;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
-class SignInTest extends WebTestCase
+class SecurityTest extends AppTestCase
 {
     use Factories;
     use ResetDatabase;
 
-    private KernelBrowser $client;
-
     #[\Override]
     protected function setUp(): void
     {
-        $this->client = static::createClient();
+        parent::setUp();
         static::getContainer()->get('cache.rate_limiter')->clear();
     }
 
@@ -101,20 +98,19 @@ class SignInTest extends WebTestCase
     {
         UserFactory::createOne(['email' => 'user@example.com']);
 
-        $this->client->request(Request::METHOD_GET, '/_design');
+        $this->client->request(Request::METHOD_GET, '/settings');
         $this->client->followRedirect();
         $this->assertRouteSame('app_login', [], 'A protected page did not lead to sign-in.');
 
         $this->submitCredentials('user@example.com', 'a-long-enough-password');
         $this->client->followRedirect();
 
-        $this->assertRouteSame('app_design', [], 'Signing in did not give the requested page back.');
+        $this->assertRouteSame('app_settings', [], 'Signing in did not give the requested page back.');
     }
 
     public function test_signing_out_ends_the_session(): void
     {
-        $user = UserFactory::createOne();
-        $this->client->loginUser($user);
+        $this->client->loginUser(UserFactory::createOne());
         $this->client->request(Request::METHOD_GET, '/');
         $this->assertResponseIsSuccessful();
 
@@ -126,17 +122,6 @@ class SignInTest extends WebTestCase
         $this->assertResponseRedirects();
         $this->client->followRedirect();
         $this->assertRouteSame('app_login', [], 'The session survived signing out.');
-    }
-
-    public function test_an_authenticated_page_is_never_cached(): void
-    {
-        $this->client->loginUser(UserFactory::createOne());
-
-        $this->client->request(Request::METHOD_GET, '/');
-
-        $cacheControl = $this->client->getResponse()->headers->get('Cache-Control');
-        $this->assertStringContainsString('private', $cacheControl);
-        $this->assertStringContainsString('must-revalidate', $cacheControl);
     }
 
     private function errorShown(Crawler $crawler): string

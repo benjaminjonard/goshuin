@@ -46,7 +46,9 @@ final readonly class UploadListener
         $entity = $args->getObject();
 
         foreach ($this->reader->getUploadFields($entity) as $upload) {
-            $this->store->remove($this->accessor->getValue($entity, $upload->getPathProperty()));
+            foreach ($this->stored($entity, $upload) as $path) {
+                $this->store->remove($path);
+            }
         }
     }
 
@@ -61,10 +63,18 @@ final readonly class UploadListener
                 continue;
             }
 
-            $previous = $this->accessor->getValue($entity, $upload->getPathProperty());
-            $this->accessor->setValue($entity, $upload->getPathProperty(), $this->store->store($file));
+            $previous = $this->stored($entity, $upload);
+            $stored = $this->store->store($file);
+
+            $this->accessor->setValue($entity, $upload->getPathProperty(), $stored->path);
+            $this->accessor->setValue($entity, $upload->getMiniProperty(), $stored->mini);
+            $this->accessor->setValue($entity, $upload->getCardProperty(), $stored->card);
+            $this->accessor->setValue($entity, $upload->getFullProperty(), $stored->full);
             $this->accessor->setValue($entity, $property, null);
-            $this->store->remove($previous);
+
+            foreach ($previous as $path) {
+                $this->store->remove($path);
+            }
         }
     }
 
@@ -76,8 +86,22 @@ final readonly class UploadListener
             return;
         }
 
-        $this->store->remove($this->accessor->getValue($entity, $upload->getPathProperty()));
-        $this->accessor->setValue($entity, $upload->getPathProperty(), null);
+        foreach ($upload->getColumnProperties() as $column) {
+            $this->store->remove($this->accessor->getValue($entity, $column));
+            $this->accessor->setValue($entity, $column, null);
+        }
+
         $this->accessor->setValue($entity, $flag, false);
+    }
+
+    /**
+     * @return list<?string>
+     */
+    private function stored(object $entity, Upload $upload): array
+    {
+        return array_map(
+            fn (string $column): ?string => $this->accessor->getValue($entity, $column),
+            $upload->getColumnProperties(),
+        );
     }
 }

@@ -6,6 +6,8 @@ namespace App\Entity;
 
 use App\Attribute\Upload;
 use App\Repository\GoshuinchoRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection as DoctrineCollection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
@@ -59,7 +61,22 @@ class Goshuincho
     #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $coverFront = null;
 
-    #[Upload(pathProperty: 'coverFront', deleteProperty: 'removeCoverFront')]
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $coverFrontMini = null;
+
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $coverFrontCard = null;
+
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $coverFrontFull = null;
+
+    #[Upload(
+        pathProperty: 'coverFront',
+        miniProperty: 'coverFrontMini',
+        cardProperty: 'coverFrontCard',
+        fullProperty: 'coverFrontFull',
+        deleteProperty: 'removeCoverFront',
+    )]
     #[Assert\Image(
         mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
         mimeTypesMessage: 'error.upload_format',
@@ -72,7 +89,22 @@ class Goshuincho
     #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $coverBack = null;
 
-    #[Upload(pathProperty: 'coverBack', deleteProperty: 'removeCoverBack')]
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $coverBackMini = null;
+
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $coverBackCard = null;
+
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $coverBackFull = null;
+
+    #[Upload(
+        pathProperty: 'coverBack',
+        miniProperty: 'coverBackMini',
+        cardProperty: 'coverBackCard',
+        fullProperty: 'coverBackFull',
+        deleteProperty: 'removeCoverBack',
+    )]
     #[Assert\Image(
         mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
         mimeTypesMessage: 'error.upload_format',
@@ -81,6 +113,13 @@ class Goshuincho
     private ?File $coverBackFile = null;
 
     private bool $removeCoverBack = false;
+
+    /**
+     * @var DoctrineCollection<int, Goshuin>
+     */
+    #[ORM\OneToMany(targetEntity: Goshuin::class, mappedBy: 'goshuincho', cascade: ['remove'], fetch: 'EXTRA_LAZY')]
+    #[ORM\OrderBy(['position' => 'ASC'])]
+    private DoctrineCollection $goshuins;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Gedmo\Timestampable(on: 'create')]
@@ -93,6 +132,7 @@ class Goshuincho
     public function __construct()
     {
         $this->id = Uuid::v7()->toRfc4122();
+        $this->goshuins = new ArrayCollection();
     }
 
     public function getId(): string
@@ -220,6 +260,42 @@ class Goshuincho
         return $this;
     }
 
+    public function getCoverFrontMini(): ?string
+    {
+        return $this->coverFrontMini;
+    }
+
+    public function setCoverFrontMini(?string $coverFrontMini): Goshuincho
+    {
+        $this->coverFrontMini = $coverFrontMini;
+
+        return $this;
+    }
+
+    public function getCoverFrontCard(): ?string
+    {
+        return $this->coverFrontCard;
+    }
+
+    public function setCoverFrontCard(?string $coverFrontCard): Goshuincho
+    {
+        $this->coverFrontCard = $coverFrontCard;
+
+        return $this;
+    }
+
+    public function getCoverFrontFull(): ?string
+    {
+        return $this->coverFrontFull;
+    }
+
+    public function setCoverFrontFull(?string $coverFrontFull): Goshuincho
+    {
+        $this->coverFrontFull = $coverFrontFull;
+
+        return $this;
+    }
+
     public function getCoverFrontFile(): ?File
     {
         return $this->coverFrontFile;
@@ -256,6 +332,42 @@ class Goshuincho
         return $this;
     }
 
+    public function getCoverBackMini(): ?string
+    {
+        return $this->coverBackMini;
+    }
+
+    public function setCoverBackMini(?string $coverBackMini): Goshuincho
+    {
+        $this->coverBackMini = $coverBackMini;
+
+        return $this;
+    }
+
+    public function getCoverBackCard(): ?string
+    {
+        return $this->coverBackCard;
+    }
+
+    public function setCoverBackCard(?string $coverBackCard): Goshuincho
+    {
+        $this->coverBackCard = $coverBackCard;
+
+        return $this;
+    }
+
+    public function getCoverBackFull(): ?string
+    {
+        return $this->coverBackFull;
+    }
+
+    public function setCoverBackFull(?string $coverBackFull): Goshuincho
+    {
+        $this->coverBackFull = $coverBackFull;
+
+        return $this;
+    }
+
     public function getCoverBackFile(): ?File
     {
         return $this->coverBackFile;
@@ -278,6 +390,14 @@ class Goshuincho
         $this->removeCoverBack = $removeCoverBack;
 
         return $this;
+    }
+
+    /**
+     * @return DoctrineCollection<int, Goshuin>
+     */
+    public function getGoshuins(): DoctrineCollection
+    {
+        return $this->goshuins;
     }
 
     public function getCreatedAt(): \DateTimeImmutable

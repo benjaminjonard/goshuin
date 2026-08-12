@@ -5,16 +5,16 @@
         {{ form_row(form.boughtAt) }}
         {{ form_row(form.purchasedAt) }}
         {{ form_row(form.price) }}
-        <div class="grid gap-3.5 sm:grid-cols-2">
+        <div class="grid items-start gap-3.5 sm:grid-cols-2">
             <div class="grid gap-1.5">
-                {{ form_widget(form.coverFrontFile, {attr: {'data-cover': form.vars.data.coverFront}}) }}
+                {{ form_widget(form.coverFrontFile, {attr: {'data-cover': form.vars.data.coverFrontCard}}) }}
                 {{ form_errors(form.coverFrontFile) }}
-                {% if form.vars.data.coverFront %}{{ form_row(form.removeCoverFront) }}{% endif %}
+                {{ form_row(form.removeCoverFront) }}
             </div>
             <div class="grid gap-1.5">
-                {{ form_widget(form.coverBackFile, {attr: {'data-cover': form.vars.data.coverBack}}) }}
+                {{ form_widget(form.coverBackFile, {attr: {'data-cover': form.vars.data.coverBackCard}}) }}
                 {{ form_errors(form.coverBackFile) }}
-                {% if form.vars.data.coverBack %}{{ form_row(form.removeCoverBack) }}{% endif %}
+                {{ form_row(form.removeCoverBack) }}
             </div>
         </div>
 

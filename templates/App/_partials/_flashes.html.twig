@@ -1,0 +1,13 @@
+{% set flashes = app.flashes %}
+{% if flashes is not empty %}
+    <div class="mx-auto grid w-full max-w-[720px] gap-2 px-[clamp(14px,2.6vw,30px)] pt-[clamp(14px,2.4vw,26px)]">
+        {% for messages in flashes %}
+            {% for message in messages %}
+                <p class="flex items-start gap-2.5 rounded-2xl border border-accent-line bg-accent-soft px-3.5 py-3 text-[12.5px] leading-relaxed text-accent-text">
+                    {{ include('App/_partials/_icon.html.twig', {name: 'info', small: true, class: 'shrink-0'}) }}
+                    <span>{{ message|trans }}</span>
+                </p>
+            {% endfor %}
+        {% endfor %}
+    </div>
+{% endif %}

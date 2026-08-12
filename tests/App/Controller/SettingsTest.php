@@ -2,30 +2,21 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\App;
+namespace App\Tests\App\Controller;
 
 use App\Enum\Theme;
 use App\Repository\UserRepository;
+use App\Tests\AppTestCase;
 use App\Tests\Factory\UserFactory;
-use Symfony\Bundle\FrameworkBundle\KernelBrowser;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
-class SettingsTest extends WebTestCase
+class SettingsTest extends AppTestCase
 {
     use Factories;
     use ResetDatabase;
-
-    private KernelBrowser $client;
-
-    #[\Override]
-    protected function setUp(): void
-    {
-        $this->client = static::createClient();
-    }
 
     public function test_settings_are_private(): void
     {
@@ -50,7 +41,7 @@ class SettingsTest extends WebTestCase
         ]);
 
         $this->assertResponseRedirects();
-        $stored = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'moved@example.com']);
+        $stored = $this->users()->findOneBy(['email' => 'moved@example.com']);
         $this->assertNotNull($stored, 'The email was not changed.');
         $this->assertSame('Renamed', $stored->getName());
         $this->assertSame('fr', $stored->getLocale());
@@ -103,8 +94,7 @@ class SettingsTest extends WebTestCase
         $this->client->request(Request::METHOD_POST, '/settings/theme', ['theme' => 'dark', '_token' => $token]);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
-        static::getContainer()->get('doctrine')->getManager()->clear();
-        $stored = static::getContainer()->get(UserRepository::class)->find($user->getId());
+        $stored = $this->users()->find($user->getId());
         $this->assertSame(Theme::Dark, $stored->getTheme());
     }
 
@@ -122,8 +112,7 @@ class SettingsTest extends WebTestCase
         ]);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
-        static::getContainer()->get('doctrine')->getManager()->clear();
-        $stored = static::getContainer()->get(UserRepository::class)->find($user->getId());
+        $stored = $this->users()->find($user->getId());
         $this->assertSame($hashed, $stored->getPassword(), 'The password changed without the current one.');
     }
 
@@ -157,5 +146,12 @@ class SettingsTest extends WebTestCase
         $this->assertResponseRedirects();
         $this->client->followRedirect();
         $this->assertRouteSame('app_login', [], 'The other session survived the password change.');
+    }
+
+    private function users(): UserRepository
+    {
+        $this->manager();
+
+        return static::getContainer()->get(UserRepository::class);
     }
 }

@@ -1,6 +1,9 @@
 error:
     email:
         not_unique: 'Un compte utilise déjà cette adresse.'
+    location_required: 'Un lieu est requis.'
+    received_on_required: 'Une date est requise.'
+    image_required: 'Une photo est requise.'
     upload_format: 'Seules les images JPEG, PNG et WebP sont acceptées.'
     upload_too_large: 'Ce fichier dépasse la limite configurée.'
     password_mismatch: 'Les deux mots de passe ne correspondent pas.'

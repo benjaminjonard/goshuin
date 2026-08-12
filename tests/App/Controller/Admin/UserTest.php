@@ -2,30 +2,20 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\App;
+namespace App\Tests\App\Controller\Admin;
 
-use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Tests\AppTestCase;
 use App\Tests\Factory\UserFactory;
-use Symfony\Bundle\FrameworkBundle\KernelBrowser;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
-class AdminUserTest extends WebTestCase
+class UserTest extends AppTestCase
 {
     use Factories;
     use ResetDatabase;
-
-    private KernelBrowser $client;
-
-    #[\Override]
-    protected function setUp(): void
-    {
-        $this->client = static::createClient();
-    }
 
     /**
      * @return list<array{string, string}>
@@ -235,9 +225,8 @@ class AdminUserTest extends WebTestCase
 
     private function users(): UserRepository
     {
-        $container = static::getContainer();
-        $container->get('doctrine')->getManager()->clear();
+        $this->manager();
 
-        return $container->get(UserRepository::class);
+        return static::getContainer()->get(UserRepository::class);
     }
 }

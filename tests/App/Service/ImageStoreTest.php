@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\App;
+namespace App\Tests\App\Service;
 
 use App\Service\ImageRefused;
 use App\Service\ImageStore;
+use App\Service\StoredImage;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\File\File;
 
@@ -28,43 +29,52 @@ class ImageStoreTest extends TestCase
 
     public function test_it_keeps_the_original_and_writes_every_derivative(): void
     {
-        $path = $this->store()->store($this->jpeg(2000, 1000));
+        $stored = $this->store()->store($this->jpeg(2000, 1000));
 
-        $this->assertFileExists($this->root.'/'.$path, 'The original was not retained.');
+        $this->assertFileExists($this->root.'/'.$stored->path, 'The original was not retained.');
 
-        foreach (ImageStore::WIDTHS as $width) {
-            $derivative = $this->root.'/'.$this->store()->derivative($path, $width);
-            $this->assertFileExists($derivative, sprintf('The %d px derivative is missing.', $width));
-            $this->assertSame($width, getimagesize($derivative)[0], sprintf('The %d px derivative has the wrong width.', $width));
+        foreach ($this->derivatives($stored) as $slot => $path) {
+            $width = ImageStore::WIDTHS[$slot];
+            $this->assertFileExists($this->root.'/'.$path, sprintf('The %s derivative is missing.', $slot));
+            $this->assertSame($width, getimagesize($this->root.'/'.$path)[0], sprintf('The %s derivative has the wrong width.', $slot));
         }
+    }
+
+    public function test_every_derivative_is_named_on_the_answer(): void
+    {
+        $stored = $this->store()->store($this->jpeg(2000, 1000));
+
+        $this->assertNotSame($stored->path, $stored->mini, 'The derivatives were not distinguished from the original.');
+        $this->assertSame([$stored->mini, $stored->card, $stored->full], array_values($this->derivatives($stored)));
+        $this->assertCount(4, array_unique([$stored->path, $stored->mini, $stored->card, $stored->full]), 'Two slots share a path.');
     }
 
     public function test_the_derivatives_exist_by_the_time_the_call_returns(): void
     {
         $store = $this->store();
 
-        $path = $store->store($this->jpeg(1500, 1000));
+        $stored = $store->store($this->jpeg(1500, 1000));
 
-        $this->assertFileExists($this->root.'/'.$store->derivative($path, 1200), 'A derivative was left for later.');
+        $this->assertFileExists($this->root.'/'.$stored->full, 'A derivative was left for later.');
     }
 
     public function test_it_never_enlarges_a_small_image(): void
     {
         $store = $this->store();
 
-        $path = $store->store($this->jpeg(200, 100));
+        $stored = $store->store($this->jpeg(200, 100));
 
-        $this->assertSame(200, getimagesize($this->root.'/'.$store->derivative($path, 1200))[0], 'A small image was blown up.');
-        $this->assertSame(96, getimagesize($this->root.'/'.$store->derivative($path, 96))[0]);
+        $this->assertSame(200, getimagesize($this->root.'/'.$stored->full)[0], 'A small image was blown up.');
+        $this->assertSame(96, getimagesize($this->root.'/'.$stored->mini)[0]);
     }
 
     public function test_it_accepts_png_and_webp(): void
     {
         foreach (['png', 'webp'] as $format) {
-            $path = $this->store()->store($this->image(300, 200, $format));
+            $stored = $this->store()->store($this->image(300, 200, $format));
 
-            $this->assertFileExists($this->root.'/'.$path, sprintf('%s was refused.', $format));
-            $this->assertStringEndsWith('.'.$format, $path);
+            $this->assertFileExists($this->root.'/'.$stored->path, sprintf('%s was refused.', $format));
+            $this->assertStringEndsWith('.'.$format, $stored->path);
         }
     }
 
@@ -87,17 +97,11 @@ class ImageStoreTest extends TestCase
         $store = $this->store();
         $source = $this->jpegWithMetadata();
 
-        $path = $store->store($source);
+        $stored = $store->store($source);
 
         $this->assertContains('Orientation', $this->exif($source->getPathname()), 'The fixture carried no metadata, so this proves nothing.');
 
-        $files = [$path];
-
-        foreach (ImageStore::WIDTHS as $width) {
-            $files[] = $store->derivative($path, $width);
-        }
-
-        foreach ($files as $file) {
+        foreach ([$stored->path, $stored->mini, $stored->card, $stored->full] as $file) {
             $keys = $this->exif($this->root.'/'.$file);
 
             $this->assertNotContains('Orientation', $keys, sprintf('%s kept the orientation flag.', $file));
@@ -117,21 +121,23 @@ class ImageStoreTest extends TestCase
 
         $this->assertSame([600, 300], \array_slice(getimagesize($source->getPathname()), 0, 2), 'The fixture is not the landscape the test needs.');
 
-        $path = $store->store($source);
-        [$width, $height] = getimagesize($this->root.'/'.$path);
+        $stored = $store->store($source);
+        [$width, $height] = getimagesize($this->root.'/'.$stored->path);
 
         $this->assertSame([300, 600], [$width, $height], 'The orientation flag was discarded without being applied to the pixels.');
-        $this->assertSame(96, getimagesize($this->root.'/'.$store->derivative($path, 96))[0], 'The derivative was cut from the unrotated pixels.');
+        $this->assertSame(96, getimagesize($this->root.'/'.$stored->mini)[0], 'The derivative was cut from the unrotated pixels.');
     }
 
-    public function test_removing_takes_the_derivatives_with_it(): void
+    public function test_removing_deletes_exactly_the_path_it_is_given(): void
     {
         $store = $this->store();
-        $path = $store->store($this->jpeg(400, 300));
+        $stored = $store->store($this->jpeg(400, 300));
 
-        $store->remove($path);
+        $store->remove($stored->mini);
 
-        $this->assertSame([], $this->stored(), 'Removing left files behind.');
+        $this->assertFileDoesNotExist($this->root.'/'.$stored->mini, 'The named file survived.');
+        $this->assertFileExists($this->root.'/'.$stored->path, 'Removing one derivative took the original with it.');
+        $this->assertFileExists($this->root.'/'.$stored->card, 'Removing one derivative took another with it.');
     }
 
     public function test_a_twelve_megabyte_photograph_is_stored_within_five_seconds(): void
@@ -143,6 +149,14 @@ class ImageStoreTest extends TestCase
         $this->store()->store($file);
 
         $this->assertLessThan(5.0, microtime(true) - $started, 'Storing took longer than the budget.');
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function derivatives(StoredImage $stored): array
+    {
+        return ['mini' => $stored->mini, 'card' => $stored->card, 'full' => $stored->full];
     }
 
     private function store(): ImageStore

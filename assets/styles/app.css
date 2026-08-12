@@ -204,6 +204,14 @@
     box-shadow: none;
 }
 
+@utility image-frame {
+    width: 100%;
+    aspect-ratio: 3 / 4.1;
+    border-radius: 10px;
+    background: #f2ece0;
+    object-fit: contain;
+}
+
 @utility hue-fill {
     background: oklch(var(--hue-l) var(--hue-c) var(--hue));
 }
@@ -223,9 +231,9 @@
 
 @layer base {
     /*
-     * An un-reset figure margin of 1em 40px crushed every seal thumbnail across
+     * An un-reset figure margin of 1em 40px crushed every goshuin thumbnail across
      * six mockup variants before it was found. Tailwind's own preflight covers
-     * most of this; these are the elements the seal and cover frames depend on.
+     * most of this; these are the elements the goshuin and cover frames depend on.
      */
     figure,
     figcaption,

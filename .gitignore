@@ -13,3 +13,8 @@
 /assets/yarn-error.log
 /.phpunit.cache/
 /docker/volumes/
+###> agent and planning artefacts, never committed ###
+/.claude/
+/_bmad/
+/_bmad-output/
+###< agent and planning artefacts, never committed ###

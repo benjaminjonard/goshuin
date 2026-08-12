@@ -16,14 +16,14 @@
         {% embed 'App/_partials/_section.html.twig' with {title: 'label.goshuincho'|trans} %}
                 {% block content %}
                     <div class="grid gap-4">
-                        {% if goshuincho.coverFront or goshuincho.coverBack %}
+                        {% if goshuincho.coverFrontFull or goshuincho.coverBackFull %}
                             <div class="grid gap-3.5 sm:grid-cols-2">
                                 {% for cover in [
-                                    {path: goshuincho.coverFront, caption: 'label.cover_front'},
-                                    {path: goshuincho.coverBack, caption: 'label.cover_back'},
+                                    {path: goshuincho.coverFrontFull, caption: 'label.cover_front'},
+                                    {path: goshuincho.coverBackFull, caption: 'label.cover_back'},
                                 ]|filter(cover => cover.path) %}
                                     <figure class="grid gap-1.5">
-                                        <img src="{{ cover.path|image(1200) }}" alt="{{ cover.caption|trans }}"
+                                        <img src="{{ cover.path|image }}" alt="{{ cover.caption|trans }}"
                                              class="w-full rounded-2xl border border-line bg-tile-2 object-contain">
                                         <figcaption class="text-xs text-fg-3">{{ cover.caption|trans }}</figcaption>
                                     </figure>
@@ -31,7 +31,7 @@
                             </div>
                         {% else %}
                             <div class="grid place-items-center gap-2 rounded-2xl border border-line bg-tile-2 px-4 py-8 text-center">
-                                {{ include('App/_partials/_icon.html.twig', {name: 'book', class: 'text-fg-3'}) }}
+                                {{ include('App/_partials/_icon.html.twig', {name: 'goshuincho', class: 'text-fg-3'}) }}
                                 <span class="text-[13px] text-fg-3">{{ 'label.no_cover'|trans }}</span>
                             </div>
                         {% endif %}
@@ -49,11 +49,36 @@
                 {% endblock %}
         {% endembed %}
 
-        <div class="tile tile-pad text-center">
-            <span class="mx-auto mb-4 grid size-[52px] place-items-center rounded-2xl bg-accent-soft" aria-hidden="true">
-                {{ include('App/_partials/_icon.html.twig', {name: 'seal', class: 'size-7 text-accent-text'}) }}
-            </span>
-            <h2 class="text-[15px] font-bold tracking-[-0.015em]">{{ 'label.no_goshuin_yet'|trans }}</h2>
-        </div>
+        {% embed 'App/_partials/_section.html.twig' with {title: 'label.goshuin'|trans, aux: goshuincho.goshuins|length ?: null} %}
+                {% block content %}
+                    {% if goshuincho.goshuins|length %}
+                        <ol class="grid list-none grid-cols-[repeat(auto-fill,minmax(112px,1fr))] gap-3.5 p-0">
+                            {% for goshuin in goshuincho.goshuins %}
+                                <li class="grid gap-1.5">
+                                    <img src="{{ goshuin.imageCard|image }}" alt="{{ goshuin.location.romanizedName }}" class="image-frame">
+                                    <span class="text-[13px] font-semibold text-fg">{{ goshuin.location.romanizedName }}</span>
+                                    <span class="text-xs tabular-nums text-fg-3">{{ goshuin.receivedOn|format_date('long') }}</span>
+                                </li>
+                            {% endfor %}
+                        </ol>
+                    {% else %}
+                        <div class="grid place-items-center gap-2 py-4 text-center">
+                            <span class="grid size-[52px] place-items-center rounded-2xl bg-accent-soft" aria-hidden="true">
+                                {{ include('App/_partials/_icon.html.twig', {name: 'goshuin', class: 'size-7 text-accent-text'}) }}
+                            </span>
+                            <span class="text-[13px] text-fg-3">{{ 'label.no_goshuin_yet'|trans }}</span>
+                        </div>
+                    {% endif %}
+
+                    <div class="mt-4 flex justify-center">
+                        {{ include('App/_partials/_button.html.twig', {
+                            label: 'label.add_goshuin'|trans,
+                            variant: 'primary',
+                            icon: 'plus',
+                            href: path('app_goshuin_add', {slug: goshuincho.slug}),
+                        }) }}
+                    </div>
+                {% endblock %}
+        {% endembed %}
     </main>
 {% endblock %}

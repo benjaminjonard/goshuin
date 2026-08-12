@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\App;
+namespace App\Tests\App\Twig;
 
 use App\Twig\MoneyExtension;
 use PHPUnit\Framework\Attributes\DataProvider;

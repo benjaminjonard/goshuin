@@ -51,7 +51,7 @@ label:
     description: 'Description'
     delete_goshuincho: 'Supprimer %title% et tout son contenu ?'
     no_goshuin_yet: 'Aucun goshuin pour le moment.'
-    seal_type: 'Type de sceau'
+    image: 'Image'
     notes: 'Notes'
     locations: 'Lieux'
     spent: 'Dépensé'
@@ -95,6 +95,7 @@ message:
     goshuin_deleted: 'Le goshuin de %location% a été supprimé.'
     location_added: 'Le lieu %name% a été ajouté.'
     location_duplicate: 'Un lieu porte déjà ce nom. En créer un autre reste possible.'
+    received_in_the_future: 'Cette date est dans le futur.'
 
 error:
     credentials: 'Ces identifiants ne correspondent à aucun compte.'

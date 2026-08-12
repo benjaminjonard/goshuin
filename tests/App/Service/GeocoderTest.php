@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\App;
+namespace App\Tests\App\Service;
 
 use App\Service\Geocoder;
 use App\Service\GeocoderFailed;

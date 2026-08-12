@@ -51,7 +51,7 @@ label:
     description: 'Description'
     delete_goshuincho: 'Delete %title% and everything in it?'
     no_goshuin_yet: 'No goshuin yet.'
-    seal_type: 'Seal type'
+    image: 'Image'
     notes: 'Notes'
     locations: 'Locations'
     spent: 'Spent'
@@ -95,6 +95,7 @@ message:
     goshuin_deleted: 'The goshuin from %location% was deleted.'
     location_added: 'The Location %name% was added.'
     location_duplicate: 'A location with that name already exists. Creating another one is allowed.'
+    received_in_the_future: 'This date is in the future.'
 
 error:
     credentials: 'Those credentials do not match an account.'

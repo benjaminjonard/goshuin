@@ -44,6 +44,7 @@ FROM node:26-bookworm AS build-node
 WORKDIR /app/assets
 
 COPY ./assets/ ./
+COPY --from=goshuin-base /app/public/vendor/symfony/ux-live-component/assets/ /app/vendor/symfony/ux-live-component/assets/
 
 RUN set -eux ; \
     mkdir -p /app/public/build ; \

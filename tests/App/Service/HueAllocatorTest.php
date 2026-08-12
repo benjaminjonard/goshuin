@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\App;
+namespace App\Tests\App\Service;
 
 use App\Service\HueAllocator;
 use PHPUnit\Framework\TestCase;
@@ -63,7 +63,7 @@ class HueAllocatorTest extends TestCase
         $freed = $used[2];
         unset($used[2]);
 
-        $this->assertSame($freed, $this->allocator()->next(array_values($used)), 'A deleted book left its hue unusable.');
+        $this->assertSame($freed, $this->allocator()->next(array_values($used)), 'A deleted goshuincho left its hue unusable.');
     }
 
     public function test_it_still_answers_when_the_circle_is_crowded(): void
