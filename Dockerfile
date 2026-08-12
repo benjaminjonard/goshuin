@@ -24,7 +24,7 @@ RUN set -eux ; \
     curl \
     openssl \
     unzip ; \
-    install-php-extensions opcache pdo_pgsql intl gd zip apcu ; \
+    install-php-extensions opcache pdo_pgsql intl gd zip apcu exif ; \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer ; \
     cd /app/public ; \
     COMPOSER_MEMORY_LIMIT=-1 composer install --classmap-authoritative ; \

@@ -13,22 +13,41 @@
 
 {% block body %}
     <main class="page mx-auto grid w-full max-w-[720px] gap-[clamp(12px,1.4vw,18px)]">
-        {% if goshuincho.description is not empty or goshuincho.purchasedAt or goshuincho.price is not null %}
-            {% embed 'App/_partials/_section.html.twig' with {title: 'label.goshuincho'|trans} %}
+        {% embed 'App/_partials/_section.html.twig' with {title: 'label.goshuincho'|trans} %}
                 {% block content %}
                     <div class="grid gap-4">
+                        {% if goshuincho.coverFront or goshuincho.coverBack %}
+                            <div class="grid gap-3.5 sm:grid-cols-2">
+                                {% for cover in [
+                                    {path: goshuincho.coverFront, caption: 'label.cover_front'},
+                                    {path: goshuincho.coverBack, caption: 'label.cover_back'},
+                                ]|filter(cover => cover.path) %}
+                                    <figure class="grid gap-1.5">
+                                        <img src="{{ cover.path|image(1200) }}" alt="{{ cover.caption|trans }}"
+                                             class="w-full rounded-2xl border border-line bg-tile-2 object-contain">
+                                        <figcaption class="text-xs text-fg-3">{{ cover.caption|trans }}</figcaption>
+                                    </figure>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="grid place-items-center gap-2 rounded-2xl border border-line bg-tile-2 px-4 py-8 text-center">
+                                {{ include('App/_partials/_icon.html.twig', {name: 'book', class: 'text-fg-3'}) }}
+                                <span class="text-[13px] text-fg-3">{{ 'label.no_cover'|trans }}</span>
+                            </div>
+                        {% endif %}
+
                         {% if goshuincho.description is not empty %}
                             <p class="text-sm leading-relaxed text-fg-2">{{ goshuincho.description|nl2br }}</p>
                         {% endif %}
 
                         {{ include('App/_partials/_kvs.html.twig', {rows: [
+                            {label: 'label.bought_at'|trans, value: goshuincho.boughtAt ? goshuincho.boughtAt.romanizedName : null},
                             {label: 'label.purchased_on'|trans, value: goshuincho.purchasedAt ? goshuincho.purchasedAt|format_date('long') : null},
                             {label: 'label.price_paid'|trans, value: goshuincho.price|money(goshuincho.currency)},
                         ]}) }}
                     </div>
                 {% endblock %}
-            {% endembed %}
-        {% endif %}
+        {% endembed %}
 
         <div class="tile tile-pad text-center">
             <span class="mx-auto mb-4 grid size-[52px] place-items-center rounded-2xl bg-accent-soft" aria-hidden="true">

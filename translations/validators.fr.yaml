@@ -1,5 +1,7 @@
 error:
     email:
         not_unique: 'Un compte utilise déjà cette adresse.'
+    upload_format: 'Seules les images JPEG, PNG et WebP sont acceptées.'
+    upload_too_large: 'Ce fichier dépasse la limite configurée.'
     password_mismatch: 'Les deux mots de passe ne correspondent pas.'
     password_current_wrong: 'Le mot de passe actuel ne correspond pas.'

@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace App\Form\Type;
 
 use App\Entity\Goshuincho;
+use App\Entity\Location;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -23,6 +27,13 @@ class GoshuinchoType extends AbstractType
                 'label' => 'label.title',
                 'attr' => ['autofocus' => true],
             ])
+            ->add('boughtAt', EntityType::class, [
+                'label' => 'label.bought_at',
+                'class' => Location::class,
+                'choice_label' => 'romanizedName',
+                'required' => false,
+                'block_prefix' => 'location',
+            ])
             ->add('purchasedAt', DateType::class, [
                 'label' => 'label.purchased_on',
                 'widget' => 'single_text',
@@ -33,6 +44,24 @@ class GoshuinchoType extends AbstractType
                 'label' => 'label.price_paid',
                 'required' => false,
                 'block_prefix' => 'yen',
+            ])
+            ->add('coverFrontFile', FileType::class, [
+                'label' => 'label.cover_front',
+                'required' => false,
+                'block_prefix' => 'cover',
+            ])
+            ->add('removeCoverFront', CheckboxType::class, [
+                'label' => 'label.remove_cover',
+                'required' => false,
+            ])
+            ->add('coverBackFile', FileType::class, [
+                'label' => 'label.cover_back',
+                'required' => false,
+                'block_prefix' => 'cover',
+            ])
+            ->add('removeCoverBack', CheckboxType::class, [
+                'label' => 'label.remove_cover',
+                'required' => false,
             ])
             ->add('description', TextareaType::class, [
                 'label' => 'label.description',

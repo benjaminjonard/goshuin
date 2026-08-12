@@ -30,5 +30,9 @@
         "dev": "encore dev",
         "watch": "encore dev --watch",
         "build": "encore production --progress"
+    },
+    "dependencies": {
+        "@symfony/ux-live-component": "file:../vendor/symfony/ux-live-component/assets",
+        "leaflet": "^1.9.4"
     }
 }

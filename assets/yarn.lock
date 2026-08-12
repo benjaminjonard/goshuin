@@ -1240,6 +1240,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@symfony/ux-live-component@file:../vendor/symfony/ux-live-component/assets::locator=goshuin%40workspace%3A.":
+  version: 3.2.0
+  resolution: "@symfony/ux-live-component@file:../vendor/symfony/ux-live-component/assets#../vendor/symfony/ux-live-component/assets::hash=e3b0f9&locator=goshuin%40workspace%3A."
+  peerDependencies:
+    "@hotwired/stimulus": ^3.0.0
+  checksum: 10/af32b2435b8dd1888c6e9766a57e2fef315c1ef628b91e5059386416bca3d6165905ff1150d67bced9bb8c942c8e9140a37c77c1a35f3f3f0a99c1f3b1339cd0
+  languageName: node
+  linkType: hard
+
 "@symfony/webpack-encore@npm:7.2.0":
   version: 7.2.0
   resolution: "@symfony/webpack-encore@npm:7.2.0"
@@ -2481,9 +2490,11 @@ __metadata:
     "@babel/preset-env": "npm:8.0.2"
     "@hotwired/stimulus": "npm:3.2.2"
     "@symfony/stimulus-bridge": "npm:4.0.1"
+    "@symfony/ux-live-component": "file:../vendor/symfony/ux-live-component/assets"
     "@symfony/webpack-encore": "npm:7.2.0"
     "@tailwindcss/postcss": "npm:4.3.3"
     cssnano: "npm:8.0.5"
+    leaflet: "npm:^1.9.4"
     postcss: "npm:8.5.26"
     postcss-loader: "npm:8.2.1"
     tailwindcss: "npm:4.3.3"
@@ -2699,6 +2710,13 @@ __metadata:
   version: 6.0.3
   resolution: "kind-of@npm:6.0.3"
   checksum: 10/5873d303fb36aad875b7538798867da2ae5c9e328d67194b0162a3659a627d22f742fc9c4ae95cd1704132a24b00cae5041fc00c0f6ef937dc17080dc4dbb962
+  languageName: node
+  linkType: hard
+
+"leaflet@npm:^1.9.4":
+  version: 1.9.4
+  resolution: "leaflet@npm:1.9.4"
+  checksum: 10/7b6a74d503980961a85bdabebf9d1162c26db0e88195800ceea311682b653d621718f2ada3c9aab903a735af9862c9ae278ba550d4429acbd954d43449cd0d77
   languageName: node
   linkType: hard
 

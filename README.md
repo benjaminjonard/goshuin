@@ -32,6 +32,14 @@ services:
             # Match your host user so uploaded files are yours
             - PUID=1000
             - PGID=1000
+            # The only two outbound requests the instance makes. Map tiles come
+            # from OpenStreetMap; the place search from a Photon instance, and
+            # Photon is the only geocoder this speaks to. Empty PHOTON_HOST_URL to
+            # remove the search altogether, or point it at your own Photon so
+            # nothing leaves your network.
+            - MAP_TILE_URL=https://tile.openstreetmap.org/{z}/{x}/{y}.png
+            - MAP_ATTRIBUTION=© OpenStreetMap contributors
+            - PHOTON_HOST_URL=https://photon.komoot.io
         depends_on:
             - database
         volumes:

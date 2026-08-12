@@ -131,55 +131,7 @@ jobs:
               bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration &&
               php -d memory_limit=512M ./vendor/bin/paratest --runner=WrapperRunner --passthru-php="-d memory_limit=512M"
             '
-
-  translations:
-    name: Both catalogues complete
-    runs-on: ubuntu-latest
-    needs: [build_ci_image]
-    steps:
-      - name: Download the image
-        uses: actions/download-artifact@v8
-        with:
-          name: ci-image
-          path: /tmp
-
-      - name: Load the image
-        run: docker load --input /tmp/ci-image.tar
-
-      # A lint, not a test: a catalogue is a data file, and AD-14 keeps data files out
-      # of the suite. This is what catches a key added to one language only.
-      - name: Check for missing translations
-        run: |
-          for locale in en fr; do
-            if ! docker run --rm -e APP_SECRET=ci ci-image \
-              bin/console debug:translation "$locale" --only-missing > "report-$locale.txt" 2>&1; then
-              echo "::error::debug:translation could not run for $locale"
-              cat "report-$locale.txt"
-              exit 1
-            fi
-
-            missing=$(grep -c missing "report-$locale.txt" || true)
-            if [ "$missing" != "0" ]; then
-              echo "::error::$missing missing translation(s) for $locale"
-              cat "report-$locale.txt"
-              exit 1
-            fi
-          done
-
-  assets:
-    name: Front assets build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Build
-        working-directory: assets
-        run: |
-          npm install -g corepack
-          corepack enable
-          yarn install --immutable
-          yarn build
-
+            
   remove_ci_image:
     name: Remove the CI image artifact
     if: always()

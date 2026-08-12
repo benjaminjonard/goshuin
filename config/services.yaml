@@ -1,6 +1,10 @@
 parameters:
     default_locale: 'en'
     app.locales: ['en', 'fr']
+    app.map_tile_url: '%env(string:MAP_TILE_URL)%'
+    app.map_attribution: '%env(string:MAP_ATTRIBUTION)%'
+    app.photon_host_url: '%env(string:PHOTON_HOST_URL)%'
+    app.uploads_dir: '%kernel.project_dir%/public/uploads'
     .container.dumper.inline_factories: true
 
 services:

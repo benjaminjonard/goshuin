@@ -2,6 +2,9 @@ twig:
     default_path: '%kernel.project_dir%/templates'
     form_themes:
         - 'App/_partials/_form_theme.html.twig'
+    globals:
+        map_tiles: '%app.map_tile_url%'
+        map_attribution: '%app.map_attribution%'
 
 when@test:
     twig:

@@ -6,11 +6,14 @@ namespace App\Tests\App;
 
 use App\Entity\Goshuincho;
 use App\Repository\GoshuinchoRepository;
+use App\Service\ImageStore;
 use App\Tests\Factory\GoshuinchoFactory;
+use App\Tests\Factory\LocationFactory;
 use App\Tests\Factory\UserFactory;
 use App\Tests\IgnoresOwnership;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Uid\Uuid;
@@ -76,6 +79,38 @@ class GoshuinchoTest extends WebTestCase
         $this->assertCount(1, $crawler->filter('#goshuincho_price'), 'Creation cannot record a price.');
         $this->assertCount(1, $crawler->filter('#goshuincho_price')->ancestors()->filter('div')->first()->filter('use[href="#i-yen"]'), 'The price field shows no currency symbol.');
         $this->assertStringNotContainsString('yen, without a separator', $crawler->filter('main')->text(), 'The explanatory help text survived.');
+    }
+
+    public function test_the_place_of_purchase_is_recorded_and_shown(): void
+    {
+        $location = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'japaneseName' => '清水寺']);
+        $locationId = $location->getId();
+        $this->client->loginUser(UserFactory::createOne());
+        $this->client->request(Request::METHOD_GET, '/goshuincho/add');
+
+        $this->client->submitForm('goshuincho_submit', [
+            'goshuincho[title]' => 'Kyoto',
+            'goshuincho[boughtAt]' => $locationId,
+        ]);
+
+        $this->assertResponseRedirects();
+        $created = $this->books()->findOneBy(['title' => 'Kyoto']);
+        $this->assertNotNull($created->getBoughtAt(), 'The place of purchase was not recorded.');
+        $this->assertSame($locationId, $created->getBoughtAt()->getId());
+
+        $crawler = $this->client->followRedirect();
+        $this->assertStringContainsString('Kiyomizu-dera', $crawler->filter('main dl')->text(), 'The place of purchase is not shown.');
+    }
+
+    public function test_the_place_of_purchase_stays_optional(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+        $this->client->request(Request::METHOD_GET, '/goshuincho/add');
+
+        $this->client->submitForm('goshuincho_submit', ['goshuincho[title]' => 'Nowhere in particular']);
+
+        $this->assertResponseRedirects();
+        $this->assertNull($this->books()->findOneBy(['title' => 'Nowhere in particular'])->getBoughtAt());
     }
 
     public function test_the_identifier_is_a_uuid_v7_string(): void
@@ -155,7 +190,9 @@ class GoshuinchoTest extends WebTestCase
 
         $this->assertResponseIsSuccessful();
         $this->assertCount(1, $crawler->filter('h1'));
-        $this->assertCount(1, $crawler->filter('main h2'), 'The empty state did not state itself exactly once.');
+        $this->assertStringContainsString('No goshuin yet', $crawler->filter('main')->text(), 'The empty state did not state itself.');
+        $this->assertCount(0, $crawler->filter('main figure'), 'A cover slot was drawn for a book with no cover.');
+        $this->assertStringContainsString('No cover photographed', $crawler->filter('main')->text(), 'No stand-in was shown for the missing covers.');
         $this->assertCount(0, $crawler->filter('[data-controller="map"]'), 'An empty map was drawn.');
         $this->assertCount(0, $crawler->filter('main ol'), 'An empty sequence was drawn.');
         $this->assertCount(0, $crawler->filter('main dl'), 'A record with no values was drawn.');
@@ -330,6 +367,122 @@ class GoshuinchoTest extends WebTestCase
         foreach (['colour', 'color', 'hex', 'palette', 'swatch'] as $forbidden) {
             $this->assertNotContains($forbidden, $metadata->getColumnNames(), sprintf('%s was given a column.', $forbidden));
         }
+    }
+
+    public function test_an_uploaded_cover_is_stored_with_its_derivatives(): void
+    {
+        $user = UserFactory::createOne();
+        $book = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'With a cover']);
+        $slug = $book->getSlug();
+        $this->client->loginUser($user);
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug.'/edit');
+
+        $this->client->submitForm('goshuincho_submit', [
+            'goshuincho[title]' => 'With a cover',
+            'goshuincho[coverFrontFile]' => $this->photograph(),
+        ]);
+
+        $this->assertResponseRedirects();
+        $stored = $this->books()->findOneBy(['slug' => $slug]);
+        $this->assertNotNull($stored->getCoverFront(), 'The cover was not recorded on the goshuincho.');
+
+        $root = static::getContainer()->getParameter('app.uploads_dir');
+        $this->assertFileExists($root.'/'.$stored->getCoverFront(), 'The original is not on disk.');
+
+        foreach (ImageStore::WIDTHS as $width) {
+            $this->assertFileExists($root.'/'.$this->images()->derivative($stored->getCoverFront(), $width), sprintf('The %d px derivative is missing.', $width));
+        }
+
+        $this->images()->remove($stored->getCoverFront());
+    }
+
+    public function test_a_refused_upload_keeps_the_other_fields_and_stores_nothing(): void
+    {
+        $user = UserFactory::createOne();
+        $book = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Untouched']);
+        $slug = $book->getSlug();
+        $this->client->loginUser($user);
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug.'/edit');
+
+        $crawler = $this->client->submitForm('goshuincho_submit', [
+            'goshuincho[title]' => 'Renamed in the same submission',
+            'goshuincho[coverFrontFile]' => $this->notAnImage(),
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY, 'A text file was accepted as a cover.');
+        $this->assertStringContainsString('JPEG, PNG and WebP', $crawler->filter('main')->text(), 'The refusal did not name what is accepted.');
+        $this->assertSame('Renamed in the same submission', $crawler->filter('#goshuincho_title')->attr('value'), 'The other fields were lost with the refusal.');
+
+        $stored = $this->books()->findOneBy(['slug' => $slug]);
+        $this->assertNull($stored->getCoverFront(), 'A refused upload was recorded.');
+        $this->assertSame('Untouched', $stored->getTitle(), 'A refused submission was persisted anyway.');
+    }
+
+    public function test_a_cover_can_be_removed_on_its_own(): void
+    {
+        $user = UserFactory::createOne();
+        $book = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Two covers', 'coverFront' => 'ab/cd/front.jpg', 'coverBack' => 'ab/cd/back.jpg']);
+        $slug = $book->getSlug();
+        $this->client->loginUser($user);
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug.'/edit');
+
+        $this->client->submitForm('goshuincho_submit', [
+            'goshuincho[title]' => 'Two covers',
+            'goshuincho[removeCoverFront]' => true,
+        ]);
+
+        $this->assertResponseRedirects();
+        $stored = $this->books()->findOneBy(['slug' => $slug]);
+        $this->assertNull($stored->getCoverFront(), 'The front cover was not removed.');
+        $this->assertSame('ab/cd/back.jpg', $stored->getCoverBack(), 'Removing one cover took the other with it.');
+    }
+
+    private function photograph(): UploadedFile
+    {
+        $image = imagecreatetruecolor(900, 600);
+        imagefilledrectangle($image, 0, 0, 900, 600, imagecolorallocate($image, 180, 90, 70));
+        $path = sys_get_temp_dir().'/cover-'.bin2hex(random_bytes(5)).'.jpg';
+        imagejpeg($image, $path, 90);
+
+        return new UploadedFile($path, 'cover.jpg', 'image/jpeg', test: true);
+    }
+
+    private function notAnImage(): UploadedFile
+    {
+        $path = sys_get_temp_dir().'/note-'.bin2hex(random_bytes(5)).'.txt';
+        file_put_contents($path, 'not a photograph');
+
+        return new UploadedFile($path, 'note.txt', 'text/plain', test: true);
+    }
+
+    private function images(): ImageStore
+    {
+        return static::getContainer()->get(ImageStore::class);
+    }
+
+    public function test_only_the_covers_that_exist_are_drawn(): void
+    {
+        $user = UserFactory::createOne();
+        $book = GoshuinchoFactory::createOne(['owner' => $user, 'coverFront' => 'ab/cd/front.jpg']);
+        $this->client->loginUser($user);
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$book->getSlug());
+
+        $this->assertCount(1, $crawler->filter('main figure'), 'A slot was drawn for the missing back cover.');
+        $this->assertStringContainsString('/uploads/ab/cd/front-1200.jpg', $crawler->filter('main figure img')->attr('src'), 'The cover is not served from its derivative.');
+        $this->assertStringNotContainsString('No cover photographed', $crawler->filter('main')->text(), 'The stand-in appeared beside a real cover.');
+    }
+
+    public function test_both_covers_are_drawn_as_two_fixed_slots(): void
+    {
+        $user = UserFactory::createOne();
+        $book = GoshuinchoFactory::createOne(['owner' => $user, 'coverFront' => 'ab/cd/front.jpg', 'coverBack' => 'ab/cd/back.jpg']);
+        $this->client->loginUser($user);
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$book->getSlug());
+
+        $this->assertCount(2, $crawler->filter('main figure'));
+        $this->assertSame(['Front cover', 'Back cover'], $crawler->filter('main figcaption')->each(fn ($node) => $node->text()), 'The two slots are not fixed and captioned.');
     }
 
     public function test_no_derived_attribute_has_a_column(): void

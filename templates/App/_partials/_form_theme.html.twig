@@ -9,6 +9,30 @@
     </div>
 {% endblock %}
 
+{% block location_widget %}
+    {{ component('LocationCombobox', {name: full_name, id: id, selected: value}) }}
+{% endblock %}
+
+{% block cover_widget %}
+    {% set stored = attr['data-cover'] ?? null %}
+    <div class="grid gap-2" data-controller="upload">
+        <label class="grid cursor-pointer place-items-center gap-1 rounded-2xl border border-dashed border-line-2 bg-tile-2 px-4 py-6 text-center hover:border-fg-3">
+            {% if stored %}
+                <img src="{{ stored|image(384) }}" alt="" class="mb-1 max-h-40 rounded-xl object-contain">
+            {% else %}
+                {{ include('App/_partials/_icon.html.twig', {name: 'img', class: 'text-fg-3'}) }}
+            {% endif %}
+            <strong class="text-[13.5px] font-semibold text-fg">{{ label|trans }}</strong>
+            <span class="text-xs text-fg-3" data-upload-target="hint">{{ (stored ? 'label.replace_or_browse' : 'label.drop_or_browse')|trans }}</span>
+            <input type="file" id="{{ id }}" name="{{ full_name }}" accept="image/jpeg,image/png,image/webp" class="sr"
+                   data-upload-target="input" data-action="upload#chosen">
+        </label>
+        <span class="hidden h-1 overflow-hidden rounded-full bg-line-2" data-upload-target="track">
+            <span class="block h-full w-0 bg-accent transition-[width]" data-upload-target="bar"></span>
+        </span>
+    </div>
+{% endblock %}
+
 {% block hue_widget %}
     <div class="grid gap-2.5" data-controller="hue">
         <div class="flex items-center gap-3.5">
