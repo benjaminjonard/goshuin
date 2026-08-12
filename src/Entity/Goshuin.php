@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Attribute\Upload;
+use App\Enum\GoshuinType;
 use App\Repository\GoshuinRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection as DoctrineCollection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
@@ -35,12 +38,24 @@ class Goshuin
     #[Assert\NotNull(message: 'error.location_required')]
     private ?Location $location = null;
 
-    #[ORM\Column(type: Types::DATE_IMMUTABLE)]
-    #[Assert\NotNull(message: 'error.received_on_required')]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $receivedOn = null;
 
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $position = null;
+
+    #[ORM\Column(type: Types::STRING, length: 8, enumType: GoshuinType::class, nullable: true)]
+    private ?GoshuinType $type = null;
+
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    #[Assert\PositiveOrZero]
+    private ?int $price = null;
+
+    #[ORM\Column(type: Types::STRING, length: 3, options: ['default' => 'JPY'])]
+    private string $currency = 'JPY';
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $notes = null;
 
     #[ORM\Column(type: Types::STRING)]
     private ?string $image = null;
@@ -68,6 +83,13 @@ class Goshuin
     )]
     private ?File $imageFile = null;
 
+    /**
+     * @var DoctrineCollection<int, Photo>
+     */
+    #[ORM\OneToMany(targetEntity: Photo::class, mappedBy: 'goshuin', cascade: ['remove'], fetch: 'EXTRA_LAZY')]
+    #[ORM\OrderBy(['position' => 'ASC'])]
+    private DoctrineCollection $photos;
+
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Gedmo\Timestampable(on: 'create')]
     private \DateTimeImmutable $createdAt;
@@ -79,11 +101,20 @@ class Goshuin
     public function __construct()
     {
         $this->id = Uuid::v7()->toRfc4122();
+        $this->photos = new ArrayCollection();
     }
 
     public function getId(): string
     {
         return $this->id;
+    }
+
+    /**
+     * @return DoctrineCollection<int, Photo>
+     */
+    public function getPhotos(): DoctrineCollection
+    {
+        return $this->photos;
     }
 
     public function getGoshuincho(): ?Goshuincho
@@ -134,11 +165,6 @@ class Goshuin
         return $this;
     }
 
-    public function isReceivedInTheFuture(): bool
-    {
-        return $this->receivedOn !== null && $this->receivedOn > new \DateTimeImmutable('today');
-    }
-
     public function getPosition(): ?int
     {
         return $this->position;
@@ -147,6 +173,54 @@ class Goshuin
     public function setPosition(?int $position): Goshuin
     {
         $this->position = $position;
+
+        return $this;
+    }
+
+    public function getType(): ?GoshuinType
+    {
+        return $this->type;
+    }
+
+    public function setType(?GoshuinType $type): Goshuin
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    public function getPrice(): ?int
+    {
+        return $this->price;
+    }
+
+    public function setPrice(?int $price): Goshuin
+    {
+        $this->price = $price;
+
+        return $this;
+    }
+
+    public function getCurrency(): string
+    {
+        return $this->currency;
+    }
+
+    public function setCurrency(string $currency): Goshuin
+    {
+        $this->currency = $currency;
+
+        return $this;
+    }
+
+    public function getNotes(): ?string
+    {
+        return $this->notes;
+    }
+
+    public function setNotes(?string $notes): Goshuin
+    {
+        $this->notes = $notes;
 
         return $this;
     }

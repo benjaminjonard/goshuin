@@ -19,6 +19,30 @@ class GoshuinRepository extends ServiceEntityRepository
         parent::__construct($registry, Goshuin::class);
     }
 
+    public function atPosition(Goshuincho $goshuincho, int $position): ?Goshuin
+    {
+        return $this->createQueryBuilder('g')
+            ->addSelect('location')
+            ->innerJoin('g.location', 'location')
+            ->andWhere('g.goshuincho = :goshuincho')
+            ->andWhere('g.position = :position')
+            ->setParameter('goshuincho', $goshuincho)
+            ->setParameter('position', $position)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
+    public function countIn(Goshuincho $goshuincho): int
+    {
+        return (int) $this->createQueryBuilder('g')
+            ->select('COUNT(g.id)')
+            ->andWhere('g.goshuincho = :goshuincho')
+            ->setParameter('goshuincho', $goshuincho)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     public function lastPosition(Goshuincho $goshuincho): int
     {
         return (int) $this->createQueryBuilder('g')
@@ -27,6 +51,20 @@ class GoshuinRepository extends ServiceEntityRepository
             ->setParameter('goshuincho', $goshuincho)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    /**
+     * @return list<Goshuin>
+     */
+    public function inOrder(Goshuincho $goshuincho): array
+    {
+        return $this->createQueryBuilder('g')
+            ->andWhere('g.goshuincho = :goshuincho')
+            ->setParameter('goshuincho', $goshuincho)
+            ->orderBy('g.position', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
     }
 
     /**

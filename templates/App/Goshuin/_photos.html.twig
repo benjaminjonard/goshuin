@@ -1,0 +1,54 @@
+{% set control = 'grid size-7 cursor-pointer place-items-center rounded-lg border border-line-2 bg-tile text-fg-2 hover:border-fg-3 hover:text-fg' %}
+{% set text = 'min-w-0 flex-auto rounded-lg border border-line-2 bg-tile-2 px-2 py-1 text-xs text-fg hover:border-fg-3 focus-visible:border-accent focus-visible:bg-tile' %}
+
+<div class="grid gap-3.5" data-controller="photos order">
+    <span class="text-[12.5px] font-semibold text-fg-2">{{ ('label.photos_' ~ type)|trans }}</span>
+
+    <ol class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2.5" >
+        {% for photo in photos %}
+            <li class="grid gap-1.5" data-order-target="row">
+                <input type="hidden" name="photo_order[{{ type }}][]" value="{{ photo.id }}">
+                <figure class="shot">
+                    <img src="{{ photo.imageCard|image }}" class="shot-image" alt="{{ photo.label ?: 'label.photographs'|trans }}">
+                </figure>
+                <input type="text" name="photo_label[{{ type }}][{{ photo.id }}]" value="{{ photo.label }}" maxlength="255"
+                       class="{{ text }}" aria-label="{{ 'label.photo_label'|trans }}" placeholder="{{ 'label.photo_label'|trans }}">
+                <div class="flex items-center gap-1">
+                    <button type="button" class="{{ control }}" data-action="order#earlier" aria-label="{{ 'label.move_earlier'|trans }}">
+                        {{- include('App/_partials/_icon.html.twig', {name: 'back', small: true}) -}}
+                    </button>
+                    <button type="button" class="{{ control }}" data-action="order#later" aria-label="{{ 'label.move_later'|trans }}">
+                        {{- include('App/_partials/_icon.html.twig', {name: 'right', small: true}) -}}
+                    </button>
+                    <label class="ml-auto flex cursor-pointer items-center gap-1.5 text-[11.5px] font-semibold text-accent-text">
+                        <input type="checkbox" name="photo_remove[{{ type }}][]" value="{{ photo.id }}"
+                               class="size-[15px] shrink-0 cursor-pointer rounded border-line-2 accent-accent">
+                        {{ 'label.remove'|trans }}
+                    </label>
+                </div>
+            </li>
+        {% endfor %}
+    </ol>
+
+    <ol class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2.5" data-photos-target="queue"></ol>
+
+    <label class="grid cursor-pointer place-items-center gap-1 rounded-2xl border border-dashed border-line-2 bg-tile-2 px-4 py-5 text-center hover:border-fg-3">
+        {{ include('App/_partials/_icon.html.twig', {name: 'img', class: 'text-fg-3'}) }}
+        <span class="text-xs text-fg-3">{{ 'label.drop_or_browse'|trans }}</span>
+        <input type="file" name="photo_add[{{ type }}][]" multiple accept="image/jpeg,image/png,image/webp" class="sr"
+               data-photos-target="input" data-action="photos#chosen">
+    </label>
+
+    <template data-photos-target="template">
+        <li class="grid gap-1.5" data-photos-target="pending">
+            <figure class="shot">
+                <img class="shot-image" alt="">
+            </figure>
+            <input type="text" name="photo_add_label[{{ type }}][]" maxlength="255"
+                   class="{{ text }}" aria-label="{{ 'label.photo_label'|trans }}" placeholder="{{ 'label.photo_label'|trans }}">
+            <button type="button" class="{{ control }} text-accent-text hover:border-accent-line" data-action="photos#discard" aria-label="{{ 'label.remove'|trans }}">
+                {{- include('App/_partials/_icon.html.twig', {name: 'trash', small: true}) -}}
+            </button>
+        </li>
+    </template>
+</div>

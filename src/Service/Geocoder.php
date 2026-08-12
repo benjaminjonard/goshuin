@@ -15,9 +15,12 @@ final readonly class Geocoder
 
     private const float TIMEOUT = 20.0;
 
+    private const float PACE = 1.0;
+
     public function __construct(
         private HttpClientInterface $client,
         #[Autowire('%app.photon_host_url%')] private string $host,
+        private float $pace = self::PACE,
     ) {
     }
 
@@ -37,39 +40,54 @@ final readonly class Geocoder
             return [];
         }
 
-        $pending = [
-            'romanised' => $this->ask($query, 'en', $limit),
-            'local' => $this->ask($query, 'default', $limit),
-        ];
+        $started = microtime(true);
 
         try {
-            if ($pending['romanised'] === null) {
-                throw new GeocoderFailed('The geocoder could not be reached.');
+            $pending = [
+                'romanised' => $this->ask($query, 'en', $limit),
+                'local' => $this->ask($query, 'default', $limit),
+            ];
+
+            try {
+                if ($pending['romanised'] === null) {
+                    throw new GeocoderFailed('The geocoder could not be reached.');
+                }
+
+                $romanised = $this->read($pending['romanised'], true);
+            } catch (GeocoderFailed $failure) {
+                $pending['local']?->cancel();
+
+                throw $failure;
             }
 
-            $romanised = $this->read($pending['romanised'], true);
-        } catch (GeocoderFailed $failure) {
-            $pending['local']?->cancel();
+            $local = $this->readIfReady($pending['local']);
 
-            throw $failure;
+            $places = [];
+
+            foreach ($romanised as $id => $feature) {
+                $places[] = [
+                    'name' => $feature['name'],
+                    'japaneseName' => $local[$id]['name'] ?? '',
+                    'locality' => $feature['locality'],
+                    'address' => $feature['address'],
+                    'latitude' => $feature['latitude'],
+                    'longitude' => $feature['longitude'],
+                ];
+            }
+
+            return $places;
+        } finally {
+            $this->pace($started);
         }
+    }
 
-        $local = $this->readIfReady($pending['local']);
+    private function pace(float $started): void
+    {
+        $remaining = $this->pace - (microtime(true) - $started);
 
-        $places = [];
-
-        foreach ($romanised as $id => $feature) {
-            $places[] = [
-                'name' => $feature['name'],
-                'japaneseName' => $local[$id]['name'] ?? '',
-                'locality' => $feature['locality'],
-                'address' => $feature['address'],
-                'latitude' => $feature['latitude'],
-                'longitude' => $feature['longitude'],
-            ];
+        if ($remaining > 0) {
+            usleep((int) round($remaining * 1_000_000));
         }
-
-        return $places;
     }
 
     /**
@@ -106,9 +124,6 @@ final readonly class Geocoder
         }
     }
 
-    /**
-     * @return array<string, array{name: string, locality: string, address: string, latitude: float, longitude: float}>
-     */
     /**
      * @return array<string, array{name: string, locality: string, address: string, latitude: float, longitude: float}>
      */

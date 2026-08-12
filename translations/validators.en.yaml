@@ -2,7 +2,6 @@ error:
     email:
         not_unique: 'An account already uses that address.'
     location_required: 'A place is required.'
-    received_on_required: 'A date is required.'
     image_required: 'A photograph is required.'
     upload_format: 'Only JPEG, PNG and WebP images are accepted.'
     upload_too_large: 'That file is larger than the configured limit.'

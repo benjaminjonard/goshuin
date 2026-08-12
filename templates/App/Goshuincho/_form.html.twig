@@ -21,6 +21,28 @@
         {{ form_row(form.description) }}
         {% if form.hue is defined %}{{ form_row(form.hue) }}{% endif %}
 
+        {% if form.vars.data.goshuins|length > 1 %}
+            {% set step = 'grid size-7 cursor-pointer place-items-center rounded-lg border border-line-2 bg-tile text-fg-2 hover:border-fg-3 hover:text-fg' %}
+            <div class="grid gap-2" data-controller="order">
+                <span class="text-[12.5px] font-semibold text-fg-2">{{ 'label.order'|trans }}</span>
+                <ol class="grid gap-1.5">
+                    {% for goshuin in form.vars.data.goshuins %}
+                        <li class="flex items-center gap-2.5 rounded-xl border border-line-2 bg-tile-2 px-2.5 py-1.5" data-order-target="row">
+                            <input type="hidden" name="goshuin_order[]" value="{{ goshuin.id }}">
+                            <img src="{{ goshuin.imageMini|image }}" alt="" class="size-9 shrink-0 rounded-md object-cover">
+                            <span class="min-w-0 flex-auto truncate text-[13.5px] font-semibold">{{ goshuin.location.romanizedName }}</span>
+                            <button type="button" class="{{ step }}" data-action="order#earlier" aria-label="{{ 'label.move_earlier'|trans }}">
+                                {{- include('App/_partials/_icon.html.twig', {name: 'back', small: true}) -}}
+                            </button>
+                            <button type="button" class="{{ step }}" data-action="order#later" aria-label="{{ 'label.move_later'|trans }}">
+                                {{- include('App/_partials/_icon.html.twig', {name: 'right', small: true}) -}}
+                            </button>
+                        </li>
+                    {% endfor %}
+                </ol>
+            </div>
+        {% endif %}
+
         <div class="mt-1 flex justify-end gap-2.5">
             {{ include('App/_partials/_button.html.twig', {label: 'label.cancel'|trans, href: cancel}) }}
             {{ include('App/_partials/_button.html.twig', {label: 'label.save'|trans, variant: 'primary', type: 'submit', name: 'goshuincho_submit'}) }}

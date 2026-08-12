@@ -36,7 +36,7 @@ class GeocoderTest extends TestCase
             throw new \LogicException('A request left the instance.');
         });
 
-        $this->assertSame([], (new Geocoder($client, 'https://photon.example'))->search('   '));
+        $this->assertSame([], (new Geocoder($client, 'https://photon.example', 0.0))->search('   '));
     }
 
     public function test_a_query_too_short_asks_nothing(): void
@@ -45,7 +45,7 @@ class GeocoderTest extends TestCase
             throw new \LogicException('A request left the instance for a two-letter query.');
         });
 
-        $this->assertSame([], (new Geocoder($client, 'https://photon.example'))->search('ky'));
+        $this->assertSame([], (new Geocoder($client, 'https://photon.example', 0.0))->search('ky'));
     }
 
     public function test_both_languages_are_asked_before_either_is_read(): void
@@ -59,7 +59,7 @@ class GeocoderTest extends TestCase
             ]);
         });
 
-        (new Geocoder($client, 'https://photon.example'))->search('kiyomizu');
+        (new Geocoder($client, 'https://photon.example', 0.0))->search('kiyomizu');
 
         $this->assertSame(['asked', 'asked'], $order, 'The two requests were not both started.');
     }
@@ -73,7 +73,7 @@ class GeocoderTest extends TestCase
             return new MockResponse(json_encode(['features' => []], \JSON_THROW_ON_ERROR));
         });
 
-        (new Geocoder($client, 'https://photon.example'))->search('kiyomizu');
+        (new Geocoder($client, 'https://photon.example', 0.0))->search('kiyomizu');
 
         $this->assertSame(20.0, $seen['timeout']);
     }
@@ -83,7 +83,7 @@ class GeocoderTest extends TestCase
         $geocoder = new Geocoder($this->clientReturning(
             $this->collection([['W', 336641107, 'Kiyomizu-dera', 'Kyoto', 135.7844, 34.9943]]),
             $this->collection([['W', 336641107, '清水寺', '京都市', 135.7844, 34.9943]]),
-        ), 'https://photon.example');
+        ), 'https://photon.example', 0.0);
 
         $places = $geocoder->search('kiyomizu');
 
@@ -101,7 +101,7 @@ class GeocoderTest extends TestCase
         $geocoder = new Geocoder($this->clientReturning(
             $this->collection([['N', 42, 'Somewhere', 'Nara', 135.0, 34.0]]),
             $this->collection([]),
-        ), 'https://photon.example');
+        ), 'https://photon.example', 0.0);
 
         $places = $geocoder->search('somewhere');
 
@@ -116,7 +116,7 @@ class GeocoderTest extends TestCase
             'geometry' => ['coordinates' => [135.0, 34.0]],
         ]]], \JSON_THROW_ON_ERROR);
 
-        $geocoder = new Geocoder($this->clientReturning(new MockResponse($body), new MockResponse($body)), 'https://photon.example');
+        $geocoder = new Geocoder($this->clientReturning(new MockResponse($body), new MockResponse($body)), 'https://photon.example', 0.0);
 
         $this->assertSame('Nara', $geocoder->search('bare')[0]['address'], 'Empty parts left separators behind.');
     }
@@ -128,7 +128,7 @@ class GeocoderTest extends TestCase
             ['properties' => ['osm_type' => 'W', 'osm_id' => 2, 'name' => 'No geometry'], 'geometry' => null],
         ]], \JSON_THROW_ON_ERROR);
 
-        $geocoder = new Geocoder($this->clientReturning(new MockResponse($body), new MockResponse($body)), 'https://photon.example');
+        $geocoder = new Geocoder($this->clientReturning(new MockResponse($body), new MockResponse($body)), 'https://photon.example', 0.0);
 
         $this->assertSame([], $geocoder->search('broken'));
     }
@@ -138,7 +138,7 @@ class GeocoderTest extends TestCase
         $geocoder = new Geocoder(new MockHttpClient([
             new MockResponse('', ['http_code' => 503]),
             new MockResponse('', ['http_code' => 503]),
-        ]), 'https://photon.example');
+        ]), 'https://photon.example', 0.0);
 
         $this->expectException(GeocoderFailed::class);
 
@@ -150,7 +150,7 @@ class GeocoderTest extends TestCase
         $geocoder = new Geocoder(new MockHttpClient([
             $this->collection([['W', 1, 'Kiyomizu-dera', 'Kyoto', 135.7844, 34.9943]]),
             new MockResponse('', ['http_code' => 503]),
-        ]), 'https://photon.example');
+        ]), 'https://photon.example', 0.0);
 
         $places = $geocoder->search('kiyomizu');
 
@@ -167,12 +167,39 @@ class GeocoderTest extends TestCase
             return $this->collection([]);
         });
 
-        (new Geocoder($client, 'https://photon.example/'))->search('kiyomizu');
+        (new Geocoder($client, 'https://photon.example/', 0.0))->search('kiyomizu');
 
         $this->assertCount(2, $asked);
         $this->assertStringStartsWith('https://photon.example/api/', $asked[0], 'The configured host was not used.');
         $this->assertStringContainsString('lang=en', $asked[0]);
         $this->assertStringContainsString('lang=default', $asked[1]);
+    }
+
+    public function test_an_answer_is_not_handed_back_before_the_pace_has_elapsed(): void
+    {
+        $geocoder = new Geocoder($this->clientReturning($this->collection([]), $this->collection([])), 'https://photon.example', 0.4);
+
+        $started = microtime(true);
+        $geocoder->search('kiyomizu');
+
+        $this->assertGreaterThanOrEqual(0.4, microtime(true) - $started, 'Photon answered and the results were handed straight back.');
+    }
+
+    public function test_a_failure_is_paced_too(): void
+    {
+        $geocoder = new Geocoder(new MockHttpClient([
+            new MockResponse('', ['http_code' => 503]),
+            new MockResponse('', ['http_code' => 503]),
+        ]), 'https://photon.example', 0.4);
+
+        $started = microtime(true);
+
+        try {
+            $geocoder->search('kiyomizu');
+        } catch (GeocoderFailed) {
+        }
+
+        $this->assertGreaterThanOrEqual(0.4, microtime(true) - $started, 'A failure came back faster than the pace.');
     }
 
     /**

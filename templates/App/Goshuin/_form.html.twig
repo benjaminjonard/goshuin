@@ -1,21 +1,66 @@
-<main class="page mx-auto grid w-full max-w-[720px] gap-[clamp(12px,1.4vw,18px)]">
-    {{ form_start(form, {attr: {class: 'tile tile-pad grid gap-4'}}) }}
-        {{ form_errors(form) }}
-        <div class="grid gap-4 min-[700px]:grid-cols-[176px_minmax(0,1fr)]">
-            <div class="grid gap-1.5">
-                {{ form_widget(form.imageFile, {attr: {'data-image': form.vars.data.imageCard}}) }}
-                {{ form_errors(form.imageFile) }}
-            </div>
-            <div class="grid content-start gap-4">
-                {{ form_row(form.goshuincho) }}
-                {{ form_row(form.location) }}
-                {{ form_row(form.receivedOn) }}
-            </div>
-        </div>
+{% set goshuin = form.vars.data %}
 
-        <div class="mt-1 flex justify-end gap-2.5">
-            {{ include('App/_partials/_button.html.twig', {label: 'label.cancel'|trans, href: cancel}) }}
-            {{ include('App/_partials/_button.html.twig', {label: 'label.save'|trans, variant: 'primary', type: 'submit', name: 'goshuin_submit'}) }}
+<main class="page mx-auto grid w-full max-w-[720px] gap-[clamp(12px,1.4vw,18px)]">
+    {{ form_start(form, {attr: {class: 'grid gap-[clamp(12px,1.4vw,18px)]', enctype: 'multipart/form-data'}}) }}
+        {{ form_errors(form) }}
+
+        {% embed 'App/_partials/_section.html.twig' with {title: 'label.essential'|trans} %}
+            {% block content %}
+                <div class="grid gap-4 min-[700px]:grid-cols-[176px_minmax(0,1fr)]">
+                    <div class="grid gap-1.5">
+                        {{ form_widget(form.imageFile, {attr: {'data-image': goshuin.imageCard}}) }}
+                        {{ form_errors(form.imageFile) }}
+                    </div>
+                    <div class="grid content-start gap-4">
+                        {{ form_row(form.goshuincho) }}
+                        {{ form_row(form.location) }}
+                        {{ form_row(form.receivedOn) }}
+                    </div>
+                </div>
+            {% endblock %}
+        {% endembed %}
+
+        {% embed 'App/_partials/_fold.html.twig' with {
+            title: 'label.the_goshuin'|trans,
+            holds: 'label.the_goshuin_holds'|trans,
+            filled: goshuin.type is not null or goshuin.price is not null,
+            open: true,
+        } %}
+            {% block content %}
+                {{ form_row(form.type) }}
+                {{ form_row(form.price, {row_attr: {class: 'sm:max-w-[220px]'}}) }}
+            {% endblock %}
+        {% endembed %}
+
+        {% embed 'App/_partials/_fold.html.twig' with {
+            title: 'label.photographs'|trans,
+            holds: 'label.photographs_hold'|trans,
+            filled: photos.location is not empty or photos.other is not empty,
+            open: photos.location is not empty or photos.other is not empty,
+        } %}
+            {% block content %}
+                {{ include('App/Goshuin/_photos.html.twig', {type: 'location', photos: photos.location}) }}
+                {{ include('App/Goshuin/_photos.html.twig', {type: 'other', photos: photos.other}) }}
+            {% endblock %}
+        {% endembed %}
+
+        {% embed 'App/_partials/_fold.html.twig' with {
+            title: 'label.notes'|trans,
+            holds: 'label.notes_hold'|trans,
+            filled: goshuin.notes is not empty,
+            open: goshuin.notes is not empty,
+        } %}
+            {% block content %}
+                {{ form_row(form.notes, {label: false}) }}
+            {% endblock %}
+        {% endembed %}
+
+        <div class="flex flex-wrap justify-end gap-2.5">
+            {{ include('App/_partials/_button.html.twig', {label: 'label.cancel'|trans, href: cancel, class: 'order-1'}) }}
+            {{ include('App/_partials/_button.html.twig', {label: 'label.save'|trans, variant: 'primary', type: 'submit', name: 'goshuin_submit', class: 'order-3'}) }}
+            {% if goshuin.position is null %}
+                {{ include('App/_partials/_button.html.twig', {label: 'label.save_and_add'|trans, type: 'submit', name: 'goshuin_again', class: 'order-2'}) }}
+            {% endif %}
         </div>
     {{ form_end(form) }}
 </main>

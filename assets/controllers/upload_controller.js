@@ -3,7 +3,7 @@ import { Controller } from '@hotwired/stimulus';
 const THRESHOLD = 2 * 1024 * 1024;
 
 export default class extends Controller {
-    static targets = ['input', 'hint', 'track', 'bar'];
+    static targets = ['input', 'track', 'bar', 'zone', 'preview', 'placeholder', 'hint', 'replace'];
 
     chosen() {
         const file = this.inputTarget.files[0];
@@ -12,10 +12,48 @@ export default class extends Controller {
             return;
         }
 
-        this.hintTarget.textContent = `${file.name} · ${this.size(file.size)}`;
+        this.show(file);
 
         if (file.size > THRESHOLD) {
             this.watch();
+        }
+    }
+
+    show(file) {
+        if (!this.hasPreviewTarget || !file.type.startsWith('image/')) {
+            return;
+        }
+
+        this.release();
+        this.url = URL.createObjectURL(file);
+        this.previewTarget.src = this.url;
+        this.previewTarget.classList.remove('hidden');
+
+        if (this.hasPlaceholderTarget) {
+            this.placeholderTarget.classList.add('hidden');
+        }
+
+        if (this.hasHintTarget) {
+            this.hintTarget.classList.add('hidden');
+        }
+
+        if (this.hasReplaceTarget) {
+            this.replaceTarget.classList.remove('hidden');
+        }
+
+        if (this.hasZoneTarget) {
+            this.zoneTarget.classList.replace('border-dashed', 'border-solid');
+        }
+    }
+
+    disconnect() {
+        this.release();
+    }
+
+    release() {
+        if (this.url) {
+            URL.revokeObjectURL(this.url);
+            this.url = null;
         }
     }
 
@@ -55,9 +93,5 @@ export default class extends Controller {
 
         request.open('POST', form.action || window.location.href);
         request.send(new FormData(form));
-    }
-
-    size(bytes) {
-        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
     }
 }

@@ -6,8 +6,11 @@ namespace App\Tests\App\Controller;
 
 use App\Entity\Goshuincho;
 use App\Entity\User;
+use App\Entity\Goshuin;
+use App\Repository\GoshuinRepository;
 use App\Repository\GoshuinchoRepository;
 use App\Tests\AppTestCase;
+use Symfony\Component\DomCrawler\Crawler;
 use App\Tests\Factory\GoshuinchoFactory;
 use App\Tests\Factory\LocationFactory;
 use App\Tests\Factory\UserFactory;
@@ -439,6 +442,199 @@ class GoshuinchoTest extends AppTestCase
 
         $this->assertCount(2, $crawler->filter('main figure'));
         $this->assertSame(['Front cover', 'Back cover'], $crawler->filter('main figcaption')->each(fn ($node) => $node->text()), 'The two slots are not fixed and captioned.');
+    }
+
+    public function test_the_form_puts_the_goshuin_back_in_the_order_it_submits(): void
+    {
+        $user = UserFactory::createOne();
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kansai']);
+        $slug = (string) $goshuincho->getSlug();
+        $this->client->loginUser($user);
+
+        foreach (['Alpha', 'Beta', 'Gamma'] as $name) {
+            $place = LocationFactory::createOne(['romanizedName' => $name]);
+            $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug.'/goshuin/add');
+            $this->client->submitForm('goshuin_submit', [
+                'goshuin[location]' => $place->getId(),
+                'goshuin[imageFile]' => $this->createImage(900, 1230),
+            ]);
+        }
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug.'/edit');
+        $rows = $crawler->filter('[data-order-target="row"]');
+
+        $this->assertCount(3, $rows, 'The form does not list the goshuin to order.');
+        $this->assertSame(
+            ['Alpha', 'Beta', 'Gamma'],
+            $rows->each(static fn (Crawler $row): string => trim($row->filter('span')->text())),
+            'The form does not list them in their current order.',
+        );
+
+        $ids = $crawler->filter('input[name="goshuin_order[]"]')->each(static fn (Crawler $field): string => (string) $field->attr('value'));
+        $form = $crawler->selectButton('goshuincho_submit')->form();
+        $sent = $form->getPhpValues();
+        $sent['goshuin_order'] = [$ids[2], $ids[0], $ids[1]];
+
+        $this->client->request(Request::METHOD_POST, $form->getUri(), $sent, $form->getPhpFiles());
+
+        $this->assertResponseRedirects('/goshuincho/'.$slug);
+        $this->assertSame(
+            ['Gamma', 'Alpha', 'Beta'],
+            $this->client->followRedirect()->filter('main ol li img')->each(static fn (Crawler $image): string => (string) $image->attr('alt')),
+            'The goshuincho page does not follow the order the form submitted.',
+        );
+
+        $goshuins = static::getContainer()->get(GoshuinRepository::class)->positions(
+            $this->manager()->getRepository(Goshuincho::class)->findOneBy(['slug' => $slug]),
+        );
+        $this->assertSame([1, 2, 3], $goshuins, 'Reordering left the numbering broken.');
+
+        foreach (static::getContainer()->get(GoshuinRepository::class)->findAll() as $goshuin) {
+            $this->removeUploads($goshuin->getImage(), $goshuin->getImageMini(), $goshuin->getImageCard(), $goshuin->getImageFull());
+        }
+    }
+
+    public function test_a_goshuincho_holding_one_goshuin_is_not_asked_to_order_it(): void
+    {
+        $user = UserFactory::createOne();
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
+        $slug = (string) $goshuincho->getSlug();
+        $place = LocationFactory::createOne();
+        $this->client->loginUser($user);
+
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug.'/goshuin/add');
+        $this->client->submitForm('goshuin_submit', [
+            'goshuin[location]' => $place->getId(),
+            'goshuin[imageFile]' => $this->createImage(900, 1230),
+        ]);
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug.'/edit');
+
+        $this->assertCount(0, $crawler->filter('[data-order-target="row"]'), 'A goshuincho with one goshuin offered to reorder it.');
+
+        foreach (static::getContainer()->get(GoshuinRepository::class)->findAll() as $goshuin) {
+            $this->removeUploads($goshuin->getImage(), $goshuin->getImageMini(), $goshuin->getImageCard(), $goshuin->getImageFull());
+        }
+    }
+
+    public function test_the_page_costs_the_same_number_of_queries_at_five_goshuin_and_at_fifty(): void
+    {
+        $user = UserFactory::createOne();
+        $small = $this->filled($user, 5);
+        $large = $this->filled($user, 50);
+
+        $this->assertSame(4, $this->queries($small), 'The page no longer costs the four queries it is allowed.');
+        $this->assertSame(
+            4,
+            $this->queries($large),
+            'The number of queries grows with the number of goshuin, which is an N+1 the day someone adds a fiftieth.',
+        );
+
+        $this->emptyUploads();
+    }
+
+    public function test_the_derived_attributes_are_read_back_from_the_goshuin(): void
+    {
+        $user = UserFactory::createOne();
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kansai']);
+        $slug = (string) $goshuincho->getSlug();
+        $this->client->loginUser($user);
+
+        foreach ([
+            ['Fushimi Inari-taisha', '2025-03-14', 500, 34.9671, 135.7727],
+            ['Kiyomizu-dera', '2025-03-14', 300, 34.9949, 135.7850],
+            ['Tōdai-ji', '2025-03-21', 500, 34.6889, 135.8398],
+        ] as [$name, $day, $price, $latitude, $longitude]) {
+            $place = LocationFactory::createOne([
+                'romanizedName' => $name,
+                'latitude' => $latitude,
+                'longitude' => $longitude,
+            ]);
+            $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug.'/goshuin/add');
+            $this->client->submitForm('goshuin_submit', [
+                'goshuin[location]' => $place->getId(),
+                'goshuin[receivedOn]' => $day,
+                'goshuin[price]' => (string) $price,
+                'goshuin[imageFile]' => $this->createImage(900, 1230),
+            ]);
+        }
+
+        $main = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug)->filter('main');
+        $text = $main->text();
+
+        $this->assertStringContainsString('3', $text, 'The goshuin are not counted.');
+        $this->assertStringContainsString('¥1,300', $text, 'The spend was not summed from the goshuin.');
+        $this->assertStringContainsString('関西 Kansai', $text, 'The region was not derived from the coordinates.');
+        $this->assertStringContainsString('March 2025', $text, 'The period was not derived from the dates.');
+        $this->assertStringContainsString('8 days', $text, 'The eight days between the first and the last were not counted.');
+        $this->assertStringContainsString('The same day', $text, 'Two goshuin received the same day are not marked as such.');
+        $this->assertStringContainsString('7 days later', $text, 'The interval between two goshuin is not named.');
+        $this->assertStringContainsString('3 pins', $text, 'The map does not say how many pins it carries.');
+
+        $markers = json_decode((string) $main->filter('[data-controller="map"]')->attr('data-map-markers-value'), true);
+        $this->assertCount(3, $markers, 'The map does not carry one marker per goshuin with coordinates.');
+        $this->assertSame([1, 2, 3], array_column($markers, 'number'), 'The pins are not numbered in position order.');
+        $this->assertSame('numbered', $main->filter('[data-controller="map"]')->attr('data-map-mode-value'));
+        $this->assertCount(3, $main->filter('[data-controller="map"] ul.sr li'), 'The marker set has no readable list.');
+
+        $this->assertSame(
+            ['1', '2', '3'],
+            array_slice($main->filter('[data-index]')->each(static fn (Crawler $node): string => (string) $node->attr('data-index')), 0, 3),
+            'The trip rows and the cards do not share the index the highlight is driven by.',
+        );
+
+        $this->emptyUploads();
+    }
+
+    public function test_a_goshuincho_with_no_goshuin_derives_nothing_and_says_nothing(): void
+    {
+        $user = UserFactory::createOne();
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
+        $this->client->loginUser($user);
+
+        $main = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug())->filter('main');
+
+        $this->assertCount(0, $main->filter('[data-controller="map"]'), 'A map was drawn for a goshuincho with nowhere to point.');
+        $this->assertStringNotContainsString('The trip', $main->text(), 'A trip was named for a goshuincho holding nothing.');
+        $this->assertStringNotContainsString('spent', $main->text(), 'A spend was stated for a goshuincho holding nothing.');
+        $this->assertStringNotContainsString('0', $main->text(), 'A count of nothing was rendered.');
+    }
+
+    private function filled(User $user, int $count): string
+    {
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
+        $slug = (string) $goshuincho->getSlug();
+        $this->client->loginUser($user);
+
+        for ($taken = 1; $taken <= $count; ++$taken) {
+            $place = LocationFactory::createOne(['latitude' => 34.9 + $taken / 100, 'longitude' => 135.7 + $taken / 100]);
+            $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug.'/goshuin/add');
+            $this->client->submitForm('goshuin_submit', [
+                'goshuin[location]' => $place->getId(),
+                'goshuin[receivedOn]' => (new \DateTimeImmutable('2025-03-01'))->modify('+'.$taken.' days')->format('Y-m-d'),
+                'goshuin[price]' => '500',
+                'goshuin[imageFile]' => $this->createImage(600, 820),
+            ]);
+        }
+
+        return $slug;
+    }
+
+    private function queries(string $slug): int
+    {
+        $this->client->enableProfiler();
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug);
+
+        $this->assertResponseIsSuccessful();
+
+        return $this->client->getProfile()->getCollector('db')->getQueryCount();
+    }
+
+    private function emptyUploads(): void
+    {
+        foreach (static::getContainer()->get(GoshuinRepository::class)->findAll() as $goshuin) {
+            $this->removeUploads($goshuin->getImage(), $goshuin->getImageMini(), $goshuin->getImageCard(), $goshuin->getImageFull());
+        }
     }
 
     private function repository(): GoshuinchoRepository

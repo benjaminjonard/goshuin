@@ -7,6 +7,7 @@ namespace App\Tests\App\Service;
 use App\Entity\Goshuin;
 use App\Entity\Goshuincho;
 use App\Repository\GoshuinRepository;
+use App\Repository\PhotoRepository;
 use App\Service\Positioner;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
@@ -52,7 +53,119 @@ class PositionerTest extends TestCase
         $repository = $this->createStub(GoshuinRepository::class);
         $repository->method('lastPosition')->willReturn(0);
 
-        new Positioner($manager, $repository)->add($goshuin);
+        new Positioner($manager, $repository, $this->createStub(PhotoRepository::class))->add($goshuin);
+    }
+
+    public function test_an_order_submitted_whole_is_applied_and_stays_contiguous(): void
+    {
+        $goshuins = $this->goshuins(4);
+        $ids = array_map(static fn (Goshuin $goshuin): string => $goshuin->getId(), $goshuins);
+        $goshuincho = $goshuins[0]->getGoshuincho();
+
+        $this->ordering($goshuins)->order($goshuincho, [$ids[3], $ids[0], $ids[2], $ids[1]]);
+
+        $this->assertSame([2, 4, 3, 1], $this->positionsOf($goshuins), 'The submitted order was not the one applied.');
+    }
+
+    public function test_a_goshuin_left_out_of_the_submitted_order_keeps_a_place_at_the_end(): void
+    {
+        $goshuins = $this->goshuins(3);
+        $ids = array_map(static fn (Goshuin $goshuin): string => $goshuin->getId(), $goshuins);
+
+        $this->ordering($goshuins)->order($goshuins[0]->getGoshuincho(), [$ids[2]]);
+
+        $this->assertSame([1, 2, 3], $this->sorted($goshuins), 'Leaving one out of the order left a hole.');
+        $this->assertSame(1, $goshuins[2]->getPosition(), 'The one that was named did not take the place it was given.');
+    }
+
+    public function test_removing_a_goshuin_closes_the_hole_behind_it(): void
+    {
+        $goshuins = $this->goshuins(5);
+        $removed = $goshuins[2];
+
+        $this->ordering($goshuins)->remove($removed);
+
+        unset($goshuins[2]);
+        $this->assertSame([1, 2, 3, 4], array_values($this->positionsOf($goshuins)), 'Removing from the middle left a hole.');
+    }
+
+    public function test_removing_the_last_goshuin_renumbers_nothing(): void
+    {
+        $goshuins = $this->goshuins(3);
+
+        $this->ordering($goshuins)->remove($goshuins[2]);
+
+        unset($goshuins[2]);
+        $this->assertSame([1, 2], array_values($this->positionsOf($goshuins)));
+    }
+
+    /**
+     * @return list<Goshuin>
+     */
+    private function goshuins(int $count): array
+    {
+        $goshuincho = new Goshuincho();
+        $goshuins = [];
+
+        for ($page = 1; $page <= $count; ++$page) {
+            $goshuins[] = new Goshuin()->setGoshuincho($goshuincho)->setPosition($page);
+        }
+
+        return $goshuins;
+    }
+
+    /**
+     * @param list<Goshuin> $goshuins
+     */
+    private function ordering(array $goshuins): Positioner
+    {
+        $gone = new \ArrayObject();
+
+        $manager = $this->createStub(EntityManagerInterface::class);
+        $manager->method('wrapInTransaction')->willReturnCallback(static fn (callable $work): mixed => $work());
+        $manager->method('remove')->willReturnCallback(static function (object $entity) use ($gone): void {
+            $gone->append($entity);
+        });
+
+        $repository = $this->createStub(GoshuinRepository::class);
+        $repository->method('lastPosition')->willReturnCallback(static function () use ($goshuins): int {
+            return max(array_map(static fn (Goshuin $goshuin): int => (int) $goshuin->getPosition(), $goshuins));
+        });
+        $repository->method('inOrder')->willReturnCallback(static function () use ($goshuins, $gone): array {
+            $found = array_filter(
+                $goshuins,
+                static fn (Goshuin $goshuin): bool => !in_array($goshuin, $gone->getArrayCopy(), true),
+            );
+
+            usort($found, static fn (Goshuin $a, Goshuin $b): int => $a->getPosition() <=> $b->getPosition());
+
+            return array_values($found);
+        });
+
+        return new Positioner($manager, $repository, $this->createStub(PhotoRepository::class));
+    }
+
+    /**
+     * @param array<int, Goshuin> $goshuins
+     *
+     * @return array<int, int>
+     */
+    private function positionsOf(array $goshuins): array
+    {
+        return array_map(static fn (Goshuin $goshuin): int => (int) $goshuin->getPosition(), $goshuins);
+    }
+
+    /**
+     * @param array<int, Goshuin> $goshuins
+     *
+     * @return list<int>
+     */
+    private function sorted(array $goshuins): array
+    {
+        $positions = array_values($this->positionsOf($goshuins));
+        sort($positions);
+
+        return $positions;
     }
 
     private function positioner(int $lastPosition): Positioner
@@ -63,7 +176,7 @@ class PositionerTest extends TestCase
         $repository = $this->createStub(GoshuinRepository::class);
         $repository->method('lastPosition')->willReturn($lastPosition);
 
-        return new Positioner($manager, $repository);
+        return new Positioner($manager, $repository, $this->createStub(PhotoRepository::class));
     }
 
     private function goshuin(): Goshuin

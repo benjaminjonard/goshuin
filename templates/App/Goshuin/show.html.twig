@@ -1,0 +1,98 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ goshuin.location.romanizedName }} · Goshuin{% endblock %}
+
+{% block bar %}
+    {% embed 'App/_partials/_bar.html.twig' with {
+        kicker: goshuincho.title,
+        title: goshuin.location.romanizedName,
+        jp: goshuin.location.japaneseName,
+        back: path('app_goshuincho_show', {slug: goshuincho.slug}),
+    } %}
+        {% block tools %}
+            {{ include('App/Goshuin/_pager.html.twig', {slug: goshuincho.slug, position: goshuin.position, total: pages}) }}
+            {{ include('App/_partials/_button.html.twig', {
+                icon: 'edit',
+                href: path('app_goshuin_edit', {slug: goshuincho.slug, position: goshuin.position}),
+                aria: 'label.edit'|trans,
+            }) }}
+            {{ include('App/_partials/_button.html.twig', {
+                icon: 'trash',
+                href: path('app_goshuin_delete', {slug: goshuincho.slug, position: goshuin.position}),
+                aria: 'label.delete'|trans,
+            }) }}
+        {% endblock %}
+    {% endembed %}
+{% endblock %}
+
+{% block body %}
+    {% set place = goshuin.location %}
+    {% set coordinates = place.hasCoordinates ? '%.4f, %.4f'|format(place.latitude, place.longitude) : null %}
+
+    <main class="page grid items-start gap-[clamp(12px,1.4vw,18px)] min-[1060px]:grid-cols-[minmax(0,1.06fr)_minmax(0,1fr)]">
+        <div class="grid min-w-0 gap-[clamp(12px,1.4vw,18px)]">
+            <section class="tile stage">
+                <img src="{{ goshuin.imageFull|image }}" class="image-page"
+                     alt="{{ 'label.goshuin_from'|trans({'%location%': place.romanizedName}) }}">
+            </section>
+
+            {% for type, set in photos %}
+                {{ include('App/Goshuin/_gallery.html.twig', {photos: set, type: type}) }}
+            {% endfor %}
+        </div>
+
+        <div class="grid min-w-0 gap-[clamp(12px,1.4vw,18px)]">
+            <section class="tile tile-pad">
+                <h2 class="text-[clamp(26px,3.2vw,34px)] font-bold leading-[1.15] tracking-[-0.01em]{{ place.japaneseName ? ' font-jp' }}">
+                    {{- place.japaneseName ?: place.romanizedName -}}
+                </h2>
+
+                {% set below = [place.japaneseName ? place.romanizedName : null, place.locality]|filter(part => part is not empty)|join(' · ') %}
+                {% if below is not empty %}
+                    <p class="mt-1 text-[14.5px] text-fg-2">{{ below }}</p>
+                {% endif %}
+            </section>
+
+            {% set record = [
+                {label: 'label.page'|trans, value: goshuin.position},
+                {label: 'label.received_on'|trans, value: goshuin.receivedOn ? goshuin.receivedOn|format_date('long') : null},
+                {label: 'label.goshuin_type'|trans, value: goshuin.type ? ('label.type_' ~ goshuin.type.value)|trans : null},
+                {label: 'label.price_paid'|trans, value: goshuin.price|money(goshuin.currency)},
+                {label: 'label.coordinates'|trans, value: coordinates},
+            ]|filter(row => row.value is not empty) %}
+
+            {% if record is not empty %}
+                {% embed 'App/_partials/_section.html.twig' with {title: 'label.information'|trans} %}
+                    {% block content %}
+                        {{ include('App/_partials/_kvs.html.twig', {rows: record}) }}
+                    {% endblock %}
+                {% endembed %}
+            {% endif %}
+
+            {% if goshuin.notes is not empty %}
+                {% embed 'App/_partials/_section.html.twig' with {title: 'label.notes'|trans} %}
+                    {% block content %}
+                        <div class="text-[14.5px] leading-[1.75] text-fg-2">{{ goshuin.notes|nl2br }}</div>
+                    {% endblock %}
+                {% endembed %}
+            {% endif %}
+
+            {% if place.hasCoordinates %}
+                {% embed 'App/_partials/_section.html.twig' with {title: 'label.map'|trans} %}
+                    {% block content %}
+                        <div data-controller="map"
+                             data-map-mode-value="numbered"
+                             data-map-tiles-value="{{ map_tiles }}"
+                             data-map-attribution-value="{{ map_attribution }}"
+                             data-map-markers-value="{{ [{latitude: place.latitude, longitude: place.longitude}]|json_encode }}">
+                            <div class="minimap h-[260px]" data-map-target="canvas"></div>
+                            <ul class="sr">
+                                <li>{{ place.romanizedName }} · {{ coordinates }}</li>
+                            </ul>
+                        </div>
+                    {% endblock %}
+                {% endembed %}
+            {% endif %}
+        </div>
+    </main>
+{% endblock %}

@@ -167,6 +167,8 @@
 }
 
 @utility page {
+    max-width: 1200px;
+    margin-inline: auto;
     padding: clamp(14px, 2.4vw, 26px) clamp(14px, 2.6vw, 30px) clamp(34px, 4vw, 54px);
 }
 
@@ -210,6 +212,55 @@
     border-radius: 10px;
     background: #f2ece0;
     object-fit: contain;
+}
+
+@utility stage {
+    display: flex;
+    justify-content: center;
+    padding: clamp(18px, 2.4vw, 34px);
+    background: var(--color-tile-2);
+}
+
+@utility image-page {
+    display: block;
+    width: 100%;
+    max-width: 420px;
+    aspect-ratio: 3 / 4.1;
+    border-radius: 12px;
+    background: #f2ece0;
+    box-shadow: var(--shadow-lift);
+    object-fit: contain;
+}
+
+@utility shot {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--color-line);
+    border-radius: 12px;
+}
+
+@utility shot-image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+}
+
+@utility shot-caption {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 16px 9px 7px;
+    background: linear-gradient(rgb(20 14 12 / 0), rgb(20 14 12 / 0.72));
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+@utility minimap {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--color-line);
+    border-radius: 14px;
 }
 
 @utility hue-fill {
@@ -278,6 +329,56 @@
     :focus-visible {
         outline: 2px solid var(--color-accent);
         outline-offset: 2px;
+    }
+}
+
+@layer components {
+    .fold-state {
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 600;
+        background: var(--color-tile-2);
+        color: var(--color-fg-3);
+    }
+
+    .fold-state-set {
+        background: var(--color-accent-soft);
+        color: var(--color-accent-text);
+    }
+
+    .lit {
+        background: var(--color-accent-soft);
+        border-radius: 12px;
+        outline: 1px solid var(--color-accent-line);
+    }
+
+    .map-pin.lit {
+        background: none;
+        outline: none;
+        filter: drop-shadow(0 3px 5px color-mix(in srgb, var(--color-accent) 55%, transparent));
+    }
+
+    .map-pin {
+        filter: drop-shadow(0 3px 5px color-mix(in srgb, var(--color-fg) 34%, transparent));
+    }
+
+    .map-pin svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .map-pin .body {
+        fill: var(--color-accent);
+    }
+
+    .map-pin .num {
+        fill: var(--color-tile);
+        font-family: var(--font-ui);
+        font-size: 13px;
+        font-weight: 700;
+        text-anchor: middle;
     }
 }
 

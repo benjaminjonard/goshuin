@@ -1,0 +1,16 @@
+<details class="tile group" data-controller="fold"{{ open|default(false) ? ' open' : '' }}>
+    <summary class="flex cursor-pointer list-none items-center gap-3 rounded-[20px] px-[clamp(15px,1.7vw,20px)] py-[15px] hover:bg-tile-2 [&::-webkit-details-marker]:hidden">
+        {{ include('App/_partials/_icon.html.twig', {name: 'right', small: true, class: 'text-fg-3 transition-transform group-open:rotate-90'}) }}
+        <span class="min-w-0 flex-auto">
+            <span class="block text-[14.5px] font-bold">{{ title }}</span>
+            <span class="block text-[12.5px] text-fg-3">{{ holds }}</span>
+        </span>
+        <span class="fold-state{{ filled|default(false) ? ' fold-state-set' : '' }}"
+              data-fold-target="state"
+              data-empty="{{ 'label.section_empty'|trans }}"
+              data-filled="{{ 'label.section_filled'|trans }}">{{ (filled|default(false) ? 'label.section_filled' : 'label.section_empty')|trans }}</span>
+    </summary>
+    <div class="grid gap-4 px-[clamp(15px,1.7vw,20px)] pb-[clamp(16px,1.8vw,20px)] pt-1">
+        {% block content %}{% endblock %}
+    </div>
+</details>

@@ -10,8 +10,12 @@ use App\Entity\Location;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class GoshuinType extends AbstractType
@@ -35,11 +39,30 @@ class GoshuinType extends AbstractType
                 'label' => 'label.received_on',
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
+                'required' => false,
             ])
             ->add('imageFile', FileType::class, [
                 'label' => 'label.image',
                 'required' => false,
                 'block_prefix' => 'image',
+            ])
+            ->add('type', EnumType::class, [
+                'label' => 'label.goshuin_type',
+                'class' => \App\Enum\GoshuinType::class,
+                'choice_label' => static fn (\App\Enum\GoshuinType $type): string => 'label.type_'.$type->value,
+                'expanded' => true,
+                'required' => false,
+                'placeholder' => false,
+                'block_prefix' => 'chipset',
+            ])
+            ->add('price', IntegerType::class, [
+                'label' => 'label.price_paid',
+                'required' => false,
+                'block_prefix' => 'yen',
+            ])
+            ->add('notes', TextareaType::class, [
+                'label' => 'label.notes',
+                'required' => false,
             ])
         ;
     }
@@ -49,7 +72,15 @@ class GoshuinType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Goshuin::class,
-            'validation_groups' => ['Default', 'goshuin:create'],
+            'validation_groups' => static function (FormInterface $form): array {
+                $goshuin = $form->getData();
+
+                if ($goshuin instanceof Goshuin && $goshuin->getImage() !== null) {
+                    return ['Default'];
+                }
+
+                return ['Default', 'goshuin:create'];
+            },
         ]);
     }
 }

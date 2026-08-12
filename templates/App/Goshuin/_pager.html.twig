@@ -1,0 +1,19 @@
+{% set step = 'grid size-[34px] place-items-center rounded-[10px] border border-line-2 bg-tile text-fg-2 no-underline hover:border-fg-3 hover:text-fg' %}
+
+<div class="flex items-center gap-1">
+    {% if position > 1 %}
+        <a href="{{ path('app_goshuin_show', {slug: slug, position: position - 1}) }}" class="{{ step }}" aria-label="{{ 'label.previous_page'|trans }}">
+            {{- include('App/_partials/_icon.html.twig', {name: 'back', small: true}) -}}
+        </a>
+    {% endif %}
+
+    <span class="px-2 text-[13px] font-semibold tabular-nums text-fg-2">
+        {{- 'label.page_of'|trans({'%position%': '%02d'|format(position), '%total%': '%02d'|format(total)}) -}}
+    </span>
+
+    {% if position < total %}
+        <a href="{{ path('app_goshuin_show', {slug: slug, position: position + 1}) }}" class="{{ step }}" aria-label="{{ 'label.next_page'|trans }}">
+            {{- include('App/_partials/_icon.html.twig', {name: 'right', small: true}) -}}
+        </a>
+    {% endif %}
+</div>

@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ goshuin.location.romanizedName }} · Goshuin{% endblock %}
+
+{% block bar %}
+    {{ include('App/_partials/_bar.html.twig', {
+        kicker: goshuincho.title,
+        title: goshuin.location.romanizedName,
+        jp: goshuin.location.japaneseName,
+        back: path('app_goshuin_show', {slug: goshuincho.slug, position: goshuin.position}),
+    }) }}
+{% endblock %}
+
+{% block body %}
+    {{ include('App/Goshuin/_form.html.twig', {cancel: path('app_goshuin_show', {slug: goshuincho.slug, position: goshuin.position})}) }}
+{% endblock %}

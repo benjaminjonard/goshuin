@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'label.delete'|trans }} · Goshuin{% endblock %}
+
+{% block bar %}
+    {{ include('App/_partials/_bar.html.twig', {
+        kicker: goshuincho.title,
+        title: goshuin.location.romanizedName,
+        jp: goshuin.location.japaneseName,
+        back: path('app_goshuin_show', {slug: goshuincho.slug, position: goshuin.position}),
+    }) }}
+{% endblock %}
+
+{% block body %}
+    <main class="page mx-auto grid w-full max-w-[560px] gap-[clamp(12px,1.4vw,18px)]">
+        <div class="tile tile-pad grid gap-4">
+            <h2 class="text-[15px] font-bold tracking-[-0.015em]">
+                {{- 'label.delete_goshuin'|trans({'%location%': goshuin.location.romanizedName, '%page%': goshuin.position}) -}}
+            </h2>
+
+            {{ form_start(form, {attr: {class: 'flex justify-end gap-2.5'}}) }}
+                {{ include('App/_partials/_button.html.twig', {label: 'label.cancel'|trans, href: path('app_goshuin_show', {slug: goshuincho.slug, position: goshuin.position})}) }}
+                {{ include('App/_partials/_button.html.twig', {label: 'label.delete'|trans, icon: 'trash', variant: 'primary', type: 'submit', name: 'delete_submit'}) }}
+            {{ form_end(form) }}
+        </div>
+    </main>
+{% endblock %}

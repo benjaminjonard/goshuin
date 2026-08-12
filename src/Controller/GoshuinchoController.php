@@ -6,6 +6,10 @@ namespace App\Controller;
 
 use App\Entity\Goshuincho;
 use App\Form\Type\GoshuinchoType;
+use App\Repository\GoshuinchoRepository;
+use App\Service\Leg;
+use App\Service\Positioner;
+use App\Service\Trip;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,6 +20,9 @@ use Symfony\Component\Routing\Attribute\Route;
 class GoshuinchoController extends AbstractController
 {
     public function __construct(
+        private readonly GoshuinchoRepository $goshuinchos,
+        private readonly Positioner $positioner,
+        private readonly Trip $trip,
         private readonly EntityManagerInterface $entityManager,
     ) {
     }
@@ -40,10 +47,23 @@ class GoshuinchoController extends AbstractController
     }
 
     #[Route(path: '/{slug}', name: 'app_goshuincho_show', methods: ['GET'])]
-    public function show(#[MapEntity(mapping: ['slug' => 'slug'])] Goshuincho $goshuincho): Response
+    public function show(string $slug): Response
     {
+        $goshuincho = $this->goshuinchos->withGoshuins($slug);
+        if ($goshuincho === null) {
+            throw $this->createNotFoundException();
+        }
+
+        $legs = $this->trip->legs($goshuincho->getGoshuins());
+
         return $this->render('App/Goshuincho/show.html.twig', [
             'goshuincho' => $goshuincho,
+            'summary' => $this->goshuinchos->summary($goshuincho),
+            'legs' => $legs,
+            'pinned' => array_values(array_filter(
+                $legs,
+                static fn (Leg $leg): bool => $leg->goshuin->getLocation()?->hasCoordinates() === true,
+            )),
         ]);
     }
 
@@ -55,6 +75,12 @@ class GoshuinchoController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->entityManager->flush();
+
+            $order = array_values($request->request->all()['goshuin_order'] ?? []);
+
+            if ($order !== []) {
+                $this->positioner->order($goshuincho, $order);
+            }
 
             return $this->redirectToRoute('app_goshuincho_show', ['slug' => $goshuincho->getSlug()]);
         }
