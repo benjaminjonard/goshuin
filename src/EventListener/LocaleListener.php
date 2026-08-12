@@ -32,7 +32,7 @@ final readonly class LocaleListener
         }
 
         $request = $event->getRequest();
-        $locale = $request->hasSession() ? $request->getSession()->get('_locale') : null;
+        $locale = $request->hasSession(true) ? $request->getSession()->get('_locale') : null;
 
         $request->setLocale(\in_array($locale, $this->locales, true) ? $locale : $this->defaultLocale);
     }

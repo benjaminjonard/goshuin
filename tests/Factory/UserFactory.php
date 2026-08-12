@@ -23,6 +23,11 @@ final class UserFactory extends PersistentObjectFactory
         return $this->with(['roles' => ['ROLE_ADMIN']]);
     }
 
+    public function disabled(): static
+    {
+        return $this->with(['enabled' => false]);
+    }
+
     #[\Override]
     protected function defaults(): array
     {

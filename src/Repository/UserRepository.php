@@ -25,11 +25,9 @@ class UserRepository extends ServiceEntityRepository
 
     public function countAdministrators(): int
     {
-        return (int) $this->createQueryBuilder('u')
-            ->select('count(u.id)')
-            ->where('CAST(u.roles AS text) LIKE :role')
-            ->setParameter('role', '%ROLE_ADMIN%')
-            ->getQuery()
-            ->getSingleScalarResult();
+        return (int) $this->getEntityManager()->getConnection()->fetchOne(
+            'SELECT count(*) FROM gos_user WHERE jsonb_exists(roles::jsonb, :role)',
+            ['role' => 'ROLE_ADMIN'],
+        );
     }
 }
