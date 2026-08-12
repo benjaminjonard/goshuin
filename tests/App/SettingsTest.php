@@ -121,7 +121,7 @@ class SettingsTest extends WebTestCase
             'password_change[plainPassword][second]' => 'another-long-password',
         ]);
 
-        $this->assertRouteSame('app_settings');
+        $this->assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
         static::getContainer()->get('doctrine')->getManager()->clear();
         $stored = static::getContainer()->get(UserRepository::class)->find($user->getId());
         $this->assertSame($hashed, $stored->getPassword(), 'The password changed without the current one.');

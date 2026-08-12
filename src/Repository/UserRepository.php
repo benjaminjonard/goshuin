@@ -23,11 +23,16 @@ class UserRepository extends ServiceEntityRepository
         return $this->count([]) === 0;
     }
 
-    public function countAdministrators(): int
+    public function countAdministrators(?string $excluding = null): int
     {
-        return (int) $this->getEntityManager()->getConnection()->fetchOne(
-            'SELECT count(*) FROM gos_user WHERE jsonb_exists(roles::jsonb, :role)',
-            ['role' => 'ROLE_ADMIN'],
-        );
+        $sql = 'SELECT count(*) FROM gos_user WHERE jsonb_exists(roles::jsonb, :role) AND enabled = true';
+        $parameters = ['role' => 'ROLE_ADMIN'];
+
+        if ($excluding !== null) {
+            $sql .= ' AND id <> :excluding';
+            $parameters['excluding'] = $excluding;
+        }
+
+        return (int) $this->getEntityManager()->getConnection()->fetchOne($sql, $parameters);
     }
 }

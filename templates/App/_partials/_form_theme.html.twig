@@ -9,6 +9,22 @@
     </div>
 {% endblock %}
 
+{% block checkbox_row %}
+    <div class="grid gap-1.5{{ (' ' ~ row_attr.class|default(''))|trim ? ' ' ~ row_attr.class|default('') }}">
+        <label class="flex cursor-pointer items-center gap-2.5">
+            {{- form_widget(form) -}}
+            <span class="text-[13.5px] font-medium leading-snug text-fg">{{ label|trans(label_translation_parameters, translation_domain) }}</span>
+        </label>
+        {{- form_help(form) -}}
+        {{- form_errors(form) -}}
+    </div>
+{% endblock %}
+
+{% block checkbox_widget %}
+    {% set attr = attr|merge({class: (attr.class|default('') ~ ' size-[17px] shrink-0 cursor-pointer rounded border-line-2 accent-accent')|trim}) %}
+    {{- parent() -}}
+{% endblock %}
+
 {% block form_label %}
     {% if label is not same as(false) %}
         {% set label_attr = label_attr|merge({class: (label_attr.class|default('') ~ ' text-[12.5px] font-semibold text-fg-2')|trim}) %}

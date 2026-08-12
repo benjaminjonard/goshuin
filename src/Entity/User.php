@@ -154,6 +154,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return \in_array('ROLE_ADMIN', $this->roles, true);
     }
 
+    public function setAdmin(bool $admin): User
+    {
+        $this->roles = $admin ? ['ROLE_ADMIN'] : ['ROLE_USER'];
+
+        return $this;
+    }
+
     public function isEnabled(): bool
     {
         return $this->enabled;

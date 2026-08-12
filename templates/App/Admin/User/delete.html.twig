@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'label.delete'|trans }} · Goshuin{% endblock %}
+
+{% block bar %}
+    {{ include('App/_partials/_bar.html.twig', {kicker: 'label.users'|trans, title: user.name, back: path('app_admin_user_index')}) }}
+{% endblock %}
+
+{% block body %}
+    <main class="page mx-auto grid w-full max-w-[560px] gap-[clamp(12px,1.4vw,18px)]">
+        <div class="tile tile-pad grid gap-4">
+            {% if refused %}
+                <p class="flex items-start gap-2.5 rounded-xl border border-accent-line bg-accent-soft px-3.5 py-3 text-[12.5px] leading-relaxed text-accent-text" role="alert">
+                    {{ include('App/_partials/_icon.html.twig', {name: 'info', small: true, class: 'mt-px'}) }}
+                    <span>{{ 'error.admin_last'|trans }}</span>
+                </p>
+
+                <div class="flex justify-end">
+                    {{ include('App/_partials/_button.html.twig', {label: 'label.cancel'|trans, href: path('app_admin_user_index')}) }}
+                </div>
+            {% else %}
+                <h2 class="text-[15px] font-bold tracking-[-0.015em]">{{ 'label.delete_user'|trans({'%name%': user.name, '%email%': user.email}) }}</h2>
+
+                <form method="post" class="flex justify-end gap-2.5">
+                    <input type="hidden" name="_token" value="{{ csrf_token('submit') }}">
+                    {{ include('App/_partials/_button.html.twig', {label: 'label.cancel'|trans, href: path('app_admin_user_index')}) }}
+                    {{ include('App/_partials/_button.html.twig', {label: 'label.delete'|trans, icon: 'trash', variant: 'primary', type: 'submit', name: 'delete_submit'}) }}
+                </form>
+            {% endif %}
+        </div>
+    </main>
+{% endblock %}

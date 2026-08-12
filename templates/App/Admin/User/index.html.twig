@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'label.users'|trans }} · Goshuin{% endblock %}
+
+{% block bar %}
+    {% embed 'App/_partials/_bar.html.twig' with {title: 'label.users'|trans, back: path('app_homepage')} %}
+        {% block tools %}
+            {{ include('App/_partials/_button.html.twig', {label: 'label.add_user'|trans, icon: 'plus', variant: 'primary', href: path('app_admin_user_add')}) }}
+        {% endblock %}
+    {% endembed %}
+{% endblock %}
+
+{% block body %}
+    <main class="page mx-auto grid w-full max-w-[860px] gap-[clamp(12px,1.4vw,18px)]">
+        <ul class="grid gap-2.5">
+            {% for user in users %}
+                <li class="tile flex flex-wrap items-center gap-x-4 gap-y-3 px-[clamp(14px,1.6vw,20px)] py-3.5">
+                    <span class="grid size-[38px] shrink-0 place-items-center rounded-full border border-line-2 bg-tile-2 text-[13px] font-bold text-fg-2" aria-hidden="true">{{ user.initials }}</span>
+
+                    <span class="min-w-0 flex-auto">
+                        <span class="block truncate text-[14.5px] font-semibold">{{ user.name }}</span>
+                        <span class="block truncate text-xs text-fg-3">{{ user.email }}</span>
+                    </span>
+
+                    <span class="flex flex-wrap items-center gap-1.5">
+                        {% if user.admin %}
+                            <span class="rounded-full border border-accent-line bg-accent-soft px-2.5 py-1 text-[11.5px] font-semibold text-accent-text">{{ 'label.administrator'|trans }}</span>
+                        {% endif %}
+                        {% if not user.enabled %}
+                            <span class="rounded-full border border-line-2 bg-tile-2 px-2.5 py-1 text-[11.5px] font-semibold text-fg-3">{{ 'label.disabled'|trans }}</span>
+                        {% endif %}
+                    </span>
+
+                    <span class="flex items-center gap-2">
+                        {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_admin_user_edit', {id: user.id}), aria: 'label.edit'|trans}) }}
+                        {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_admin_user_delete', {id: user.id}), aria: 'label.delete'|trans}) }}
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
+    </main>
+{% endblock %}
