@@ -1,0 +1,51 @@
+{#
+    kicker  the small line above the title, optional
+    title   the current object, optional — the bar carries only the brand without it
+    jp      the Japanese subtitle beside the title, optional
+    back    a URL for the back button, optional
+#}
+<header class="sticky top-0 z-40 flex flex-wrap items-center gap-x-4 gap-y-2.5 border-b border-line
+               bg-[color-mix(in_srgb,var(--color-bg)_88%,transparent)] px-[clamp(14px,2.6vw,30px)] py-[13px] backdrop-blur-[14px]">
+    <a href="/" class="inline-flex items-center gap-2.5 rounded-xl py-[3px] pl-[3px] pr-[5px] no-underline text-fg group" aria-label="{{ 'label.brand'|trans }}">
+        <span class="grid size-[34px] place-items-center rounded-[10px] bg-accent-soft" aria-hidden="true">
+            <svg class="size-[22px] fill-accent" viewBox="0 0 32 32"><use href="#i-torii"/></svg>
+        </span>
+        <span class="text-base font-bold tracking-[-0.02em] group-hover:text-accent-text">Goshuin</span>
+    </a>
+
+    {% if title is defined or back is defined %}
+        <span class="mx-0.5 h-[26px] w-px bg-line-2" aria-hidden="true"></span>
+    {% endif %}
+
+    {% if back is defined %}
+        <a href="{{ back }}" class="grid size-[38px] place-items-center rounded-full text-fg-2 hover:bg-tile-2 hover:text-fg" aria-label="{{ 'label.back'|trans }}">
+            {{ include('App/_partials/_icon.html.twig', {name: 'back'}) }}
+        </a>
+    {% endif %}
+
+    {% if title is defined %}
+        <div class="min-w-0 flex-auto">
+            {% if kicker is defined and kicker is not empty %}
+                <p class="text-xs font-semibold tracking-[0.02em] text-accent-text">{{ kicker }}</p>
+            {% endif %}
+            <h1 class="flex flex-wrap items-baseline gap-2.5 text-[clamp(18px,2.2vw,22px)] font-bold leading-tight tracking-[-0.02em]">
+                {{ title }}
+                {%- if jp is defined and jp is not empty %}
+                    <em class="font-jp text-[0.82em] font-medium not-italic text-fg-2">{{ jp }}</em>
+                {% endif %}
+            </h1>
+        </div>
+    {% endif %}
+
+    <div class="flex items-center gap-2 {{ title is defined ? '' : 'ml-auto' }}">
+        {% block tools %}{% endblock %}
+        <button type="button"
+                class="inline-flex cursor-pointer items-center gap-2 rounded-[11px] border border-line-2 bg-tile px-[9px] py-[9px] text-fg transition-colors hover:border-fg-3"
+                data-controller="theme"
+                data-action="theme#toggle">
+            <span class="sr" data-theme-target="label" data-dark="{{ 'label.theme_dark'|trans }}" data-light="{{ 'label.theme_light'|trans }}">{{ 'label.theme_dark'|trans }}</span>
+            {{ include('App/_partials/_icon.html.twig', {name: 'moon', class: 'block dark:hidden'}) }}
+            {{ include('App/_partials/_icon.html.twig', {name: 'sun', class: 'hidden dark:block'}) }}
+        </button>
+    </div>
+</header>

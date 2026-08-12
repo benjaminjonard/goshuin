@@ -1,0 +1,54 @@
+{#
+    Every form in the application renders through this. Tailwind's preflight strips
+    input borders, so without a theme a field is invisible — which is how the setup
+    screen first shipped. Classes come from the tokens and nowhere else (AD-9).
+#}
+
+{% use 'form_div_layout.html.twig' %}
+
+{% block form_row %}
+    <div class="grid gap-1.5{{ (' ' ~ row_attr.class|default(''))|trim ? ' ' ~ row_attr.class|default('') }}">
+        {{- form_label(form) -}}
+        {{- form_widget(form) -}}
+        {{- form_help(form) -}}
+        {{- form_errors(form) -}}
+    </div>
+{% endblock %}
+
+{% block form_label %}
+    {% if label is not same as(false) %}
+        {% set label_attr = label_attr|merge({class: 'text-[12.5px] font-semibold text-fg-2'}) %}
+        {{- parent() -}}
+    {% endif %}
+{% endblock %}
+
+{% block form_widget_simple %}
+    {% set attr = attr|merge({class: (attr.class|default('') ~ ' w-full rounded-xl border border-line-2 bg-tile-2 px-3.5 py-2.5 text-[15px] text-fg hover:border-fg-3 focus-visible:border-accent focus-visible:bg-tile')|trim}) %}
+    {{- parent() -}}
+{% endblock %}
+
+{% block textarea_widget %}
+    {% set attr = attr|merge({class: (attr.class|default('') ~ ' w-full min-h-24 resize-y rounded-xl border border-line-2 bg-tile-2 px-3.5 py-2.5 text-[15px] leading-relaxed text-fg hover:border-fg-3 focus-visible:border-accent focus-visible:bg-tile')|trim}) %}
+    {{- parent() -}}
+{% endblock %}
+
+{% block choice_widget_collapsed %}
+    {% set attr = attr|merge({class: (attr.class|default('') ~ ' w-full cursor-pointer rounded-xl border border-line-2 bg-tile-2 px-3.5 py-2.5 text-[15px] text-fg hover:border-fg-3 focus-visible:border-accent focus-visible:bg-tile')|trim}) %}
+    {{- parent() -}}
+{% endblock %}
+
+{% block form_help %}
+    {% if help is not empty %}
+        <p class="text-xs leading-normal text-fg-3">{{ help|trans(help_translation_parameters, translation_domain) }}</p>
+    {% endif %}
+{% endblock %}
+
+{% block form_errors %}
+    {% if errors|length > 0 %}
+        <ul class="grid gap-1">
+            {% for error in errors %}
+                <li class="text-xs font-semibold text-accent-text">{{ error.message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}

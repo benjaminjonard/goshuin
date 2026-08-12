@@ -1,0 +1,5 @@
+{#
+    name  the symbol, without the i- prefix
+    small 16px instead of 20px
+#}
+<svg class="{{ small|default(false) ? 'ic-sm' : 'ic' }}{{ class is defined ? ' ' ~ class }}" aria-hidden="true"><use href="#i-{{ name }}"/></svg>

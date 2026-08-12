@@ -1,0 +1,4 @@
+error:
+    email:
+        not_unique: 'An account already uses that address.'
+    password_mismatch: 'The two passwords do not match.'

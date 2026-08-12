@@ -1,0 +1,21 @@
+{#
+    label    the text; omit for an icon-only button, and then aria must be given
+    icon     symbol name, optional
+    variant  'primary' or nothing
+    href     renders an <a> instead of a <button>
+    aria     accessible name, required when there is no label
+#}
+{% set base = 'inline-flex items-center gap-2 rounded-xl border px-[15px] py-[9px] text-[13.5px] font-semibold transition-colors cursor-pointer' %}
+{% set skin = variant|default('') == 'primary'
+    ? 'border-accent bg-accent text-white hover:brightness-105 dark:text-[#24100d]'
+    : 'border-line-2 bg-tile text-fg hover:border-fg-3' %}
+{% set shape = label is defined and label is not empty ? '' : 'px-[9px] rounded-[11px]' %}
+
+{% if href is defined %}
+    <a href="{{ href }}" class="{{ base }} {{ skin }} {{ shape }} no-underline"{% if aria is defined %} aria-label="{{ aria }}"{% endif %}>
+{% else %}
+    <button type="{{ type|default('button') }}"{% if name is defined %} name="{{ name }}"{% endif %} class="{{ base }} {{ skin }} {{ shape }}"{% if aria is defined %} aria-label="{{ aria }}"{% endif %}{% if attributes is defined %} {{ attributes|raw }}{% endif %}>
+{% endif %}
+    {% if icon is defined %}{{ include('App/_partials/_icon.html.twig', {name: icon, small: label is defined and label is not empty}) }}{% endif %}
+    {%- if label is defined and label is not empty %}{{ label }}{% endif -%}
+{% if href is defined %}</a>{% else %}</button>{% endif %}

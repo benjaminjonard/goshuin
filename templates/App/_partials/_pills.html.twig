@@ -1,0 +1,17 @@
+{#
+    pills  a list of {text, icon, jp, hot} — empty entries are dropped, and an
+           all-empty list emits nothing (AD-8).
+#}
+{% set kept = pills|filter(pill => pill.text is not null and pill.text|trim is not empty) %}
+
+{% if kept is not empty %}
+    <ul class="flex flex-wrap gap-[7px]">
+        {% for pill in kept %}
+            <li class="inline-flex items-center gap-1.5 rounded-full border px-3 py-[5px] text-[12.5px] font-semibold
+                       {{ pill.hot|default(false) ? 'border-accent-line bg-accent-soft text-accent-text' : 'border-line bg-tile-2 text-fg-2' }}">
+                {%- if pill.icon is defined %}{{ include('App/_partials/_icon.html.twig', {name: pill.icon, small: true}) }}{% endif -%}
+                <span{{ pill.jp|default(false) ? ' class=font-jp'|raw }}>{{ pill.text }}</span>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}

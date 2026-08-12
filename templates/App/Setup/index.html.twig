@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'label.setup_title'|trans }} · Goshuin{% endblock %}
+
+{% block body %}
+    <main class="mx-auto grid w-full max-w-[520px] gap-[clamp(12px,1.4vw,18px)] px-[clamp(14px,2.6vw,30px)] pt-[clamp(28px,7vw,72px)] pb-[clamp(34px,4vw,54px)]">
+        <div class="tile tile-pad text-center">
+            <span class="mx-auto mb-5 grid size-[62px] place-items-center rounded-[18px] bg-accent-soft" aria-hidden="true">
+                <svg class="size-10 fill-accent" viewBox="0 0 32 32"><use href="#i-torii"/></svg>
+            </span>
+            <h1 class="text-[clamp(22px,2.8vw,28px)] font-bold leading-tight tracking-[-0.025em]">{{ 'label.setup_title'|trans }}</h1>
+        </div>
+
+        {{ form_start(form, {attr: {class: 'tile tile-pad grid gap-4'}}) }}
+            {{ form_row(form.name) }}
+            {{ form_row(form.email) }}
+            {{ form_row(form.plainPassword.first) }}
+            {{ form_row(form.plainPassword.second) }}
+
+            <div class="mt-1 flex justify-end">
+                {{ include('App/_partials/_button.html.twig', {label: 'label.setup_submit'|trans, icon: 'right', variant: 'primary', type: 'submit', name: 'setup_submit'}) }}
+            </div>
+        {{ form_end(form) }}
+
+        <p class="flex items-start gap-2.5 rounded-2xl border border-line bg-tile-2 px-4 py-3.5 text-[12.5px] leading-relaxed text-fg-2">
+            {{ include('App/_partials/_icon.html.twig', {name: 'check', small: true, class: 'mt-0.5 text-ok'}) }}
+            <span>{{ 'label.setup_admin_note'|trans }}</span>
+        </p>
+    </main>
+{% endblock %}

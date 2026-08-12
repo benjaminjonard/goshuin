@@ -1,3 +1,276 @@
-body {
-    background-color: lightgray;
+@import "tailwindcss";
+
+/*
+ * Sources are declared, not inferred: automatic detection takes the nearest
+ * package.json as its root, which is assets/, so it never reaches templates/ and
+ * silently generates no utilities at all.
+ */
+@source "../../templates";
+@source "../../src";
+@source "../controllers";
+@source not "../../public";
+
+@theme static {
+    --font-ui: ui-sans-serif, system-ui, "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-jp: "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", "Noto Sans JP", "Yu Gothic UI", "Yu Gothic", var(--font-ui);
+    --font-brush: "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif CJK JP", "Noto Serif JP", serif;
+
+    --color-accent: #c0574a;
+    --color-accent-soft: #fdeeec;
+    --color-accent-line: #f0d3ce;
+    --color-accent-text: #a2453a;
+
+    --color-bg: #fdfbfa;
+    --color-tile: #ffffff;
+    --color-tile-2: #faf7f5;
+    --color-fg: #1b1614;
+    --color-fg-2: #6f625c;
+    --color-fg-3: #9c8d86;
+    --color-line: #f0e9e5;
+    --color-line-2: #e5dcd7;
+
+    --color-land: #f6f1ec;
+    --color-land-2: #efe8e1;
+    --color-forest: #e2e7dd;
+    --color-forest-2: #d6ddd0;
+    --color-urban: #f0e6da;
+    --color-water: #dbe6ec;
+    --color-water-line: #c4d5de;
+    --color-road: #eadfd8;
+
+    --color-ok: #4f7a5b;
+    --color-plum: #8d5068;
+
+    --shadow-card: 0 1px 2px rgb(27 22 20 / 0.05), 0 10px 24px -16px rgb(27 22 20 / 0.22);
+    --shadow-lift: 0 2px 6px rgb(27 22 20 / 0.09), 0 18px 36px -20px rgb(27 22 20 / 0.3);
+
+    --hue-l: 52%;
+    --hue-c: 0.13;
+}
+
+/*
+ * The three states of the theme, in the order that makes all three work:
+ * bare :root is light, prefers-color-scheme applies only when the collector has
+ * not chosen, and the explicit attribute wins in both directions. These rules sit
+ * outside every layer on purpose, so they override the values @theme emits.
+ * Every token below is redefined in all three states — one defined in only one of
+ * them is a defect (AD-9).
+ */
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --color-accent: #e8897b;
+        --color-accent-soft: #2e1c19;
+        --color-accent-line: #4a2b26;
+        --color-accent-text: #f0a49a;
+
+        --color-bg: #131010;
+        --color-tile: #1d1918;
+        --color-tile-2: #232020;
+        --color-fg: #f4efec;
+        --color-fg-2: #a89d98;
+        --color-fg-3: #7d716d;
+        --color-line: #2b2624;
+        --color-line-2: #37302e;
+
+        --color-land: #221e1d;
+        --color-land-2: #2a2524;
+        --color-forest: #232b25;
+        --color-forest-2: #2b342c;
+        --color-urban: #2a2523;
+        --color-water: #1b2730;
+        --color-water-line: #2c3d49;
+        --color-road: #332c29;
+
+        --color-ok: #7fae8c;
+        --color-plum: #c98fa6;
+
+        --shadow-card: 0 1px 2px rgb(0 0 0 / 0.5), 0 10px 26px -16px rgb(0 0 0 / 0.8);
+        --shadow-lift: 0 2px 8px rgb(0 0 0 / 0.55), 0 20px 40px -20px rgb(0 0 0 / 0.9);
+
+        --hue-l: 72%;
+        --hue-c: 0.12;
+    }
+}
+
+:root[data-theme="dark"] {
+    --color-accent: #e8897b;
+    --color-accent-soft: #2e1c19;
+    --color-accent-line: #4a2b26;
+    --color-accent-text: #f0a49a;
+
+    --color-bg: #131010;
+    --color-tile: #1d1918;
+    --color-tile-2: #232020;
+    --color-fg: #f4efec;
+    --color-fg-2: #a89d98;
+    --color-fg-3: #7d716d;
+    --color-line: #2b2624;
+    --color-line-2: #37302e;
+
+    --color-land: #221e1d;
+    --color-land-2: #2a2524;
+    --color-forest: #232b25;
+    --color-forest-2: #2b342c;
+    --color-urban: #2a2523;
+    --color-water: #1b2730;
+    --color-water-line: #2c3d49;
+    --color-road: #332c29;
+
+    --color-ok: #7fae8c;
+    --color-plum: #c98fa6;
+
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.5), 0 10px 26px -16px rgb(0 0 0 / 0.8);
+    --shadow-lift: 0 2px 8px rgb(0 0 0 / 0.55), 0 20px 40px -20px rgb(0 0 0 / 0.9);
+
+    --hue-l: 72%;
+    --hue-c: 0.12;
+}
+
+/*
+ * Tailwind's dark: variant defaults to prefers-color-scheme alone, which would
+ * ignore an explicit choice. Redefined here so one variant covers all three
+ * states of AD-9 and markup can use dark: without knowing about them.
+ */
+@custom-variant dark {
+    @media (prefers-color-scheme: dark) {
+        &:where(:root:not([data-theme="light"]), :root:not([data-theme="light"]) *) {
+            @slot;
+        }
+    }
+
+    &:where(:root[data-theme="dark"], :root[data-theme="dark"] *) {
+        @slot;
+    }
+}
+
+@utility ic {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+@utility ic-sm {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.1;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+@utility page {
+    padding: clamp(14px, 2.4vw, 26px) clamp(14px, 2.6vw, 30px) clamp(34px, 4vw, 54px);
+}
+
+@utility cols {
+    display: grid;
+    gap: clamp(12px, 1.4vw, 18px);
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+
+    @media (width >= 1080px) {
+        grid-template-columns: minmax(0, 1.04fr) minmax(0, 1fr);
+    }
+}
+
+@utility stack {
+    display: grid;
+    gap: clamp(12px, 1.4vw, 18px);
+    min-width: 0;
+}
+
+@utility tile {
+    min-width: 0;
+    border: 1px solid var(--color-line);
+    border-radius: 20px;
+    background: var(--color-tile);
+    box-shadow: var(--shadow-card);
+}
+
+@utility tile-pad {
+    padding: clamp(16px, 1.8vw, 22px);
+}
+
+@utility tile-flat {
+    background: var(--color-tile-2);
+    box-shadow: none;
+}
+
+@layer base {
+    /*
+     * An un-reset figure margin of 1em 40px crushed every seal thumbnail across
+     * six mockup variants before it was found. Tailwind's own preflight covers
+     * most of this; these are the elements the seal and cover frames depend on.
+     */
+    figure,
+    figcaption,
+    dl,
+    dd,
+    dt,
+    ol,
+    ul,
+    p,
+    h1,
+    h2,
+    h3,
+    h4 {
+        margin: 0;
+    }
+
+    ol,
+    ul {
+        padding: 0;
+        list-style: none;
+    }
+
+    button {
+        font: inherit;
+        color: inherit;
+    }
+
+    html {
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+        margin: 0;
+        background: var(--color-bg);
+        color: var(--color-fg);
+        font-family: var(--font-ui);
+        font-size: 15px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+    }
+}
+
+@utility sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
 }

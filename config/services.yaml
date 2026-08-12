@@ -1,5 +1,6 @@
 parameters:
     default_locale: 'en'
+    app.locales: ['en', 'fr']
     .container.dumper.inline_factories: true
 
 services:

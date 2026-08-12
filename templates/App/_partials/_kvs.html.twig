@@ -1,0 +1,17 @@
+{#
+    rows  a list of {label, value, jp} — every row whose value is empty is dropped
+          before anything is rendered, so an all-empty list emits nothing at all
+          rather than an empty container (AD-8).
+#}
+{% set kept = rows|filter(row => row.value is not null and row.value is not same as(false) and row.value|trim is not empty) %}
+
+{% if kept is not empty %}
+    <dl class="grid gap-0">
+        {% for row in kept %}
+            <div class="flex items-baseline justify-between gap-3.5 py-2 text-sm not-first:border-t not-first:border-line">
+                <dt class="text-fg-2">{{ row.label }}</dt>
+                <dd class="font-semibold tabular-nums{{ row.jp|default(false) ? ' font-jp' }}">{{ row.value }}</dd>
+            </div>
+        {% endfor %}
+    </dl>
+{% endif %}
