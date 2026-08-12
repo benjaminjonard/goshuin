@@ -30,6 +30,8 @@ label:
 
     home: 'Accueil'
     sign_in: 'Se connecter'
+    sign_out: 'Se déconnecter'
+    account: 'Mon compte'
     your_name: 'Ton nom'
     email: 'Adresse e-mail'
     password: 'Mot de passe'
@@ -53,6 +55,7 @@ message:
 
 error:
     credentials: 'Ces identifiants ne correspondent à aucun compte.'
+    too_many_attempts: 'Trop de tentatives échouées. Réessaie dans un instant.'
     password_current_required: 'Saisis ton mot de passe actuel pour le changer.'
     upload_format: 'Seules les images JPEG, PNG et WebP sont acceptées.'
     upload_too_large: 'Ce fichier dépasse la limite configurée.'

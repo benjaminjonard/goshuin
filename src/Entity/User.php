@@ -83,6 +83,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getInitials(): string
+    {
+        $words = preg_split('/\s+/', trim((string) $this->name), -1, \PREG_SPLIT_NO_EMPTY) ?: [];
+
+        return mb_strtoupper(implode('', array_map(
+            static fn (string $word): string => mb_substr($word, 0, 1),
+            \count($words) > 1 ? [$words[0], end($words)] : $words,
+        )));
+    }
+
     public function getEmail(): ?string
     {
         return $this->email;

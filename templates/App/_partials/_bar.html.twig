@@ -47,5 +47,28 @@
             {{ include('App/_partials/_icon.html.twig', {name: 'moon', class: 'block dark:hidden'}) }}
             {{ include('App/_partials/_icon.html.twig', {name: 'sun', class: 'hidden dark:block'}) }}
         </button>
+
+        {% if app.user %}
+            <div class="relative" data-controller="menu">
+                <button type="button"
+                        class="grid size-[38px] cursor-pointer place-items-center rounded-full border border-line-2 bg-tile-2 text-[13px] font-bold tracking-[0.02em] text-fg-2 transition-colors hover:border-fg-3 hover:text-fg"
+                        data-menu-target="button"
+                        data-action="menu#toggle"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        aria-label="{{ 'label.account'|trans }}">{{ app.user.initials }}</button>
+
+                <div class="absolute right-0 top-full mt-2 hidden min-w-[190px] overflow-hidden rounded-2xl border border-line bg-tile shadow-lift" data-menu-target="panel">
+                    <p class="border-b border-line px-4 py-3">
+                        <span class="block truncate text-[13.5px] font-semibold text-fg">{{ app.user.name }}</span>
+                        <span class="block truncate text-xs text-fg-3">{{ app.user.email }}</span>
+                    </p>
+                    <a href="{{ path('app_logout') }}" class="flex items-center gap-2.5 px-4 py-3 text-[13.5px] font-semibold text-fg no-underline hover:bg-tile-2">
+                        {{ include('App/_partials/_icon.html.twig', {name: 'out', small: true, class: 'text-fg-2'}) }}
+                        {{ 'label.sign_out'|trans }}
+                    </a>
+                </div>
+            </div>
+        {% endif %}
     </div>
 </header>

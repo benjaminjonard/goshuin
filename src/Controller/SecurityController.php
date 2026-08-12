@@ -8,15 +8,11 @@ use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\Exception\TooManyLoginAttemptsAuthenticationException;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class SecurityController extends AbstractController
 {
-    /**
-     * No listener guards the first run: every private route already redirects here,
-     * and here is where zero Users sends the visitor on to setup. One query on one
-     * route beats a count on every request (FR-1).
-     */
     #[Route(path: '/login', name: 'app_login', methods: ['GET', 'POST'])]
     public function login(AuthenticationUtils $authenticationUtils, UserRepository $userRepository): Response
     {
@@ -28,9 +24,12 @@ class SecurityController extends AbstractController
             return $this->redirectToRoute('app_homepage');
         }
 
+        $error = $authenticationUtils->getLastAuthenticationError();
+
         return $this->render('App/Security/login.html.twig', [
             'lastEmail' => $authenticationUtils->getLastUsername(),
-            'error' => $authenticationUtils->getLastAuthenticationError(),
+            'error' => $error,
+            'throttled' => $error instanceof TooManyLoginAttemptsAuthenticationException,
         ]);
     }
 

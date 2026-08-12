@@ -15,7 +15,7 @@
             {% if error %}
                 <p class="flex items-start gap-2.5 rounded-xl border border-accent-line bg-accent-soft px-3.5 py-3 text-[12.5px] leading-relaxed text-accent-text" role="alert">
                     {{ include('App/_partials/_icon.html.twig', {name: 'info', small: true, class: 'mt-px'}) }}
-                    <span>{{ 'error.credentials'|trans }}</span>
+                    <span>{{ (throttled ? 'error.too_many_attempts' : 'error.credentials')|trans }}</span>
                 </p>
             {% endif %}
 
@@ -34,7 +34,7 @@
             <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
             <div class="mt-1">
-                <button type="submit" class="w-full cursor-pointer rounded-xl border border-accent bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-[filter] hover:brightness-105 dark:text-[#24100d]">
+                <button type="submit" name="login_submit" class="w-full cursor-pointer rounded-xl border border-accent bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-[filter] hover:brightness-105 dark:text-[#24100d]">
                     {{ 'label.sign_in'|trans }}
                 </button>
             </div>

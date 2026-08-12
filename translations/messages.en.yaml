@@ -30,6 +30,8 @@ label:
 
     home: 'Home'
     sign_in: 'Sign in'
+    sign_out: 'Sign out'
+    account: 'My account'
     your_name: 'Your name'
     email: 'Email'
     password: 'Password'
@@ -53,6 +55,7 @@ message:
 
 error:
     credentials: 'Those credentials do not match an account.'
+    too_many_attempts: 'Too many failed attempts. Try again shortly.'
     password_current_required: 'Enter your current password to change it.'
     upload_format: 'Only JPEG, PNG and WebP images are accepted.'
     upload_too_large: 'That file is larger than the configured limit.'

@@ -45,15 +45,15 @@ class FirstRunTest extends WebTestCase
 
         // Act
         $this->client->submitForm('setup_submit', [
-            'setup[name]' => 'Benjamin',
-            'setup[email]' => 'benjamin@example.com',
+            'setup[name]' => 'Test User',
+            'setup[email]' => 'user@example.com',
             'setup[plainPassword][first]' => 'a-long-enough-password',
             'setup[plainPassword][second]' => 'a-long-enough-password',
         ]);
 
         // Assert
         $this->assertRouteSame('app_homepage');
-        $user = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'benjamin@example.com']);
+        $user = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'user@example.com']);
         $this->assertNotNull($user);
         $this->assertContains('ROLE_ADMIN', $user->getRoles());
         $this->assertNotSame('a-long-enough-password', $user->getPassword(), 'The password was stored in clear.');
