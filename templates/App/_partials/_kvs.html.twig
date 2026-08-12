@@ -1,8 +1,3 @@
-{#
-    rows  a list of {label, value, jp} — every row whose value is empty is dropped
-          before anything is rendered, so an all-empty list emits nothing at all
-          rather than an empty container (AD-8).
-#}
 {% set kept = rows|filter(row => row.value is not null and row.value is not same as(false) and row.value|trim is not empty) %}
 
 {% if kept is not empty %}

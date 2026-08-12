@@ -17,10 +17,8 @@ class UserRepositoryTest extends KernelTestCase
 
     public function test_it_reports_an_empty_instance(): void
     {
-        // Arrange
         $repository = $this->repository();
 
-        // Act & Assert
         $this->assertTrue($repository->hasNone());
 
         UserFactory::createOne();
@@ -30,15 +28,12 @@ class UserRepositoryTest extends KernelTestCase
 
     public function test_it_counts_administrators_and_nobody_else(): void
     {
-        // Arrange
         UserFactory::new()->admin()->many(2)->create();
         UserFactory::createOne();
         UserFactory::new()->disabled()->create();
 
-        // Act
         $count = $this->repository()->countAdministrators();
 
-        // Assert
         $this->assertSame(2, $count);
     }
 

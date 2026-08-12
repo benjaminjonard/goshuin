@@ -2,3 +2,4 @@ error:
     email:
         not_unique: 'Un compte utilise déjà cette adresse.'
     password_mismatch: 'Les deux mots de passe ne correspondent pas.'
+    password_current_wrong: 'Le mot de passe actuel ne correspond pas.'

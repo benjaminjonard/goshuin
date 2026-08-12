@@ -1,7 +1,3 @@
-{#
-    pills  a list of {text, icon, jp, hot} — empty entries are dropped, and an
-           all-empty list emits nothing (AD-8).
-#}
 {% set kept = pills|filter(pill => pill.text is not null and pill.text|trim is not empty) %}
 
 {% if kept is not empty %}

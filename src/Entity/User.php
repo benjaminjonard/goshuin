@@ -214,11 +214,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * Not an interface method: Symfony 8 removed eraseCredentials() from UserInterface.
-     * It stays because the listener that hashes calls it, and because plainPassword must
-     * not survive the request that set it.
-     */
     public function eraseCredentials(): void
     {
         $this->plainPassword = null;

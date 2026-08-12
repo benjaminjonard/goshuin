@@ -21,10 +21,5 @@
                 {{ include('App/_partials/_button.html.twig', {label: 'label.setup_submit'|trans, icon: 'right', variant: 'primary', type: 'submit', name: 'setup_submit'}) }}
             </div>
         {{ form_end(form) }}
-
-        <p class="flex items-start gap-2.5 rounded-2xl border border-line bg-tile-2 px-4 py-3.5 text-[12.5px] leading-relaxed text-fg-2">
-            {{ include('App/_partials/_icon.html.twig', {name: 'check', small: true, class: 'mt-0.5 text-ok'}) }}
-            <span>{{ 'label.setup_admin_note'|trans }}</span>
-        </p>
     </main>
 {% endblock %}

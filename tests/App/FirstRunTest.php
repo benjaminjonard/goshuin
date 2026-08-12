@@ -29,9 +29,6 @@ class FirstRunTest extends WebTestCase
 
     public function test_every_route_leads_to_setup_while_there_is_no_user(): void
     {
-        // Arrange
-
-        // Act & Assert
         foreach (['/', '/login'] as $path) {
             $this->client->request(Request::METHOD_GET, $path);
             $this->assertRouteSame('app_setup', [], sprintf('%s did not lead to setup.', $path));
@@ -40,10 +37,8 @@ class FirstRunTest extends WebTestCase
 
     public function test_setup_creates_the_administrator_and_opens_a_session(): void
     {
-        // Arrange
         $this->client->request(Request::METHOD_GET, '/setup');
 
-        // Act
         $this->client->submitForm('setup_submit', [
             'setup[name]' => 'Test User',
             'setup[email]' => 'user@example.com',
@@ -51,7 +46,6 @@ class FirstRunTest extends WebTestCase
             'setup[plainPassword][second]' => 'a-long-enough-password',
         ]);
 
-        // Assert
         $this->assertRouteSame('app_homepage');
         $user = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'user@example.com']);
         $this->assertNotNull($user);
@@ -62,10 +56,8 @@ class FirstRunTest extends WebTestCase
 
     public function test_an_invalid_submission_creates_nothing(): void
     {
-        // Arrange
         $this->client->request(Request::METHOD_GET, '/setup');
 
-        // Act
         $this->client->submitForm('setup_submit', [
             'setup[name]' => '',
             'setup[email]' => 'not-an-email',
@@ -73,36 +65,28 @@ class FirstRunTest extends WebTestCase
             'setup[plainPassword][second]' => 'different',
         ]);
 
-        // Assert
         $this->assertRouteSame('app_setup');
         $this->assertSame(0, static::getContainer()->get(UserRepository::class)->count([]));
     }
 
     public function test_setup_is_gone_once_a_user_exists(): void
     {
-        // Arrange
         UserFactory::createOne();
 
-        // Act
         $this->client->request(Request::METHOD_GET, '/setup');
 
-        // Assert
         $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
     }
 
     public function test_home_states_the_collection_is_empty_and_draws_nothing_else(): void
     {
-        // Arrange
         $user = UserFactory::new()->admin()->create();
         $this->client->loginUser($user);
 
-        // Act
         $crawler = $this->client->request(Request::METHOD_GET, '/');
 
-        // Assert
         $this->assertResponseIsSuccessful();
         $this->assertRouteSame('app_homepage');
-        // Structure, not copy: the wording of an empty state changes, its shape should not.
         $this->assertCount(1, $crawler->filter('h1'), 'More than one h1 on the page.');
         $this->assertCount(1, $crawler->filter('main h2'), 'Home did not state that the collection is empty.');
         $this->assertGreaterThan(0, $crawler->filter('main a')->count(), 'Home offered no way out.');

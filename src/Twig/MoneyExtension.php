@@ -18,20 +18,6 @@ class MoneyExtension extends AbstractExtension
         ];
     }
 
-    /**
-     * Amounts are stored as an integer number of minor units plus an ISO 4217 code, so
-     * the divisor and the number of decimals come from the currency: 300 JPY is ¥300
-     * because yen has no minor unit, while 500 EUR is €5.00.
-     *
-     * The symbol is looked up in English on purpose. ICU renders JPY as "300 JPY" for a
-     * French reader, which is correct French practice for a foreign currency but reads
-     * clumsily beside a yen icon in a collection of Japanese seals. Grouping, decimals and
-     * the symbol's position still follow the reader's locale — only the symbol itself
-     * is pinned.
-     *
-     * An absent amount returns an empty string, which a template emits as nothing at
-     * all rather than as a zero or a dash (AD-8).
-     */
     public function money(?int $amount, string $currency = 'JPY', ?string $locale = null): string
     {
         if ($amount === null) {

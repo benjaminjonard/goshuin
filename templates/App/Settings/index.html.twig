@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'label.settings'|trans }} · Goshuin{% endblock %}
+
+{% block bar %}
+    {{ include('App/_partials/_bar.html.twig', {title: 'label.settings'|trans, back: path('app_homepage')}) }}
+{% endblock %}
+
+{% block body %}
+    <main class="page mx-auto grid w-full max-w-[620px] gap-[clamp(12px,1.4vw,18px)]">
+        {{ form_start(account, {attr: {class: 'tile tile-pad grid gap-4'}}) }}
+            <h2 class="text-[15px] font-bold tracking-[-0.015em]">{{ 'label.account'|trans }}</h2>
+            {{ form_row(account.name) }}
+            {{ form_row(account.email) }}
+            {{ form_row(account.locale) }}
+            {{ form_row(account.theme) }}
+
+            <div class="mt-1 flex justify-end">
+                {{ include('App/_partials/_button.html.twig', {label: 'label.save'|trans, variant: 'primary', type: 'submit', name: 'account_submit'}) }}
+            </div>
+        {{ form_end(account) }}
+
+        {{ form_start(password, {attr: {class: 'tile tile-pad grid gap-4'}}) }}
+            <h2 class="text-[15px] font-bold tracking-[-0.015em]">{{ 'label.password'|trans }}</h2>
+            {{ form_row(password.currentPassword) }}
+            {{ form_row(password.plainPassword.first) }}
+            {{ form_row(password.plainPassword.second) }}
+
+            <div class="mt-1 flex justify-end">
+                {{ include('App/_partials/_button.html.twig', {label: 'label.password_change'|trans, type: 'submit', name: 'password_submit'}) }}
+            </div>
+        {{ form_end(password) }}
+    </main>
+{% endblock %}

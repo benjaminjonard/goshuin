@@ -1,9 +1,3 @@
-{#
-    kicker  the small line above the title, optional
-    title   the current object, optional — the bar carries only the brand without it
-    jp      the Japanese subtitle beside the title, optional
-    back    a URL for the back button, optional
-#}
 <header class="sticky top-0 z-40 flex flex-wrap items-center gap-x-4 gap-y-2.5 border-b border-line
                bg-[color-mix(in_srgb,var(--color-bg)_88%,transparent)] px-[clamp(14px,2.6vw,30px)] py-[13px] backdrop-blur-[14px]">
     <a href="/" class="inline-flex items-center gap-2.5 rounded-xl py-[3px] pl-[3px] pr-[5px] no-underline text-fg group" aria-label="{{ 'label.brand'|trans }}">
@@ -42,8 +36,10 @@
         <button type="button"
                 class="inline-flex cursor-pointer items-center gap-2 rounded-[11px] border border-line-2 bg-tile px-[9px] py-[9px] text-fg transition-colors hover:border-fg-3"
                 data-controller="theme"
-                data-action="theme#toggle">
-            <span class="sr" data-theme-target="label" data-dark="{{ 'label.theme_dark'|trans }}" data-light="{{ 'label.theme_light'|trans }}">{{ 'label.theme_dark'|trans }}</span>
+                data-action="theme#toggle"
+                data-theme-url-value="{{ path('app_theme') }}"
+                data-theme-token-value="{{ csrf_token('submit') }}">
+            <span class="sr" data-theme-target="label" data-dark="{{ 'label.theme_to_dark'|trans }}" data-light="{{ 'label.theme_to_light'|trans }}">{{ 'label.theme_to_dark'|trans }}</span>
             {{ include('App/_partials/_icon.html.twig', {name: 'moon', class: 'block dark:hidden'}) }}
             {{ include('App/_partials/_icon.html.twig', {name: 'sun', class: 'hidden dark:block'}) }}
         </button>
@@ -63,7 +59,11 @@
                         <span class="block truncate text-[13.5px] font-semibold text-fg">{{ app.user.name }}</span>
                         <span class="block truncate text-xs text-fg-3">{{ app.user.email }}</span>
                     </p>
-                    <a href="{{ path('app_logout') }}" class="flex items-center gap-2.5 px-4 py-3 text-[13.5px] font-semibold text-fg no-underline hover:bg-tile-2">
+                    <a href="{{ path('app_settings') }}" class="flex items-center gap-2.5 px-4 py-3 text-[13.5px] font-semibold text-fg no-underline hover:bg-tile-2">
+                        {{ include('App/_partials/_icon.html.twig', {name: 'edit', small: true, class: 'text-fg-2'}) }}
+                        {{ 'label.settings'|trans }}
+                    </a>
+                    <a href="{{ path('app_logout') }}" class="flex items-center gap-2.5 border-t border-line px-4 py-3 text-[13.5px] font-semibold text-fg no-underline hover:bg-tile-2">
                         {{ include('App/_partials/_icon.html.twig', {name: 'out', small: true, class: 'text-fg-2'}) }}
                         {{ 'label.sign_out'|trans }}
                     </a>

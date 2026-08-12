@@ -9,10 +9,6 @@ use Symfony\Component\DependencyInjection\Attribute\When;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-/**
- * The page the design system is judged on while it is being built. Never shipped:
- * the attribute below keeps it out of every environment but dev.
- */
 #[When('dev')]
 class DesignController extends AbstractController
 {

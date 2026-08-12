@@ -1,9 +1,8 @@
 import { Controller } from '@hotwired/stimulus';
 
-const KEY = 'goshuin.theme';
-
 export default class extends Controller {
     static targets = ['label'];
+    static values = { url: String, token: String };
 
     connect() {
         this.media = window.matchMedia('(prefers-color-scheme: dark)');
@@ -21,9 +20,19 @@ export default class extends Controller {
     }
 
     toggle() {
-        document.documentElement.setAttribute('data-theme', this.isDark() ? 'light' : 'dark');
-        window.localStorage.setItem(KEY, document.documentElement.getAttribute('data-theme'));
+        const next = this.isDark() ? 'light' : 'dark';
+
+        document.documentElement.setAttribute('data-theme', next);
         this.paint();
+        this.persist(next);
+    }
+
+    persist(theme) {
+        const body = new FormData();
+        body.append('theme', theme);
+        body.append('_token', this.tokenValue);
+
+        fetch(this.urlValue, { method: 'POST', body, credentials: 'same-origin' });
     }
 
     isDark() {

@@ -1,20 +1,9 @@
 <!doctype html>
-<html lang="{{ app.request.locale|default('en') }}">
+<html lang="{{ app.request.locale|default('en') }}"{% if app.user and app.user.theme.attribute %} data-theme="{{ app.user.theme.attribute }}"{% endif %}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Goshuin{% endblock %}</title>
-
-    {# Runs before the first paint so a stored choice never flashes the other theme. #}
-    <script>
-        (function () {
-            var chosen = null;
-            try { chosen = window.localStorage.getItem('goshuin.theme'); } catch (e) {}
-            if (chosen === 'dark' || chosen === 'light') {
-                document.documentElement.setAttribute('data-theme', chosen);
-            }
-        })();
-    </script>
 
     {{ encore_entry_link_tags('app') }}
 </head>

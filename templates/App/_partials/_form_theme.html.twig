@@ -1,9 +1,3 @@
-{#
-    Every form in the application renders through this. Tailwind's preflight strips
-    input borders, so without a theme a field is invisible — which is how the setup
-    screen first shipped. Classes come from the tokens and nowhere else (AD-9).
-#}
-
 {% use 'form_div_layout.html.twig' %}
 
 {% block form_row %}
@@ -17,7 +11,7 @@
 
 {% block form_label %}
     {% if label is not same as(false) %}
-        {% set label_attr = label_attr|merge({class: 'text-[12.5px] font-semibold text-fg-2'}) %}
+        {% set label_attr = label_attr|merge({class: (label_attr.class|default('') ~ ' text-[12.5px] font-semibold text-fg-2')|trim}) %}
         {{- parent() -}}
     {% endif %}
 {% endblock %}
