@@ -6,6 +6,7 @@ namespace App\Tests\App;
 
 use App\Entity\User;
 use App\Tests\Factory\UserFactory;
+use App\Tests\IgnoresOwnership;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,6 +16,7 @@ use Zenstruck\Foundry\Test\ResetDatabase;
 class OwnershipTest extends WebTestCase
 {
     use Factories;
+    use IgnoresOwnership;
     use ResetDatabase;
 
     private KernelBrowser $client;
@@ -95,6 +97,7 @@ class OwnershipTest extends WebTestCase
     {
         $sources = array_merge(
             glob(\dirname(__DIR__, 2).'/src/Controller/*.php') ?: [],
+            glob(\dirname(__DIR__, 2).'/src/Controller/*/*.php') ?: [],
             glob(\dirname(__DIR__, 2).'/src/Repository/*.php') ?: [],
         );
 
@@ -114,15 +117,7 @@ class OwnershipTest extends WebTestCase
 
     private function userIgnoringOwnership(string $id): User
     {
-        $manager = static::getContainer()->get('doctrine')->getManager();
-        $manager->clear();
-        $filters = $manager->getFilters();
-
-        if ($filters->isEnabled('ownership')) {
-            $filters->disable('ownership');
-        }
-
-        return $manager->getRepository(User::class)->find($id);
+        return $this->unfiltered()->getRepository(User::class)->find($id);
     }
 
     /**

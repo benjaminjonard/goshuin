@@ -9,6 +9,30 @@
     </div>
 {% endblock %}
 
+{% block hue_widget %}
+    <div class="grid gap-2.5" data-controller="hue">
+        <div class="flex items-center gap-3.5">
+            <span class="size-11 shrink-0 rounded-full hue-fill" data-hue-target="preview" style="--hue: {{ value }}" aria-hidden="true"></span>
+            <span class="text-[13px] font-semibold tabular-nums text-fg-2" data-hue-target="value">{{ value }}°</span>
+        </div>
+        <input type="range" min="0" max="360" step="1"
+               id="{{ id }}" name="{{ full_name }}" value="{{ value }}"
+               class="h-3 w-full cursor-pointer appearance-none rounded-full hue-scale"
+               data-hue-target="input"
+               data-action="input->hue#paint">
+    </div>
+{% endblock %}
+
+{% block yen_widget %}
+    {% set attr = attr|merge({class: (attr.class|default('') ~ ' pl-10!')|trim}) %}
+    <div class="relative">
+        <span class="pointer-events-none absolute inset-y-0 left-3.5 grid place-items-center text-fg-3" aria-hidden="true">
+            {{- include('App/_partials/_icon.html.twig', {name: 'yen', small: true}) -}}
+        </span>
+        {{- block('form_widget_simple') -}}
+    </div>
+{% endblock %}
+
 {% block checkbox_row %}
     <div class="grid gap-1.5{{ (' ' ~ row_attr.class|default(''))|trim ? ' ' ~ row_attr.class|default('') }}">
         <label class="flex cursor-pointer items-center gap-2.5">

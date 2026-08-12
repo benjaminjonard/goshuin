@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ goshuincho.title }} · Goshuin{% endblock %}
+
+{% block bar %}
+    {{ include('App/_partials/_bar.html.twig', {kicker: 'label.goshuincho'|trans, title: goshuincho.title, back: path('app_goshuincho_show', {slug: goshuincho.slug})}) }}
+{% endblock %}
+
+{% block body %}
+    {{ include('App/Goshuincho/_form.html.twig', {cancel: path('app_goshuincho_show', {slug: goshuincho.slug})}) }}
+{% endblock %}

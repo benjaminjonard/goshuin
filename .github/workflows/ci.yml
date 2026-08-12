@@ -151,11 +151,17 @@ jobs:
       - name: Check for missing translations
         run: |
           for locale in en fr; do
-            missing=$(docker run --rm -e APP_SECRET=ci ci-image \
-              bin/console debug:translation "$locale" --only-missing 2>&1 | grep -c missing || true)
+            if ! docker run --rm -e APP_SECRET=ci ci-image \
+              bin/console debug:translation "$locale" --only-missing > "report-$locale.txt" 2>&1; then
+              echo "::error::debug:translation could not run for $locale"
+              cat "report-$locale.txt"
+              exit 1
+            fi
+
+            missing=$(grep -c missing "report-$locale.txt" || true)
             if [ "$missing" != "0" ]; then
               echo "::error::$missing missing translation(s) for $locale"
-              docker run --rm -e APP_SECRET=ci ci-image bin/console debug:translation "$locale" --only-missing
+              cat "report-$locale.txt"
               exit 1
             fi
           done

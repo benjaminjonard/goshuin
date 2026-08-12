@@ -5,7 +5,7 @@
 {% block bar %}
     {% embed 'App/_partials/_bar.html.twig' with {kicker: 'label.collection_of'|trans({'%name%': app.user.name}), title: 'label.home'|trans} %}
         {% block tools %}
-            {{ include('App/_partials/_button.html.twig', {label: 'label.add_goshuincho'|trans, icon: 'plus', variant: 'primary', href: '#'}) }}
+            {{ include('App/_partials/_button.html.twig', {label: 'label.add_goshuincho'|trans, icon: 'plus', variant: 'primary', href: path('app_goshuincho_add')}) }}
         {% endblock %}
     {% endembed %}
 {% endblock %}
@@ -18,7 +18,7 @@
             </span>
             <h2 class="text-[clamp(22px,2.8vw,28px)] font-bold leading-tight tracking-[-0.025em]">{{ 'label.home_empty'|trans }}</h2>
             <div class="mt-6 flex flex-wrap justify-center gap-2.5">
-                {{ include('App/_partials/_button.html.twig', {label: 'label.home_empty_cta'|trans, icon: 'plus', variant: 'primary', href: '#'}) }}
+                {{ include('App/_partials/_button.html.twig', {label: 'label.home_empty_cta'|trans, icon: 'plus', variant: 'primary', href: path('app_goshuincho_add')}) }}
             </div>
         </div>
     </main>

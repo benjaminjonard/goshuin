@@ -44,8 +44,8 @@
     --shadow-card: 0 1px 2px rgb(27 22 20 / 0.05), 0 10px 24px -16px rgb(27 22 20 / 0.22);
     --shadow-lift: 0 2px 6px rgb(27 22 20 / 0.09), 0 18px 36px -20px rgb(27 22 20 / 0.3);
 
-    --hue-l: 52%;
-    --hue-c: 0.13;
+    --hue-l: 70%;
+    --hue-c: 0.085;
 }
 
 /*
@@ -88,8 +88,8 @@
         --shadow-card: 0 1px 2px rgb(0 0 0 / 0.5), 0 10px 26px -16px rgb(0 0 0 / 0.8);
         --shadow-lift: 0 2px 8px rgb(0 0 0 / 0.55), 0 20px 40px -20px rgb(0 0 0 / 0.9);
 
-        --hue-l: 72%;
-        --hue-c: 0.12;
+        --hue-l: 82%;
+        --hue-c: 0.075;
     }
 }
 
@@ -123,8 +123,8 @@
     --shadow-card: 0 1px 2px rgb(0 0 0 / 0.5), 0 10px 26px -16px rgb(0 0 0 / 0.8);
     --shadow-lift: 0 2px 8px rgb(0 0 0 / 0.55), 0 20px 40px -20px rgb(0 0 0 / 0.9);
 
-    --hue-l: 72%;
-    --hue-c: 0.12;
+    --hue-l: 82%;
+    --hue-c: 0.075;
 }
 
 /*
@@ -202,6 +202,23 @@
 @utility tile-flat {
     background: var(--color-tile-2);
     box-shadow: none;
+}
+
+@utility hue-fill {
+    background: oklch(var(--hue-l) var(--hue-c) var(--hue));
+}
+
+@utility hue-scale {
+    background: linear-gradient(
+        to right,
+        oklch(var(--hue-l) var(--hue-c) 0),
+        oklch(var(--hue-l) var(--hue-c) 60),
+        oklch(var(--hue-l) var(--hue-c) 120),
+        oklch(var(--hue-l) var(--hue-c) 180),
+        oklch(var(--hue-l) var(--hue-c) 240),
+        oklch(var(--hue-l) var(--hue-c) 300),
+        oklch(var(--hue-l) var(--hue-c) 360)
+    );
 }
 
 @layer base {

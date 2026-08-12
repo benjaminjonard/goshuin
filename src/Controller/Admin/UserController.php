@@ -9,7 +9,7 @@ use App\Form\Type\PasswordSetType;
 use App\Form\Type\UserType;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -87,24 +87,21 @@ class UserController extends AbstractController
     public function delete(Request $request, User $user): Response
     {
         $refused = $this->users->countAdministrators($user->getId()) === 0;
+        $form = $this->createDeleteForm('app_admin_user_delete', ['id' => $user->getId()]);
+        $form->handleRequest($request);
 
-        if ($request->isMethod(Request::METHOD_POST)) {
-            if (!$this->isCsrfTokenValid('submit', (string) $request->request->get('_token'))) {
-                throw $this->createAccessDeniedException();
-            }
+        if (!$refused && $form->isSubmitted() && $form->isValid()) {
+            $this->entityManager->remove($user);
+            $this->entityManager->flush();
 
-            if (!$refused) {
-                $this->entityManager->remove($user);
-                $this->entityManager->flush();
-
-                return $this->redirectToRoute('app_admin_user_index');
-            }
+            return $this->redirectToRoute('app_admin_user_index');
         }
 
         return $this->render('App/Admin/User/delete.html.twig', [
             'user' => $user,
+            'form' => $form,
             'refused' => $refused,
-        ], new Response(status: $refused && $request->isMethod(Request::METHOD_POST) ? Response::HTTP_UNPROCESSABLE_ENTITY : Response::HTTP_OK));
+        ], new Response(status: $refused && $form->isSubmitted() ? Response::HTTP_UNPROCESSABLE_ENTITY : Response::HTTP_OK));
     }
 
     private function stranded(FormInterface $form, User $user): bool

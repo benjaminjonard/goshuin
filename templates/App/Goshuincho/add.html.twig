@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'label.add_goshuincho'|trans }} · Goshuin{% endblock %}
+
+{% block bar %}
+    {{ include('App/_partials/_bar.html.twig', {title: 'label.add_goshuincho'|trans, back: path('app_homepage')}) }}
+{% endblock %}
+
+{% block body %}
+    {{ include('App/Goshuincho/_form.html.twig', {cancel: path('app_homepage')}) }}
+{% endblock %}
