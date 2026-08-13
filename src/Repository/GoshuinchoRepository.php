@@ -6,7 +6,6 @@ namespace App\Repository;
 
 use App\Entity\Goshuin;
 use App\Entity\Goshuincho;
-use App\Service\RegionResolver;
 use App\Service\Tally;
 use App\Service\Summary;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -17,7 +16,7 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class GoshuinchoRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry, private readonly RegionResolver $regions)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Goshuincho::class);
     }
@@ -69,34 +68,21 @@ class GoshuinchoRepository extends ServiceEntityRepository
                 'COUNT(DISTINCT goshuin.location) AS places',
                 'MIN(goshuin.receivedOn) AS first',
                 'MAX(goshuin.receivedOn) AS last',
-                'MIN(location.latitude) AS south',
-                'MAX(location.latitude) AS north',
-                'MIN(location.longitude) AS west',
-                'MAX(location.longitude) AS east',
             )
             ->leftJoin('g.goshuins', 'goshuin')
-            ->leftJoin('goshuin.location', 'location')
             ->andWhere('g.id = :id')
             ->setParameter('id', $goshuincho->getId())
             ->getQuery()
             ->getSingleResult()
         ;
 
-        $corners = array_map(
-            static fn (string $corner): ?float => $row[$corner] === null ? null : (float) $row[$corner],
-            ['south' => 'south', 'north' => 'north', 'west' => 'west', 'east' => 'east'],
-        );
-
         return new Summary(
             goshuin: (int) $row['held'],
             locations: (int) $row['places'],
-            spend: $this->spend($goshuincho),
             cities: $this->places($goshuincho, 'locality'),
             prefectures: $this->places($goshuincho, 'prefecture'),
             first: $this->day($row['first']),
             last: $this->day($row['last']),
-            region: $this->regions->resolve(...array_values($corners)),
-            spread: $this->regions->spread(...array_values($corners)),
         );
     }
 
@@ -119,31 +105,6 @@ class GoshuinchoRepository extends ServiceEntityRepository
         ;
 
         return array_map(static fn (array $row): string => (string) $row['place'], $rows);
-    }
-
-    /**
-     * @return array<string, int>
-     */
-    private function spend(Goshuincho $goshuincho): array
-    {
-        $spent = [];
-
-        $rows = $this->getEntityManager()->createQueryBuilder()
-            ->select('goshuin.currency AS currency', 'SUM(goshuin.price) AS total')
-            ->from(Goshuin::class, 'goshuin')
-            ->andWhere('goshuin.goshuincho = :goshuincho')
-            ->andWhere('goshuin.price IS NOT NULL')
-            ->setParameter('goshuincho', $goshuincho)
-            ->groupBy('goshuin.currency')
-            ->getQuery()
-            ->getArrayResult()
-        ;
-
-        foreach ($rows as $row) {
-            $spent[(string) $row['currency']] = (int) $row['total'];
-        }
-
-        return $spent;
     }
 
     private function day(?string $day): ?\DateTimeImmutable

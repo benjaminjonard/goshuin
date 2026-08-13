@@ -32,13 +32,10 @@ class SummaryTest extends TestCase
         return new Summary(
             goshuin: 0,
             locations: 0,
-            spend: [],
             cities: [],
             prefectures: [],
             first: $first === null ? null : new \DateTimeImmutable($first),
             last: $last === null ? null : new \DateTimeImmutable($last),
-            region: null,
-            spread: null,
         )->days();
     }
 }

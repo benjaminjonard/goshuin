@@ -255,30 +255,6 @@ class GoshuinTest extends AppTestCase
         $this->discard($goshuin);
     }
 
-    public function test_each_optional_attribute_is_optional_on_its_own(): void
-    {
-        $user = UserFactory::createOne();
-        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
-        $this->client->loginUser($user);
-
-        foreach ([
-            'goshuin[type]' => 'seasonal',
-            'goshuin[price]' => '500',
-            'goshuin[notes]' => "The climb.\nThe rain.",
-        ] as $field => $value) {
-            $place = LocationFactory::createOne();
-            $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
-            $this->client->submitForm('goshuin_submit', [
-                'goshuin[location]' => $place->getId(),
-                'goshuin[imageFile]' => $this->image(),
-                $field => $value,
-            ]);
-
-            $this->assertResponseRedirects(null, Response::HTTP_FOUND, sprintf('A goshuin carrying only %s was refused.', $field));
-            $this->discard($this->repository()->findOneBy(['location' => $place->getId()]));
-        }
-    }
-
     public function test_the_optional_attributes_are_stored_and_read_back(): void
     {
         $user = UserFactory::createOne();

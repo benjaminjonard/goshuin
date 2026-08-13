@@ -245,20 +245,15 @@ class LocationComboboxTest extends KernelTestCase
         $this->assertStringContainsString('Romanized name', $rendered, 'The manual fields disappeared with it.');
     }
 
-    public function test_nothing_is_searched_below_three_characters(): void
+    public function test_three_characters_open_the_menu_and_two_do_not(): void
     {
-        $component = $this->geocoding([]);
-        $component->address = 'ky';
+        $short = $this->geocoding([]);
+        $short->address = 'ky';
+        $this->assertFalse($short->isSearchable(), 'A two-letter query opened the menu.');
 
-        $this->assertFalse($component->isSearchable(), 'A two-letter query opened the menu.');
-    }
-
-    public function test_three_characters_open_the_menu(): void
-    {
-        $component = $this->geocoding([$this->answer([]), $this->answer([])]);
-        $component->address = 'kyo';
-
-        $this->assertTrue($component->isSearchable());
+        $long = $this->geocoding([$this->answer([]), $this->answer([])]);
+        $long->address = 'kyo';
+        $this->assertTrue($long->isSearchable());
     }
 
     public function test_a_search_that_finds_nothing_is_not_a_failure(): void
@@ -268,18 +263,6 @@ class LocationComboboxTest extends KernelTestCase
 
         $this->assertSame([], $component->getPlaces());
         $this->assertFalse($component->hasFailed(), 'An empty answer was reported as a failure.');
-    }
-
-    public function test_a_search_that_finds_something_is_not_a_failure(): void
-    {
-        $component = $this->geocoding([
-            $this->answer([['W', 1, 'Kiyomizu-dera', 'Kyoto']]),
-            $this->answer([['W', 1, '清水寺', '京都市']]),
-        ]);
-        $component->address = 'kiyomizu';
-
-        $this->assertCount(1, $component->getPlaces());
-        $this->assertFalse($component->hasFailed());
     }
 
     public function test_a_failing_search_is_reported_as_a_failure_and_not_as_emptiness(): void

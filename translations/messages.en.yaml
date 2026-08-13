@@ -93,6 +93,8 @@ label:
     where_they_come_from: 'Where they come from'
     the_trip: 'The trip'
     in_order: 'In the order of the goshuincho'
+    holdings: 'What this account holds'
+    pill_photographs: '{1}%count% photograph|]1,Inf[ %count% photographs'
     pill_goshuincho: '%count% goshuincho'
     pill_goshuin: '{1}%count% goshuin|]1,Inf[ %count% goshuin'
     places: '{1}%count% place|]1,Inf[ %count% places'
@@ -110,7 +112,6 @@ label:
     remove_photograph: 'Remove this photograph'
     delete_location: 'Delete %name%?'
     locations: 'Locations'
-    spent: 'Spent'
 
     home: 'Home'
     sign_in: 'Sign in'

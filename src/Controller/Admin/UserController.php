@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Form\Type\PasswordSetType;
 use App\Form\Type\UserType;
 use App\Repository\UserRepository;
+use App\Service\Purge;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -25,6 +26,7 @@ class UserController extends AbstractController
     public function __construct(
         private readonly UserRepository $users,
         private readonly EntityManagerInterface $entityManager,
+        private readonly Purge $purge,
         private readonly TranslatorInterface $translator,
     ) {
     }
@@ -80,6 +82,7 @@ class UserController extends AbstractController
             'form' => $form,
             'password' => $password,
             'user' => $user,
+            'holdings' => $this->users->holdings($user),
         ]);
     }
 
@@ -91,8 +94,7 @@ class UserController extends AbstractController
         $form->handleRequest($request);
 
         if (!$refused && $form->isSubmitted() && $form->isValid()) {
-            $this->entityManager->remove($user);
-            $this->entityManager->flush();
+            $this->purge->of($user);
 
             return $this->redirectToRoute('app_admin_user_index');
         }
@@ -101,6 +103,7 @@ class UserController extends AbstractController
             'user' => $user,
             'form' => $form,
             'refused' => $refused,
+            'holdings' => $this->users->holdings($user),
         ], new Response(status: $refused && $form->isSubmitted() ? Response::HTTP_UNPROCESSABLE_ENTITY : Response::HTTP_OK));
     }
 
