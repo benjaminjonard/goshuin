@@ -50,11 +50,6 @@ class LocationController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->entityManager->flush();
 
-            $this->addFlash('success', [
-                'key' => 'message.location_edited',
-                'parameters' => ['%name%' => $location->getRomanizedName()],
-            ]);
-
             return $this->redirectToRoute('app_location_show', ['id' => $location->getId()]);
         }
 
@@ -73,18 +68,11 @@ class LocationController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             if ($held > 0) {
-                $this->addFlash('error', 'error.location_referenced');
-
                 return $this->redirectToRoute('app_location_show', ['id' => $location->getId()]);
             }
 
             $this->entityManager->remove($location);
             $this->entityManager->flush();
-
-            $this->addFlash('success', [
-                'key' => 'message.location_deleted',
-                'parameters' => ['%name%' => $location->getRomanizedName()],
-            ]);
 
             return $this->redirectToRoute('app_location_index');
         }

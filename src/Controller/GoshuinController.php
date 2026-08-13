@@ -45,11 +45,6 @@ class GoshuinController extends AbstractController
             $this->photograph($request, $goshuin);
 
             if ($request->request->has('goshuin_again')) {
-                $this->addFlash('success', [
-                    'key' => 'message.goshuin_added',
-                    'parameters' => ['%location%' => $goshuin->getLocation()?->getRomanizedName()],
-                ]);
-
                 return $this->redirectToRoute('app_goshuin_add', ['slug' => $goshuin->getGoshuincho()?->getSlug()]);
             }
 
@@ -148,20 +143,14 @@ class GoshuinController extends AbstractController
 
     private function photograph(Request $request, Goshuin $goshuin): void
     {
-        $refused = 0;
-
         foreach (PhotoType::cases() as $type) {
-            $refused += $this->set->apply($goshuin, $type, new PhotoInstructions(
+            $this->set->apply($goshuin, $type, new PhotoInstructions(
                 order: array_values($request->request->all()['photo_order'][$type->value] ?? []),
                 labels: $request->request->all()['photo_label'][$type->value] ?? [],
                 removed: array_values($request->request->all()['photo_remove'][$type->value] ?? []),
                 added: array_values(array_filter($request->files->all()['photo_add'][$type->value] ?? [])),
                 addedLabels: array_values($request->request->all()['photo_add_label'][$type->value] ?? []),
             ));
-        }
-
-        if ($refused > 0) {
-            $this->addFlash('warning', ['key' => 'message.photos_refused', 'parameters' => ['%count%' => $refused]]);
         }
     }
 }

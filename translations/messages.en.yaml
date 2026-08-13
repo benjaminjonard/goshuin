@@ -143,16 +143,6 @@ label:
     home_empty_cta: 'Create my first goshuincho'
 
 message:
-    goshuincho_added: 'The goshuincho %name% was added.'
-    goshuincho_edited: 'The goshuincho %name% was saved.'
-    goshuincho_deleted: 'The goshuincho %name% was deleted.'
-    goshuin_added: 'The goshuin from %location% was added.'
-    goshuin_edited: 'The goshuin from %location% was saved.'
-    goshuin_deleted: 'The goshuin from %location% was deleted.'
-    location_added: 'The Location %name% was added.'
-    photos_refused: '{1}One photograph was refused.|]1,Inf[ %count% photographs were refused.'
-    location_edited: 'The location %name% was saved.'
-    location_deleted: 'The location %name% was deleted.'
     location_duplicate: 'A location with that name already exists. Creating another one is allowed.'
 
 error:

@@ -31,9 +31,14 @@
                     <li>
                         <a href="{{ path('app_location_show', {id: location.id}) }}"
                            class="tile group flex flex-wrap items-center gap-x-4 gap-y-2 px-[clamp(14px,1.6vw,20px)] py-3.5 no-underline hover:border-accent-line">
-                            <span class="grid size-[38px] shrink-0 place-items-center rounded-[12px] bg-accent-soft text-accent-text" aria-hidden="true">
-                                {{ include('App/_partials/_icon.html.twig', {name: 'pin', small: true}) }}
-                            </span>
+                            {% if location.photographMini %}
+                                <img src="{{ location.photographMini|image }}" alt=""
+                                     class="size-[38px] shrink-0 rounded-[12px] bg-tile-2 object-cover">
+                            {% else %}
+                                <span class="grid size-[38px] shrink-0 place-items-center rounded-[12px] bg-accent-soft text-accent-text" aria-hidden="true">
+                                    {{ include('App/_partials/_icon.html.twig', {name: 'pin', small: true}) }}
+                                </span>
+                            {% endif %}
 
                             <span class="min-w-0 flex-auto">
                                 <span class="block truncate text-[14.5px] font-semibold text-fg group-hover:text-accent-text{{ location.japaneseName ? ' font-jp' }}">

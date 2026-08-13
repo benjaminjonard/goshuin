@@ -181,21 +181,24 @@
                                     {% endif %}
                                     <ol class="grid gap-0">
                                         {% for goshuin in day.goshuins %}
-                                            <li class="flex items-baseline gap-3 rounded-xl px-2 py-1.5" data-index="{{ goshuin.position }}">
-                                                <span class="grid size-[26px] shrink-0 place-items-center rounded-full bg-tile-2 text-[12px] font-bold tabular-nums text-fg-2">{{ goshuin.position }}</span>
-                                                <span class="min-w-0 flex-auto">
-                                                    <a href="{{ path('app_goshuin_show', {slug: goshuincho.slug, position: goshuin.position}) }}"
-                                                       class="block truncate text-[14.5px] font-semibold text-fg no-underline hover:text-accent-text">
-                                                        {{- goshuin.location.japaneseName ?: goshuin.location.romanizedName -}}
-                                                    </a>
-                                                    {% set below = [
-                                                        goshuin.location.japaneseName ? goshuin.location.romanizedName : null,
-                                                        goshuin.location.locality,
-                                                    ]|filter(part => part)|join(' · ') %}
-                                                    {% if below is not empty %}
-                                                        <span class="block truncate text-xs text-fg-3">{{ below }}</span>
-                                                    {% endif %}
-                                                </span>
+                                            <li>
+                                                <a href="{{ path('app_goshuin_show', {slug: goshuincho.slug, position: goshuin.position}) }}"
+                                                   class="flex items-baseline gap-3 rounded-xl px-2 py-1.5 no-underline"
+                                                   data-index="{{ goshuin.position }}">
+                                                    <span class="grid size-[26px] shrink-0 place-items-center rounded-full bg-tile-2 text-[12px] font-bold tabular-nums text-fg-2">{{ goshuin.position }}</span>
+                                                    <span class="min-w-0 flex-auto">
+                                                        <span class="block truncate text-[14.5px] font-semibold text-fg">
+                                                            {{- goshuin.location.japaneseName ?: goshuin.location.romanizedName -}}
+                                                        </span>
+                                                        {% set below = [
+                                                            goshuin.location.japaneseName ? goshuin.location.romanizedName : null,
+                                                            goshuin.location.locality,
+                                                        ]|filter(part => part)|join(' · ') %}
+                                                        {% if below is not empty %}
+                                                            <span class="block truncate text-xs text-fg-3">{{ below }}</span>
+                                                        {% endif %}
+                                                    </span>
+                                                </a>
                                             </li>
                                         {% endfor %}
                                     </ol>

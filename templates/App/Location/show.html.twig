@@ -19,13 +19,7 @@
 {% block body %}
     {% set coordinates = location.hasCoordinates ? '%.4f, %.4f'|format(location.latitude, location.longitude) : null %}
 
-    <main class="page mx-auto grid w-full max-w-[680px] gap-[clamp(12px,1.4vw,18px)]">
-        {% if location.photographFull %}
-            <section class="tile stage">
-                <img src="{{ location.photographFull|image }}" class="image-page" alt="{{ location.romanizedName }}">
-            </section>
-        {% endif %}
-
+    <main class="page stack">
         {% set record = [
             {label: 'label.location_type'|trans, value: location.type ? ('label.' ~ location.type.value)|trans : null},
             {label: 'label.locality'|trans, value: location.locality},
@@ -34,12 +28,23 @@
             {label: 'label.coordinates'|trans, value: coordinates},
         ]|filter(row => row.value is not empty) %}
 
-        {% if record is not empty %}
-            {% embed 'App/_partials/_section.html.twig' with {title: 'label.information'|trans} %}
-                {% block content %}
-                    {{ include('App/_partials/_kvs.html.twig', {rows: record}) }}
-                {% endblock %}
-            {% endembed %}
+        {% if location.photographFull or record is not empty %}
+            <div class="grid gap-[clamp(12px,1.4vw,18px)]{{ location.photographFull and record is not empty ? ' grid-cols-[auto_minmax(0,1fr)]' }}">
+                {% if location.photographFull %}
+                    <section class="tile stage">
+                        <img src="{{ location.photographFull|image }}" alt="{{ location.romanizedName }}"
+                             class="h-[clamp(260px,28vw,440px)] w-auto max-w-full rounded-xl object-contain shadow-lift">
+                    </section>
+                {% endif %}
+
+                {% if record is not empty %}
+                    {% embed 'App/_partials/_section.html.twig' with {title: 'label.information'|trans} %}
+                        {% block content %}
+                            {{ include('App/_partials/_kvs.html.twig', {rows: record}) }}
+                        {% endblock %}
+                    {% endembed %}
+                {% endif %}
+            </div>
         {% endif %}
 
         {% if location.notes is not empty %}
