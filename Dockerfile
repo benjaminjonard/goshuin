@@ -47,10 +47,18 @@ COPY ./assets/ ./
 COPY --from=goshuin-base /app/public/vendor/symfony/ux-live-component/assets/ /app/vendor/symfony/ux-live-component/assets/
 
 RUN set -eux ; \
-    mkdir -p /app/public/build ; \
     npm install -g corepack ; \
     corepack enable ; \
-    yarn install --immutable ; \
+    yarn install --immutable
+
+# Tailwind scans the @source paths declared in assets/styles/app.css. Without
+# these two trees the build emits base and theme only, and every utility class
+# silently disappears from the stylesheet.
+COPY ./templates/ /app/templates/
+COPY ./src/ /app/src/
+
+RUN set -eux ; \
+    mkdir -p /app/public/build ; \
     yarn build
 
 FROM goshuin-base AS goshuin-final
