@@ -13,6 +13,8 @@ class Upload
         private readonly string $cardProperty,
         private readonly string $fullProperty,
         private readonly ?string $deleteProperty = null,
+        private readonly ?string $widthProperty = null,
+        private readonly ?string $heightProperty = null,
     ) {
     }
 
@@ -26,6 +28,8 @@ class Upload
             $arguments['cardProperty'],
             $arguments['fullProperty'],
             $arguments['deleteProperty'] ?? null,
+            $arguments['widthProperty'] ?? null,
+            $arguments['heightProperty'] ?? null,
         );
     }
 
@@ -52,6 +56,14 @@ class Upload
     public function getDeleteProperty(): ?string
     {
         return $this->deleteProperty;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getSizeProperties(): array
+    {
+        return array_values(array_filter([$this->widthProperty, $this->heightProperty]));
     }
 
     /**

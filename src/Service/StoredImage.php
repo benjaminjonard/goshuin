@@ -11,6 +11,8 @@ final readonly class StoredImage
         public string $mini,
         public string $card,
         public string $full,
+        public int $width,
+        public int $height,
     ) {
     }
 }

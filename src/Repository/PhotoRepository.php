@@ -61,27 +61,4 @@ class PhotoRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
-
-    /**
-     * @return list<Photo>
-     */
-    public function range(Goshuin $goshuin, PhotoType $type, int $low, int $high, bool $descending): array
-    {
-        if ($low > $high) {
-            return [];
-        }
-
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.goshuin = :goshuin')
-            ->andWhere('p.type = :type')
-            ->andWhere('p.position BETWEEN :low AND :high')
-            ->setParameter('goshuin', $goshuin)
-            ->setParameter('type', $type)
-            ->setParameter('low', $low)
-            ->setParameter('high', $high)
-            ->orderBy('p.position', $descending ? 'DESC' : 'ASC')
-            ->getQuery()
-            ->getResult()
-        ;
-    }
 }

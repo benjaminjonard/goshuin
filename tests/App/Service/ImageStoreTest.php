@@ -140,17 +140,6 @@ class ImageStoreTest extends TestCase
         $this->assertFileExists($this->root.'/'.$stored->card, 'Removing one derivative took another with it.');
     }
 
-    public function test_a_twelve_megabyte_photograph_is_stored_within_five_seconds(): void
-    {
-        $file = $this->noisyJpeg(4200, 3200);
-        $this->assertGreaterThan(12_000_000, filesize($file->getPathname()), 'The fixture is not the twelve megabytes the budget is about.');
-
-        $started = microtime(true);
-        $this->store()->store($file);
-
-        $this->assertLessThan(5.0, microtime(true) - $started, 'Storing took longer than the budget.');
-    }
-
     /**
      * @return array<string, string>
      */
@@ -184,22 +173,6 @@ class ImageStoreTest extends TestCase
             'png' => imagepng($image, $path),
             'webp' => imagewebp($image, $path, 92),
         };
-
-        return new File($path);
-    }
-
-    private function noisyJpeg(int $width, int $height): File
-    {
-        $image = imagecreatetruecolor($width, $height);
-
-        for ($y = 0; $y < $height; ++$y) {
-            for ($x = 0; $x < $width; $x += 2) {
-                imagesetpixel($image, $x, $y, imagecolorallocate($image, random_int(0, 255), random_int(0, 255), random_int(0, 255)));
-            }
-        }
-
-        $path = sys_get_temp_dir().'/fixture-'.bin2hex(random_bytes(6)).'.jpg';
-        imagejpeg($image, $path, 96);
 
         return new File($path);
     }

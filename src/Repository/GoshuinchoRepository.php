@@ -7,6 +7,7 @@ namespace App\Repository;
 use App\Entity\Goshuin;
 use App\Entity\Goshuincho;
 use App\Service\RegionResolver;
+use App\Service\Tally;
 use App\Service\Summary;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -19,6 +20,45 @@ class GoshuinchoRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry, private readonly RegionResolver $regions)
     {
         parent::__construct($registry, Goshuincho::class);
+    }
+
+    public function tally(): Tally
+    {
+        $row = $this->createQueryBuilder('g')
+            ->select('COUNT(DISTINCT g.id) AS goshuinchos')
+            ->addSelect('COUNT(goshuin.id) AS goshuins')
+            ->addSelect('COUNT(DISTINCT location.locality) AS cities')
+            ->addSelect('COUNT(DISTINCT location.prefecture) AS prefectures')
+            ->leftJoin('g.goshuins', 'goshuin')
+            ->leftJoin('goshuin.location', 'location')
+            ->getQuery()
+            ->getSingleResult()
+        ;
+
+        return new Tally(
+            goshuincho: (int) $row['goshuinchos'],
+            goshuin: (int) $row['goshuins'],
+            cities: (int) $row['cities'],
+            prefectures: (int) $row['prefectures'],
+        );
+    }
+
+    /**
+     * @return list<Goshuincho>
+     */
+    public function shelf(): array
+    {
+        return $this->createQueryBuilder('g')
+            ->select('g')
+            ->addSelect('COALESCE(MAX(goshuin.receivedOn), g.purchasedAt, :epoch) AS HIDDEN ranked')
+            ->leftJoin('g.goshuins', 'goshuin')
+            ->setParameter('epoch', new \DateTimeImmutable('@0'))
+            ->groupBy('g.id')
+            ->orderBy('ranked', 'DESC')
+            ->addOrderBy('g.title', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
     }
 
     public function summary(Goshuincho $goshuincho): Summary
@@ -51,11 +91,34 @@ class GoshuinchoRepository extends ServiceEntityRepository
             goshuin: (int) $row['held'],
             locations: (int) $row['places'],
             spend: $this->spend($goshuincho),
+            cities: $this->places($goshuincho, 'locality'),
+            prefectures: $this->places($goshuincho, 'prefecture'),
             first: $this->day($row['first']),
             last: $this->day($row['last']),
             region: $this->regions->resolve(...array_values($corners)),
             spread: $this->regions->spread(...array_values($corners)),
         );
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function places(Goshuincho $goshuincho, string $column): array
+    {
+        $rows = $this->getEntityManager()->createQueryBuilder()
+            ->select(sprintf('DISTINCT location.%s AS place', $column))
+            ->from(Goshuin::class, 'goshuin')
+            ->innerJoin('goshuin.location', 'location')
+            ->andWhere('goshuin.goshuincho = :goshuincho')
+            ->andWhere(sprintf('location.%s IS NOT NULL', $column))
+            ->andWhere(sprintf("location.%s <> ''", $column))
+            ->setParameter('goshuincho', $goshuincho)
+            ->orderBy('place', 'ASC')
+            ->getQuery()
+            ->getArrayResult()
+        ;
+
+        return array_map(static fn (array $row): string => (string) $row['place'], $rows);
     }
 
     /**

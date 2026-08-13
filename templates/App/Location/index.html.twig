@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'label.locations'|trans }} · Goshuin{% endblock %}
+
+{% block bar %}
+    {{ include('App/_partials/_bar.html.twig', {title: 'label.locations'|trans, back: path('app_homepage')}) }}
+{% endblock %}
+
+{% block body %}
+    <main class="page mx-auto grid w-full max-w-[860px] gap-[clamp(12px,1.4vw,18px)]">
+        <form method="get" action="{{ path('app_location_index') }}" class="flex flex-wrap items-center gap-2.5">
+            <input type="search" name="q" value="{{ term }}" autocomplete="off"
+                   aria-label="{{ 'label.location_search'|trans }}"
+                   placeholder="{{ 'label.location_search'|trans }}"
+                   class="min-w-0 flex-auto rounded-xl border border-line-2 bg-tile px-3.5 py-2.5 text-[14.5px] text-fg placeholder:text-fg-3 focus-visible:border-accent">
+            {{ include('App/_partials/_button.html.twig', {label: 'label.search'|trans, variant: 'primary', type: 'submit'}) }}
+        </form>
+
+        {% if locations is empty %}
+            <p class="tile tile-pad text-center text-[14.5px] text-fg-2">
+                {% if term is not empty %}
+                    {{ 'label.no_result'|trans }}
+                    <a href="{{ path('app_location_index') }}" class="font-semibold text-accent-text">{{ 'label.locations'|trans }}</a>
+                {% else %}
+                    {{ 'label.no_location_yet'|trans }}
+                {% endif %}
+            </p>
+        {% else %}
+            <ul class="grid gap-2.5">
+                {% for location in locations %}
+                    <li>
+                        <a href="{{ path('app_location_show', {id: location.id}) }}"
+                           class="tile group flex flex-wrap items-center gap-x-4 gap-y-2 px-[clamp(14px,1.6vw,20px)] py-3.5 no-underline hover:border-accent-line">
+                            <span class="grid size-[38px] shrink-0 place-items-center rounded-[12px] bg-accent-soft text-accent-text" aria-hidden="true">
+                                {{ include('App/_partials/_icon.html.twig', {name: 'pin', small: true}) }}
+                            </span>
+
+                            <span class="min-w-0 flex-auto">
+                                <span class="block truncate text-[14.5px] font-semibold text-fg group-hover:text-accent-text{{ location.japaneseName ? ' font-jp' }}">
+                                    {{- location.japaneseName ?: location.romanizedName -}}
+                                </span>
+                                {% set below = [location.japaneseName ? location.romanizedName : null, location.locality, location.prefecture]|filter(part => part is not empty)|join(' · ') %}
+                                {% if below is not empty %}
+                                    <span class="block truncate text-xs text-fg-3">{{ below }}</span>
+                                {% endif %}
+                            </span>
+
+                            <span class="shrink-0 text-fg-3 group-hover:text-accent-text" aria-hidden="true">
+                                {{- include('App/_partials/_icon.html.twig', {name: 'right', small: true}) -}}
+                            </span>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </main>
+{% endblock %}

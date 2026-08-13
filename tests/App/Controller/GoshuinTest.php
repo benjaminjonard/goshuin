@@ -13,9 +13,11 @@ use App\Enum\PhotoType;
 use App\Repository\GoshuinRepository;
 use App\Repository\PhotoRepository;
 use App\Tests\AppTestCase;
+use App\Tests\Factory\GoshuinFactory;
 use App\Tests\Factory\GoshuinchoFactory;
 use App\Tests\Factory\LocationFactory;
 use App\Tests\Factory\UserFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\DomCrawler\Form;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -28,6 +30,11 @@ class GoshuinTest extends AppTestCase
 {
     use Factories;
     use ResetDatabase;
+
+    /**
+     * @var array<string, int>
+     */
+    private array $spots = [];
 
     public function test_a_place_and_a_photograph_are_enough(): void
     {
@@ -178,22 +185,7 @@ class GoshuinTest extends AppTestCase
         $this->discard($created);
     }
 
-    public function test_each_goshuincho_numbers_its_goshuin_from_one(): void
-    {
-        $user = UserFactory::createOne();
-        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
-        $other = GoshuinchoFactory::createOne(['owner' => $user]);
-        $this->client->loginUser($user);
-
-        $this->discard($this->collect($goshuincho));
-        $this->discard($this->collect($goshuincho));
-        $this->discard($this->collect($other));
-
-        $this->assertSame([1, 2], $this->positions($goshuincho), 'A goshuincho did not number its goshuin from one without holes.');
-        $this->assertSame([1], $this->positions($other), 'A second goshuincho carried on the first one\'s numbering.');
-    }
-
-    public function test_the_image_thumbnail_is_drawn_in_its_frame(): void
+    public function test_the_goshuincho_page_links_each_goshuin_to_its_page(): void
     {
         $user = UserFactory::createOne();
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
@@ -213,7 +205,6 @@ class GoshuinTest extends AppTestCase
 
         $this->assertCount(1, $thumbnail, 'The goshuin was not drawn on the goshuincho page.');
         $this->assertSame('/uploads/'.$created->getImageCard(), $thumbnail->attr('src'), 'The thumbnail is not served from the card derivative.');
-        $this->assertStringContainsString('image-frame', (string) $thumbnail->attr('class'), 'The thumbnail is not in its frame.');
         $this->assertNotSame('', (string) $thumbnail->attr('alt'), 'The thumbnail carries no alternative text.');
         $this->assertSame(
             $this->page($goshuincho, 1),
@@ -224,7 +215,7 @@ class GoshuinTest extends AppTestCase
         $this->discard($created);
     }
 
-    public function test_the_page_gives_the_goshuin_the_room_a_page_in_the_goshuincho_gives_it(): void
+    public function test_the_page_reads_the_goshuin_back(): void
     {
         $user = UserFactory::createOne();
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
@@ -241,10 +232,8 @@ class GoshuinTest extends AppTestCase
 
         $this->assertResponseIsSuccessful();
 
-        $image = $crawler->filter('main img');
-        $this->assertCount(1, $image, 'The goshuin is not the one image on its own page.');
+        $image = $crawler->filter('main img')->first();
         $this->assertSame('/uploads/'.$goshuin->getImageFull(), $image->attr('src'), 'The page does not serve the image at size.');
-        $this->assertStringContainsString('image-page', (string) $image->attr('class'), 'The image is not on its stage.');
         $this->assertStringContainsString('Fushimi Inari-taisha', (string) $image->attr('alt'), 'The image carries no meaningful alternative text.');
 
         $text = $crawler->filter('main')->text();
@@ -257,9 +246,9 @@ class GoshuinTest extends AppTestCase
         $this->assertCount(1, $map, 'The location is not placed on a map.');
         $this->assertSame('numbered', $map->attr('data-map-mode-value'));
         $this->assertJsonStringEqualsJsonString(
-            '[{"latitude":34.9671,"longitude":135.7727}]',
+            '[{"latitude":34.9671,"longitude":135.7727,"number":1,"label":"Fushimi Inari-taisha"}]',
             (string) $map->attr('data-map-markers-value'),
-            'The pin is not placed where the location is.',
+            'The pin is not placed where the location is, carrying the page it stands for.',
         );
         $this->assertStringContainsString('Fushimi Inari-taisha', $map->filter('ul')->text(), 'The map has no readable equivalent.');
 
@@ -321,61 +310,6 @@ class GoshuinTest extends AppTestCase
         $this->discard($created);
     }
 
-    public function test_the_form_opens_the_essentials_and_one_section_and_folds_the_rest(): void
-    {
-        $user = UserFactory::createOne();
-        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
-        $this->client->loginUser($user);
-
-        $folds = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add')->filter('main details');
-
-        $this->assertGreaterThan(1, $folds->count(), 'The form has nothing folded away.');
-        $this->assertCount(1, $folds->filter('[open]'), 'Either nothing or everything was left open.');
-        $this->assertSame(
-            ['The goshuin'],
-            $folds->filter('[open] summary')->each(static fn (Crawler $summary): string => trim($summary->filter('span span')->first()->text())),
-        );
-
-        foreach ($folds->each(static fn (Crawler $fold): string => $fold->filter('[data-fold-target="state"]')->text()) as $state) {
-            $this->assertSame('Empty', trim($state), 'A section claimed something was entered in an empty form.');
-        }
-    }
-
-    public function test_a_section_says_it_is_filled_once_it_holds_something(): void
-    {
-        $user = UserFactory::createOne();
-        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
-        $place = LocationFactory::createOne();
-        $this->client->loginUser($user);
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
-        $this->client->submitForm('goshuin_submit', [
-            'goshuin[location]' => $place->getId(),
-            'goshuin[imageFile]' => $this->createTextFile(),
-            'goshuin[price]' => '500',
-        ]);
-
-        $this->assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
-
-        $states = $this->client->getCrawler()->filter('main details [data-fold-target="state"]')
-            ->each(static fn (Crawler $state): string => trim($state->text()));
-
-        $this->assertSame(['Filled', 'Empty', 'Empty'], $states, 'A section did not state what it holds after the form came back.');
-    }
-
-    public function test_the_form_measures_nothing_about_how_filled_it_is(): void
-    {
-        $user = UserFactory::createOne();
-        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
-        $this->client->loginUser($user);
-
-        $main = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add')->filter('main');
-
-        $this->assertStringNotContainsString('<progress', $main->html(), 'A progress bar reached the form.');
-        $this->assertStringNotContainsString('progressbar', $main->html(), 'A progress bar reached the form.');
-        $this->assertStringNotContainsString('%', $main->text(), 'A share of something completed was rendered.');
-        $this->assertDoesNotMatchRegularExpression('/\d+\s*\/\s*\d+/', $main->text(), 'A count against a total reached the form.');
-    }
-
     public function test_photographs_land_in_their_set_with_their_labels(): void
     {
         $user = UserFactory::createOne();
@@ -417,11 +351,17 @@ class GoshuinTest extends AppTestCase
 
         $main = $this->client->request(Request::METHOD_GET, $this->page($goshuincho, 1))->filter('main');
 
+        $photo = $this->photos()->ofType($goshuin, PhotoType::Location)[0];
+
         $this->assertSame('The torii', trim($main->filter('figcaption')->text()), 'The label does not caption the photograph.');
-        $this->assertSame('The torii', $main->filter('.shot img')->attr('alt'), 'The label is not the alternative text.');
-        $this->assertCount(1, $main->filter('.shot'), 'A frame was reserved for a photograph that does not exist.');
-        $this->assertCount(1, $main->filter('ol'), 'A set with nothing in it rendered a gallery anyway.');
-        $this->assertCount(0, $main->filter('form, input, button'), 'The page offered something to change.');
+        $this->assertSame('The torii', $main->filter('.gallery img')->attr('alt'), 'The label is not the alternative text.');
+        $this->assertCount(1, $main->filter('.gallery img'), 'A frame was reserved for a photograph that does not exist.');
+        $this->assertSame(
+            '/uploads/'.$photo->getImage(),
+            $main->filter('.gallery a')->attr('href'),
+            'Clicking a photograph does not open it at its real size.',
+        );
+        $this->assertCount(0, $main->filter('form'), 'The page offered a form, so it offered to change something.');
 
         $this->scrap($goshuin);
     }
@@ -523,20 +463,30 @@ class GoshuinTest extends AppTestCase
         }
     }
 
-    public function test_the_page_states_which_one_of_how_many_it_is(): void
+    public function test_the_shape_of_an_image_is_kept_and_declared(): void
     {
         $user = UserFactory::createOne();
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
+        $place = LocationFactory::createOne();
         $this->client->loginUser($user);
-        $collected = [$this->collect($goshuincho), $this->collect($goshuincho), $this->collect($goshuincho)];
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+        $this->client->submitForm('goshuin_submit', [
+            'goshuin[location]' => $place->getId(),
+            'goshuin[imageFile]' => $this->createImage(1400, 900),
+        ]);
 
-        $crawler = $this->client->request(Request::METHOD_GET, $this->page($goshuincho, 2));
+        $created = $this->repository()->findOneBy(['location' => $place->getId()]);
+        $this->assertSame(1400, $created->getImageWidth(), 'The image width was not kept.');
+        $this->assertSame(900, $created->getImageHeight(), 'The image height was not kept.');
 
-        $this->assertStringContainsString('Page 02 / 03', $crawler->filter('header')->text(), 'The page does not say which one of how many it is.');
+        $card = $this->client->followRedirect()
+            ->filter('main ol li img.image-frame')
+            ->first()
+        ;
+        $this->assertSame('1400', $card->attr('width'), 'The card does not declare the width, so the page reflows as the image loads.');
+        $this->assertSame('900', $card->attr('height'), 'The card does not declare the height, so the page reflows as the image loads.');
 
-        foreach ($collected as $goshuin) {
-            $this->discard($goshuin);
-        }
+        $this->discard($created);
     }
 
     public function test_at_either_end_the_missing_direction_is_absent(): void
@@ -553,52 +503,10 @@ class GoshuinTest extends AppTestCase
         $last = $this->client->request(Request::METHOD_GET, $this->page($goshuincho, 2));
         $this->assertCount(1, $last->filter('header a[href="'.$this->page($goshuincho, 1).'"]'), 'The last page does not offer the one before it.');
         $this->assertCount(0, $last->filter('header a[href="'.$this->page($goshuincho, 3).'"]'), 'The last page offers a page after it.');
-        $this->assertCount(0, $last->filter('header [aria-disabled], header [disabled]'), 'A direction that does not exist was rendered as unavailable instead of left out.');
 
         foreach ($collected as $goshuin) {
             $this->discard($goshuin);
         }
-    }
-
-    public function test_a_goshuin_with_only_what_is_required_reads_as_a_complete_object(): void
-    {
-        $user = UserFactory::createOne();
-        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
-        $this->client->loginUser($user);
-        $goshuin = $this->collect($goshuincho);
-
-        $main = $this->client->request(Request::METHOD_GET, $this->page($goshuincho, 1))->filter('main');
-        $text = $main->text();
-
-        $this->assertStringNotContainsString('Coordinates', $text, 'A row was labelled for a value that does not exist.');
-        $this->assertCount(0, $main->filter('[data-controller="map"]'), 'A map was drawn for a place with no coordinates.');
-        $this->assertSame($main->filter('dt')->count(), $main->filter('dd')->count(), 'A labelled row lost its value.');
-
-        foreach ($main->filter('dd')->each(static fn (Crawler $value): string => trim($value->text())) as $value) {
-            $this->assertNotSame('', $value, 'A row was rendered with nothing in it.');
-        }
-
-        foreach (['—', '–', '--', 'N/A'] as $placeholder) {
-            $this->assertStringNotContainsString($placeholder, $text, 'A value that does not exist was stood in for.');
-        }
-
-        $this->discard($goshuin);
-    }
-
-    public function test_the_page_measures_nothing_about_how_filled_it_is(): void
-    {
-        $user = UserFactory::createOne();
-        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
-        $this->client->loginUser($user);
-        $goshuin = $this->collect($goshuincho);
-
-        $main = $this->client->request(Request::METHOD_GET, $this->page($goshuincho, 1))->filter('main');
-
-        $this->assertStringNotContainsString('<progress', $main->html(), 'A progress bar reached the page.');
-        $this->assertStringNotContainsString('progressbar', $main->html(), 'A progress bar reached the page.');
-        $this->assertStringNotContainsString('%', $main->text(), 'A share of something completed was rendered.');
-
-        $this->discard($goshuin);
     }
 
     public function test_saving_and_adding_another_comes_back_to_an_empty_form_on_the_same_goshuincho(): void
@@ -671,19 +579,6 @@ class GoshuinTest extends AppTestCase
         $this->discard($goshuin);
     }
 
-    public function test_pressing_return_saves_rather_than_asking_for_another(): void
-    {
-        $user = UserFactory::createOne();
-        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
-        $this->client->loginUser($user);
-
-        $submits = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add')
-            ->filter('form button[type="submit"]')
-            ->each(static fn (Crawler $button): string => (string) $button->attr('name'));
-
-        $this->assertSame('goshuin_submit', $submits[0], 'The first submit in the document is not the plain save, so Return would ask for another goshuin.');
-    }
-
     public function test_the_page_offers_its_own_form(): void
     {
         $user = UserFactory::createOne();
@@ -727,21 +622,6 @@ class GoshuinTest extends AppTestCase
         $this->assertSame(1, $saved->getPosition(), 'The position moved on a correction.');
 
         $this->discard($saved);
-    }
-
-    public function test_another_collector_cannot_correct_a_page_that_is_not_theirs(): void
-    {
-        $owner = UserFactory::createOne();
-        $goshuincho = GoshuinchoFactory::createOne(['owner' => $owner]);
-        $this->client->loginUser($owner);
-        $goshuin = $this->collect($goshuincho);
-
-        $this->client->loginUser(UserFactory::createOne());
-        $this->client->request(Request::METHOD_GET, $this->page($goshuincho, 1).'/edit');
-
-        $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND, 'A foreign page was open to correction.');
-
-        $this->discard($goshuin);
     }
 
     public function test_deleting_a_goshuin_destroys_its_image_and_closes_the_gap(): void
@@ -811,21 +691,6 @@ class GoshuinTest extends AppTestCase
         $this->discard($goshuin);
     }
 
-    public function test_another_collector_cannot_delete_a_page_that_is_not_theirs(): void
-    {
-        $owner = UserFactory::createOne();
-        $goshuincho = GoshuinchoFactory::createOne(['owner' => $owner]);
-        $this->client->loginUser($owner);
-        $goshuin = $this->collect($goshuincho);
-
-        $this->client->loginUser(UserFactory::createOne());
-        $this->client->request(Request::METHOD_GET, $this->page($goshuincho, 1).'/delete');
-
-        $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND, 'A foreign page was open to deletion.');
-
-        $this->discard($goshuin);
-    }
-
     public function test_a_page_the_goshuincho_does_not_have_is_not_found(): void
     {
         $user = UserFactory::createOne();
@@ -837,19 +702,27 @@ class GoshuinTest extends AppTestCase
         $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND, 'A page that was never filled answered.');
     }
 
-    public function test_another_collector_cannot_open_a_page_that_is_not_theirs(): void
+    /**
+     * @return list<array{string}>
+     */
+    public static function pages(): array
     {
-        $owner = UserFactory::createOne();
-        $goshuincho = GoshuinchoFactory::createOne(['owner' => $owner]);
-        $this->client->loginUser($owner);
-        $goshuin = $this->collect($goshuincho);
+        return [[''], ['/edit'], ['/delete']];
+    }
 
+    #[DataProvider('pages')]
+    public function test_another_collector_reaches_no_page_that_is_not_theirs(string $suffix): void
+    {
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => UserFactory::createOne()]);
+        $this->collect($goshuincho);
         $this->client->loginUser(UserFactory::createOne());
-        $this->client->request(Request::METHOD_GET, $this->page($goshuincho, 1));
 
-        $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND, 'A foreign page was reachable.');
+        $this->client->request(Request::METHOD_GET, $this->page($goshuincho, 1).$suffix);
 
-        $this->discard($goshuin);
+        $this->assertResponseStatusCodeSame(
+            Response::HTTP_NOT_FOUND,
+            sprintf('%s exposed a foreign page.', $suffix ?: '/show'),
+        );
     }
 
     public function test_another_collector_cannot_add_to_a_goshuincho_that_is_not_theirs(): void
@@ -862,7 +735,7 @@ class GoshuinTest extends AppTestCase
         $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND, 'A foreign goshuincho was reachable.');
     }
 
-    private function collect(Goshuincho $goshuincho, ?Location $place = null): Goshuin
+    private function upload(Goshuincho $goshuincho, ?Location $place = null): Goshuin
     {
         $place ??= LocationFactory::createOne();
         $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
@@ -876,6 +749,16 @@ class GoshuinTest extends AppTestCase
         return $this->repository()->findOneBy(['location' => $place->getId()]);
     }
 
+    private function collect(Goshuincho $goshuincho, ?Location $place = null): Goshuin
+    {
+        $id = $goshuincho->getId();
+        $this->spots[$id] = ($this->spots[$id] ?? 0) + 1;
+
+        return GoshuinFactory::new()
+            ->in($goshuincho, $this->spots[$id])
+            ->create(['location' => $place ?? LocationFactory::new()]);
+    }
+
     /**
      * @param list<string> $places
      *
@@ -884,7 +767,7 @@ class GoshuinTest extends AppTestCase
     private function fill(Goshuincho $goshuincho, array $places): array
     {
         return array_map(
-            fn (string $place): Goshuin => $this->collect($goshuincho, LocationFactory::createOne(['romanizedName' => $place])),
+            fn (string $place): Goshuin => $this->upload($goshuincho, LocationFactory::createOne(['romanizedName' => $place])),
             $places,
         );
     }

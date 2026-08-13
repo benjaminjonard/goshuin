@@ -3,12 +3,6 @@ import { Controller } from '@hotwired/stimulus';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-const MINIMUM = 30;
-const FURTHEST = 60;
-const TARGET = MINIMUM * 1.3;
-const LEASH = 0.02;
-const PASSES = 160;
-
 export default class extends Controller {
     static targets = ['canvas', 'latitude', 'longitude'];
     static values = {
@@ -22,8 +16,7 @@ export default class extends Controller {
     };
 
     connect() {
-        this.map = L.map(this.canvasTarget, { scrollWheelZoom: this.modeValue === 'picker' })
-            .setView(this.centre(), this.zoom());
+        this.map = L.map(this.canvasTarget).setView(this.centre(), this.zoom());
 
         L.tileLayer(this.tilesValue, {
             attribution: this.attributionValue,
@@ -37,7 +30,7 @@ export default class extends Controller {
             return;
         }
 
-        this.number();
+        this.drop();
     }
 
     disconnect() {
@@ -61,131 +54,48 @@ export default class extends Controller {
         this.map.setView([this.latitudeValue, this.longitudeValue], Math.max(this.map.getZoom(), 17));
     }
 
-    number() {
-        this.pins = L.layerGroup().addTo(this.map);
-        this.map.on('moveend zoomend resize', () => this.spread());
-
+    drop() {
         if (this.markersValue.length > 1) {
             this.map.fitBounds(this.markersValue.map((marker) => [marker.latitude, marker.longitude]), {
-                padding: [34, 34],
+                padding: [40, 40],
                 animate: false,
             });
         }
 
-        this.map.whenReady(() => this.spread());
-    }
+        const pins = L.layerGroup().addTo(this.map);
 
-    spread() {
-        this.pins.clearLayers();
-
-        this.grouped(this.spaced()).forEach((placed) => {
-            L.marker(this.map.containerPointToLatLng(L.point(placed.x, placed.y)), {
+        this.markersValue.forEach((marker) => {
+            L.marker([marker.latitude, marker.longitude], {
                 icon: L.divIcon({
                     className: 'map-pin',
                     iconSize: [30, 38],
                     iconAnchor: [15, 38],
-                    html: this.pin(placed),
+                    html: this.pin(marker),
                 }),
                 keyboard: false,
-            }).addTo(this.pins);
+            }).addTo(pins);
         });
     }
 
-    spaced() {
-        const points = this.markersValue.map((marker) => {
-            const at = this.map.latLngToContainerPoint(L.latLng(marker.latitude, marker.longitude));
-
-            return { marker, ax: at.x, ay: at.y, x: at.x, y: at.y };
-        });
-
-        for (let pass = 0; pass < PASSES; pass += 1) {
-            for (let i = 0; i < points.length; i += 1) {
-                for (let j = i + 1; j < points.length; j += 1) {
-                    const a = points[i];
-                    const b = points[j];
-                    let dx = b.x - a.x;
-                    let dy = b.y - a.y;
-                    let d = Math.sqrt(dx * dx + dy * dy);
-
-                    if (d < 0.001) {
-                        dx = 0.6;
-                        dy = 0.4;
-                        d = 0.72;
-                    }
-
-                    if (d < TARGET) {
-                        const push = ((TARGET - d) / d) * 0.4;
-
-                        a.x -= dx * push;
-                        a.y -= dy * push;
-                        b.x += dx * push;
-                        b.y += dy * push;
-                    }
-                }
-            }
-
-            points.forEach((point) => {
-                point.x += (point.ax - point.x) * LEASH;
-                point.y += (point.ay - point.y) * LEASH;
-                this.leash(point);
-            });
-        }
-
-        return points;
-    }
-
-    leash(point) {
-        const dx = point.x - point.ax;
-        const dy = point.y - point.ay;
-        const away = Math.sqrt(dx * dx + dy * dy);
-
-        if (away > FURTHEST) {
-            point.x = point.ax + (dx / away) * FURTHEST;
-            point.y = point.ay + (dy / away) * FURTHEST;
-        }
-    }
-
-    grouped(points) {
-        const placed = [];
-
-        points.forEach((point) => {
-            const near = placed.find((other) => {
-                const dx = other.x - point.x;
-                const dy = other.y - point.y;
-
-                return Math.sqrt(dx * dx + dy * dy) < MINIMUM;
-            });
-
-            if (near) {
-                near.held.push(point.marker);
-
-                return;
-            }
-
-            placed.push({ x: point.x, y: point.y, held: [point.marker] });
-        });
-
-        return placed;
-    }
-
-    pin(placed) {
-        const first = placed.held[0];
-        const many = placed.held.length > 1;
-        const shown = many ? placed.held.length : first.number;
-        const label = many
-            ? placed.held.map((marker) => marker.number).join(', ')
-            : `${first.number}. ${first.label ?? ''}`;
+    pin(marker) {
+        const shown = Number(marker.number) || 0;
+        const label = [marker.number, marker.label].filter((part) => part).join('. ');
+        const tint = marker.hue === null || marker.hue === undefined
+            ? ''
+            : ` class="tinted" style="--hue: ${Number(marker.hue)}"`;
 
         const body = '<svg viewBox="0 0 30 38" aria-hidden="true">'
             + '<path class="body" d="M15 1.5c-6.9 0-12.5 5.5-12.5 12.3 0 8.4 9.9 18.6 11.6 20.3a1.3 1.3 0 0 0 1.8 0c1.7-1.7 11.6-11.9 11.6-20.3C27.5 7 21.9 1.5 15 1.5z"/>'
-            + (shown ? `<text class="num" x="15" y="18.6">${Number(shown)}</text>` : '')
+            + (shown ? `<text class="num" x="15" y="18.6">${shown}</text>` : '')
             + '</svg>';
 
-        if (many || !first.href) {
-            return `<span role="img" aria-label="${label}">${body}</span>`;
+        if (!marker.href) {
+            return `<span${tint} role="img" aria-label="${label}">${body}</span>`;
         }
 
-        return `<a href="${first.href}" aria-label="${label}" data-index="${first.index ?? ''}">${body}</a>`;
+        const index = marker.index ? ` data-index="${marker.index}"` : '';
+
+        return `<a href="${marker.href}"${tint}${index} aria-label="${label}">${body}</a>`;
     }
 
     startPicking() {

@@ -153,6 +153,7 @@ class LocationComboboxTest extends KernelTestCase
                 'placeName' => 'Kiyomizu-dera',
                 'japaneseName' => '清水寺',
                 'locality' => 'Kyoto',
+                'prefecture' => 'Kyōto',
                 'address' => 'Kiyomizu Slope, Kyoto, Japan',
                 'latitude' => '34.9943',
                 'longitude' => '135.7844',
@@ -165,6 +166,7 @@ class LocationComboboxTest extends KernelTestCase
         $this->assertSame('清水寺', $created->getJapaneseName());
         $this->assertSame('Kyoto', $created->getLocality());
         $this->assertSame('Kiyomizu Slope, Kyoto, Japan', $created->getAddress(), 'The address from the geocoder was not stored.');
+        $this->assertSame('Kyōto', $created->getPrefecture(), 'The prefecture from the geocoder was not stored.');
         $this->assertSame(34.9943, $created->getLatitude());
         $this->assertSame(LocationType::Temple, $created->getType(), 'The suffix was not read from the filled name.');
         $this->assertNotNull($component->component()->selected);

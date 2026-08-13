@@ -11,32 +11,48 @@ final readonly class Trip
     /**
      * @param iterable<Goshuin> $goshuins
      *
-     * @return list<Leg>
+     * @return list<Day>
      */
-    public function legs(iterable $goshuins): array
+    public function days(iterable $goshuins): array
     {
-        $legs = [];
+        $days = [];
+        $held = [];
+        $day = null;
         $previous = null;
 
         foreach ($goshuins as $goshuin) {
-            $legs[] = new Leg($goshuin, ...$this->interval($previous, $goshuin->getReceivedOn()));
-            $previous = $goshuin->getReceivedOn() ?? $previous;
+            $on = $goshuin->getReceivedOn();
+
+            if ($held !== [] && $this->stamp($on) !== $this->stamp($day)) {
+                $days[] = new Day($day, $held, $this->between($previous, $day));
+                $previous = $day ?? $previous;
+                $held = [];
+            }
+
+            $day = $on;
+            $held[] = $goshuin;
         }
 
-        return $legs;
+        if ($held !== []) {
+            $days[] = new Day($day, $held, $this->between($previous, $day));
+        }
+
+        return $days;
     }
 
-    /**
-     * @return array{0: ?int, 1: bool}
-     */
-    private function interval(?\DateTimeImmutable $previous, ?\DateTimeImmutable $day): array
+    private function stamp(?\DateTimeImmutable $day): ?string
+    {
+        return $day?->format('Y-m-d');
+    }
+
+    private function between(?\DateTimeImmutable $previous, ?\DateTimeImmutable $day): ?int
     {
         if ($previous === null || $day === null) {
-            return [null, false];
+            return null;
         }
 
         $days = (int) $previous->diff($day)->days;
 
-        return [$days > 1 ? $days : null, $days === 0];
+        return $days > 1 ? $days : null;
     }
 }

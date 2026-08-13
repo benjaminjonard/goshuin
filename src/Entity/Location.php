@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Attribute\Upload;
 use App\Enum\LocationType;
 use App\Repository\LocationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
+use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -38,6 +40,10 @@ class Location
 
     #[ORM\Column(type: Types::STRING, nullable: true)]
     #[Assert\Length(max: 255)]
+    private ?string $prefecture = null;
+
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    #[Assert\Length(max: 255)]
     private ?string $address = null;
 
     #[ORM\Column(type: Types::FLOAT, nullable: true)]
@@ -50,6 +56,34 @@ class Location
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $notes = null;
+
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $photograph = null;
+
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $photographMini = null;
+
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $photographCard = null;
+
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $photographFull = null;
+
+    #[Upload(
+        pathProperty: 'photograph',
+        miniProperty: 'photographMini',
+        cardProperty: 'photographCard',
+        fullProperty: 'photographFull',
+        deleteProperty: 'removePhotograph',
+    )]
+    #[Assert\Image(
+        mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+        mimeTypesMessage: 'error.upload_format',
+        uploadIniSizeErrorMessage: 'error.upload_too_large',
+    )]
+    private ?File $photographFile = null;
+
+    private bool $removePhotograph = false;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Gedmo\Timestampable(on: 'create')]
@@ -113,6 +147,18 @@ class Location
     public function setLocality(?string $locality): Location
     {
         $this->locality = $locality;
+
+        return $this;
+    }
+
+    public function getPrefecture(): ?string
+    {
+        return $this->prefecture;
+    }
+
+    public function setPrefecture(?string $prefecture): Location
+    {
+        $this->prefecture = $prefecture;
 
         return $this;
     }
@@ -190,6 +236,78 @@ class Location
     public function setUpdatedAt(?\DateTimeImmutable $updatedAt): Location
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    public function getPhotograph(): ?string
+    {
+        return $this->photograph;
+    }
+
+    public function setPhotograph(?string $photograph): Location
+    {
+        $this->photograph = $photograph;
+
+        return $this;
+    }
+
+    public function getPhotographMini(): ?string
+    {
+        return $this->photographMini;
+    }
+
+    public function setPhotographMini(?string $photographMini): Location
+    {
+        $this->photographMini = $photographMini;
+
+        return $this;
+    }
+
+    public function getPhotographCard(): ?string
+    {
+        return $this->photographCard;
+    }
+
+    public function setPhotographCard(?string $photographCard): Location
+    {
+        $this->photographCard = $photographCard;
+
+        return $this;
+    }
+
+    public function getPhotographFull(): ?string
+    {
+        return $this->photographFull;
+    }
+
+    public function setPhotographFull(?string $photographFull): Location
+    {
+        $this->photographFull = $photographFull;
+
+        return $this;
+    }
+
+    public function getPhotographFile(): ?File
+    {
+        return $this->photographFile;
+    }
+
+    public function setPhotographFile(?File $photographFile): Location
+    {
+        $this->photographFile = $photographFile;
+
+        return $this;
+    }
+
+    public function isRemovePhotograph(): bool
+    {
+        return $this->removePhotograph;
+    }
+
+    public function setRemovePhotograph(bool $removePhotograph): Location
+    {
+        $this->removePhotograph = $removePhotograph;
 
         return $this;
     }

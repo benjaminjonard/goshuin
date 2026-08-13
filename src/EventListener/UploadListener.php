@@ -70,6 +70,7 @@ final readonly class UploadListener
             $this->accessor->setValue($entity, $upload->getMiniProperty(), $stored->mini);
             $this->accessor->setValue($entity, $upload->getCardProperty(), $stored->card);
             $this->accessor->setValue($entity, $upload->getFullProperty(), $stored->full);
+            $this->size($entity, $upload, $stored->width, $stored->height);
             $this->accessor->setValue($entity, $property, null);
 
             foreach ($previous as $path) {
@@ -91,7 +92,15 @@ final readonly class UploadListener
             $this->accessor->setValue($entity, $column, null);
         }
 
+        $this->size($entity, $upload, null, null);
         $this->accessor->setValue($entity, $flag, false);
+    }
+
+    private function size(object $entity, Upload $upload, ?int $width, ?int $height): void
+    {
+        foreach ($upload->getSizeProperties() as $index => $property) {
+            $this->accessor->setValue($entity, $property, $index === 0 ? $width : $height);
+        }
     }
 
     /**

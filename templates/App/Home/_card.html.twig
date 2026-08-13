@@ -1,0 +1,17 @@
+<a href="{{ path('app_goshuincho_show', {slug: goshuincho.slug}) }}"
+   class="card grid snap-start content-start gap-2.5 rounded-[14px] p-1.5 no-underline"
+   style="--hue: {{ goshuincho.hue }}">
+    {% if goshuincho.coverFrontCard %}
+        <img src="{{ goshuincho.coverFrontCard|image }}" alt="{{ 'label.cover_front'|trans }}"
+             class="block aspect-[3/4.2] w-full rounded-[10px] bg-tile-2 object-cover shadow-lift">
+    {% else %}
+        <span class="grid aspect-[3/4.2] w-full place-items-center rounded-[10px] border border-line bg-tile-2" aria-hidden="true">
+            {{ include('App/_partials/_icon.html.twig', {name: 'goshuincho', class: 'text-fg-3'}) }}
+        </span>
+    {% endif %}
+
+    <h3 class="flex min-w-0 items-start gap-2 text-[14.5px] font-bold leading-[1.3] tracking-[-0.02em]">
+        <span class="mt-[5px] size-2 shrink-0 rounded-full hue-fill" aria-hidden="true"></span>
+        <span class="min-w-0 line-clamp-2">{{ goshuincho.title }}</span>
+    </h3>
+</a>

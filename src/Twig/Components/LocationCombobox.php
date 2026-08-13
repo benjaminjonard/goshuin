@@ -58,6 +58,10 @@ class LocationCombobox
 
     #[LiveProp(writable: true)]
     #[Assert\Length(max: 255)]
+    public string $newPrefecture = '';
+
+    #[LiveProp(writable: true)]
+    #[Assert\Length(max: 255)]
     public string $newAddress = '';
 
     #[LiveProp(writable: true)]
@@ -72,7 +76,7 @@ class LocationCombobox
     #[LiveProp(writable: true)]
     public string $address = '';
 
-    /** @var list<array{name: string, japaneseName: string, locality: string, address: string, latitude: float, longitude: float}> */
+    /** @var list<array{name: string, japaneseName: string, locality: string, prefecture: string, address: string, latitude: float, longitude: float}> */
     #[LiveProp]
     public array $found = [];
 
@@ -131,6 +135,7 @@ class LocationCombobox
             ->setJapaneseName($this->emptyToNull($this->newJapaneseName))
             ->setType($this->newType === null ? null : LocationType::from($this->newType))
             ->setLocality($this->emptyToNull($this->newLocality))
+            ->setPrefecture($this->emptyToNull($this->newPrefecture))
             ->setAddress($this->emptyToNull($this->newAddress))
             ->setLatitude($this->toCoordinate($this->newLatitude))
             ->setLongitude($this->toCoordinate($this->newLongitude))
@@ -150,6 +155,7 @@ class LocationCombobox
         #[LiveArg] string $placeName,
         #[LiveArg] string $japaneseName,
         #[LiveArg] string $locality,
+        #[LiveArg] string $prefecture,
         #[LiveArg] string $address,
         #[LiveArg] string $latitude,
         #[LiveArg] string $longitude,
@@ -157,6 +163,7 @@ class LocationCombobox
         $this->newRomanizedName = $placeName;
         $this->newJapaneseName = $japaneseName;
         $this->newLocality = $locality;
+        $this->newPrefecture = $prefecture;
         $this->newAddress = $address;
         $this->newLatitude = $latitude;
         $this->newLongitude = $longitude;
@@ -176,7 +183,7 @@ class LocationCombobox
     }
 
     /**
-     * @return list<array{name: string, japaneseName: string, locality: string, latitude: float, longitude: float}>
+     * @return list<array{name: string, japaneseName: string, locality: string, prefecture: string, latitude: float, longitude: float}>
      */
     public function getPlaces(): array
     {
@@ -276,6 +283,7 @@ class LocationCombobox
         $this->newJapaneseName = '';
         $this->newType = null;
         $this->newLocality = '';
+        $this->newPrefecture = '';
         $this->newAddress = '';
         $this->newLatitude = '';
         $this->newLongitude = '';

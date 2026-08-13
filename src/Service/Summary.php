@@ -8,11 +8,15 @@ final readonly class Summary
 {
     /**
      * @param array<string, int> $spend
+     * @param list<string>       $cities
+     * @param list<string>       $prefectures
      */
     public function __construct(
         public int $goshuin,
         public int $locations,
         public array $spend,
+        public array $cities,
+        public array $prefectures,
         public ?\DateTimeImmutable $first,
         public ?\DateTimeImmutable $last,
         public ?Region $region,

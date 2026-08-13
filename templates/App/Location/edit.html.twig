@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ location.romanizedName }} · Goshuin{% endblock %}
+
+{% block bar %}
+    {{ include('App/_partials/_bar.html.twig', {
+        kicker: 'label.locations'|trans,
+        title: location.romanizedName,
+        back: path('app_location_show', {id: location.id}),
+    }) }}
+{% endblock %}
+
+{% block body %}
+    {{ include('App/Location/_form.html.twig', {cancel: path('app_location_show', {id: location.id})}) }}
+{% endblock %}

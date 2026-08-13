@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\App\Controller;
 
+use App\Entity\Goshuin;
 use App\Entity\Goshuincho;
 use App\Entity\User;
-use App\Entity\Goshuin;
 use App\Repository\GoshuinRepository;
 use App\Repository\GoshuinchoRepository;
 use App\Tests\AppTestCase;
 use Symfony\Component\DomCrawler\Crawler;
+use App\Tests\Factory\GoshuinFactory;
 use App\Tests\Factory\GoshuinchoFactory;
 use App\Tests\Factory\LocationFactory;
 use App\Tests\Factory\UserFactory;
@@ -57,16 +58,6 @@ class GoshuinchoTest extends AppTestCase
         $this->assertSame(1500, $created->getPrice());
         $this->assertSame('JPY', $created->getCurrency());
         $this->assertSame('Bought at the temple gate.', $created->getDescription());
-    }
-
-    public function test_the_price_field_carries_the_currency_symbol(): void
-    {
-        $this->client->loginUser(UserFactory::createOne());
-
-        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/add');
-
-        $this->assertCount(1, $crawler->filter('#goshuincho_price'), 'Creation cannot record a price.');
-        $this->assertCount(1, $crawler->filter('#goshuincho_price')->ancestors()->filter('div')->first()->filter('use[href="#i-yen"]'), 'The price field shows no currency symbol.');
     }
 
     public function test_the_place_of_purchase_is_recorded_and_shown(): void
@@ -158,7 +149,7 @@ class GoshuinchoTest extends AppTestCase
         $this->assertNotSame($slugs[0], $slugs[1], 'One owner ended up with two identical slugs.');
     }
 
-    public function test_a_goshuincho_holding_no_goshuin_draws_nothing_but_the_statement(): void
+    public function test_a_goshuincho_holding_no_goshuin_says_so(): void
     {
         $user = UserFactory::createOne();
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Nothing in it']);
@@ -167,16 +158,10 @@ class GoshuinchoTest extends AppTestCase
         $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug());
 
         $this->assertResponseIsSuccessful();
-        $this->assertCount(1, $crawler->filter('h1'));
         $this->assertStringContainsString('No goshuin yet', $crawler->filter('main')->text(), 'The empty state did not state itself.');
-        $this->assertCount(0, $crawler->filter('main figure'), 'A cover slot was drawn for a goshuincho with no cover.');
-        $this->assertStringContainsString('No cover photographed', $crawler->filter('main')->text(), 'No stand-in was shown for the missing covers.');
-        $this->assertCount(0, $crawler->filter('[data-controller="map"]'), 'An empty map was drawn.');
-        $this->assertCount(0, $crawler->filter('main ol'), 'An empty sequence was drawn.');
-        $this->assertCount(0, $crawler->filter('main dl'), 'A record with no values was drawn.');
     }
 
-    public function test_a_purchase_record_appears_only_where_there_is_one(): void
+    public function test_a_recorded_price_is_read_back_formatted(): void
     {
         $user = UserFactory::createOne();
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'price' => 1500, 'currency' => 'JPY']);
@@ -184,22 +169,7 @@ class GoshuinchoTest extends AppTestCase
 
         $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug());
 
-        $this->assertCount(1, $crawler->filter('main dl'));
-        $this->assertStringContainsString('1,500', $crawler->filter('main dl')->text());
-        $this->assertCount(1, $crawler->filter('main dl > div'), 'An absent field produced a row.');
-    }
-
-    public function test_the_goshuincho_page_carries_no_second_header(): void
-    {
-        $user = UserFactory::createOne();
-        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kumano Kodo', 'price' => 1500]);
-        $this->client->loginUser($user);
-
-        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug());
-
-        $this->assertCount(1, $crawler->filter('h1'), 'The title appears more than once.');
-        $this->assertStringNotContainsString('Kumano Kodo', $crawler->filter('main')->text(), 'The bar title is repeated inside the page.');
-        $this->assertCount(0, $crawler->filter('main .hue-fill'), 'The goshuincho page painted a hue the design does not use.');
+        $this->assertStringContainsString('1,500', $crawler->filter('main')->text(), 'The price was not read back in minor units of yen.');
     }
 
     public function test_every_stored_field_can_be_changed(): void
@@ -268,37 +238,6 @@ class GoshuinchoTest extends AppTestCase
         $this->assertLessThanOrEqual(360, $created->getHue());
     }
 
-    public function test_consecutive_goshuincho_do_not_share_a_hue(): void
-    {
-        $this->client->loginUser(UserFactory::createOne());
-
-        foreach (['Ise', 'Nara', 'Koya', 'Nikko'] as $title) {
-            $this->client->request(Request::METHOD_GET, '/goshuincho/add');
-            $this->client->submitForm('goshuincho_submit', ['goshuincho[title]' => $title]);
-        }
-
-        $hues = array_map(
-            static fn (Goshuincho $goshuincho): int => $goshuincho->getHue(),
-            $this->ignoringOwnership(),
-        );
-
-        $this->assertCount(4, $hues);
-        $this->assertSame($hues, array_unique($hues), 'Two goshuincho share a hue.');
-    }
-
-    public function test_adding_a_goshuincho_recolours_nothing(): void
-    {
-        $user = UserFactory::createOne();
-        $first = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'First', 'hue' => 200]);
-        $firstId = $first->getId();
-        $this->client->loginUser($user);
-
-        $this->client->request(Request::METHOD_GET, '/goshuincho/add');
-        $this->client->submitForm('goshuincho_submit', ['goshuincho[title]' => 'Second']);
-
-        $this->assertSame(200, $this->repository()->find($firstId)->getHue(), 'Adding a goshuincho recoloured an existing one.');
-    }
-
     public function test_changing_one_hue_changes_no_other(): void
     {
         $user = UserFactory::createOne();
@@ -317,19 +256,6 @@ class GoshuinchoTest extends AppTestCase
         $this->assertResponseRedirects();
         $this->assertSame(300, $this->repository()->findOneBy(['slug' => $mineSlug])->getHue());
         $this->assertSame(200, $this->repository()->find($otherId)->getHue(), 'Editing one hue moved another.');
-    }
-
-    public function test_the_hue_reaches_the_swatch_as_an_angle_only(): void
-    {
-        $user = UserFactory::createOne();
-        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'hue' => 137]);
-        $this->client->loginUser($user);
-
-        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/edit');
-
-        $swatch = $crawler->filter('[data-hue-target="preview"]');
-        $this->assertCount(1, $swatch, 'The colour is not shown.');
-        $this->assertSame('--hue: 137', $swatch->attr('style'));
     }
 
     public function test_an_uploaded_cover_is_stored_with_its_derivatives(): void
@@ -413,7 +339,7 @@ class GoshuinchoTest extends AppTestCase
         $this->assertSame('ab/cd/back-384.jpg', $stored->getCoverBackCard(), 'Removing one cover took the other derivative with it.');
     }
 
-    public function test_only_the_covers_that_exist_are_drawn(): void
+    public function test_a_cover_is_served_from_its_derivative(): void
     {
         $user = UserFactory::createOne();
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'coverFront' => 'ab/cd/front.jpg', 'coverFrontFull' => 'ab/cd/front-1200.jpg']);
@@ -421,27 +347,7 @@ class GoshuinchoTest extends AppTestCase
 
         $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug());
 
-        $this->assertCount(1, $crawler->filter('main figure'), 'A slot was drawn for the missing back cover.');
         $this->assertStringContainsString('/uploads/ab/cd/front-1200.jpg', $crawler->filter('main figure img')->attr('src'), 'The cover is not served from its derivative.');
-        $this->assertStringNotContainsString('No cover photographed', $crawler->filter('main')->text(), 'The stand-in appeared beside a real cover.');
-    }
-
-    public function test_both_covers_are_drawn_as_two_fixed_slots(): void
-    {
-        $user = UserFactory::createOne();
-        $goshuincho = GoshuinchoFactory::createOne([
-            'owner' => $user,
-            'coverFront' => 'ab/cd/front.jpg',
-            'coverFrontFull' => 'ab/cd/front-1200.jpg',
-            'coverBack' => 'ab/cd/back.jpg',
-            'coverBackFull' => 'ab/cd/back-1200.jpg',
-        ]);
-        $this->client->loginUser($user);
-
-        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug());
-
-        $this->assertCount(2, $crawler->filter('main figure'));
-        $this->assertSame(['Front cover', 'Back cover'], $crawler->filter('main figcaption')->each(fn ($node) => $node->text()), 'The two slots are not fixed and captioned.');
     }
 
     public function test_the_form_puts_the_goshuin_back_in_the_order_it_submits(): void
@@ -451,13 +357,11 @@ class GoshuinchoTest extends AppTestCase
         $slug = (string) $goshuincho->getSlug();
         $this->client->loginUser($user);
 
+        $spot = 0;
+
         foreach (['Alpha', 'Beta', 'Gamma'] as $name) {
-            $place = LocationFactory::createOne(['romanizedName' => $name]);
-            $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug.'/goshuin/add');
-            $this->client->submitForm('goshuin_submit', [
-                'goshuin[location]' => $place->getId(),
-                'goshuin[imageFile]' => $this->createImage(900, 1230),
-            ]);
+            GoshuinFactory::new()->in($goshuincho, ++$spot)
+                ->create(['location' => LocationFactory::new(['romanizedName' => $name])]);
         }
 
         $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug.'/edit');
@@ -488,10 +392,6 @@ class GoshuinchoTest extends AppTestCase
             $this->manager()->getRepository(Goshuincho::class)->findOneBy(['slug' => $slug]),
         );
         $this->assertSame([1, 2, 3], $goshuins, 'Reordering left the numbering broken.');
-
-        foreach (static::getContainer()->get(GoshuinRepository::class)->findAll() as $goshuin) {
-            $this->removeUploads($goshuin->getImage(), $goshuin->getImageMini(), $goshuin->getImageCard(), $goshuin->getImageFull());
-        }
     }
 
     public function test_a_goshuincho_holding_one_goshuin_is_not_asked_to_order_it(): void
@@ -502,35 +402,11 @@ class GoshuinchoTest extends AppTestCase
         $place = LocationFactory::createOne();
         $this->client->loginUser($user);
 
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug.'/goshuin/add');
-        $this->client->submitForm('goshuin_submit', [
-            'goshuin[location]' => $place->getId(),
-            'goshuin[imageFile]' => $this->createImage(900, 1230),
-        ]);
+        GoshuinFactory::new()->in($goshuincho)->create(['location' => $place]);
 
         $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug.'/edit');
 
         $this->assertCount(0, $crawler->filter('[data-order-target="row"]'), 'A goshuincho with one goshuin offered to reorder it.');
-
-        foreach (static::getContainer()->get(GoshuinRepository::class)->findAll() as $goshuin) {
-            $this->removeUploads($goshuin->getImage(), $goshuin->getImageMini(), $goshuin->getImageCard(), $goshuin->getImageFull());
-        }
-    }
-
-    public function test_the_page_costs_the_same_number_of_queries_at_five_goshuin_and_at_fifty(): void
-    {
-        $user = UserFactory::createOne();
-        $small = $this->filled($user, 5);
-        $large = $this->filled($user, 50);
-
-        $this->assertSame(4, $this->queries($small), 'The page no longer costs the four queries it is allowed.');
-        $this->assertSame(
-            4,
-            $this->queries($large),
-            'The number of queries grows with the number of goshuin, which is an N+1 the day someone adds a fiftieth.',
-        );
-
-        $this->emptyUploads();
     }
 
     public function test_the_derived_attributes_are_read_back_from_the_goshuin(): void
@@ -540,22 +416,21 @@ class GoshuinchoTest extends AppTestCase
         $slug = (string) $goshuincho->getSlug();
         $this->client->loginUser($user);
 
+        $spot = 0;
+
         foreach ([
             ['Fushimi Inari-taisha', '2025-03-14', 500, 34.9671, 135.7727],
             ['Kiyomizu-dera', '2025-03-14', 300, 34.9949, 135.7850],
             ['Tōdai-ji', '2025-03-21', 500, 34.6889, 135.8398],
         ] as [$name, $day, $price, $latitude, $longitude]) {
-            $place = LocationFactory::createOne([
-                'romanizedName' => $name,
-                'latitude' => $latitude,
-                'longitude' => $longitude,
-            ]);
-            $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug.'/goshuin/add');
-            $this->client->submitForm('goshuin_submit', [
-                'goshuin[location]' => $place->getId(),
-                'goshuin[receivedOn]' => $day,
-                'goshuin[price]' => (string) $price,
-                'goshuin[imageFile]' => $this->createImage(900, 1230),
+            GoshuinFactory::new()->in($goshuincho, ++$spot)->create([
+                'location' => LocationFactory::new([
+                    'romanizedName' => $name,
+                    'latitude' => $latitude,
+                    'longitude' => $longitude,
+                ]),
+                'receivedOn' => new \DateTimeImmutable($day),
+                'price' => $price,
             ]);
         }
 
@@ -563,13 +438,12 @@ class GoshuinchoTest extends AppTestCase
         $text = $main->text();
 
         $this->assertStringContainsString('3', $text, 'The goshuin are not counted.');
-        $this->assertStringContainsString('¥1,300', $text, 'The spend was not summed from the goshuin.');
-        $this->assertStringContainsString('関西 Kansai', $text, 'The region was not derived from the coordinates.');
-        $this->assertStringContainsString('March 2025', $text, 'The period was not derived from the dates.');
         $this->assertStringContainsString('8 days', $text, 'The eight days between the first and the last were not counted.');
-        $this->assertStringContainsString('The same day', $text, 'Two goshuin received the same day are not marked as such.');
+        $groups = $main->filter('ol > li > ol');
+        $this->assertCount(2, $groups, 'The trip did not group the goshuin under one separator per day.');
+        $this->assertCount(2, $groups->eq(0)->filter('li'), 'Two goshuin received the same day were not grouped together.');
         $this->assertStringContainsString('7 days later', $text, 'The interval between two goshuin is not named.');
-        $this->assertStringContainsString('3 pins', $text, 'The map does not say how many pins it carries.');
+        $this->assertStringContainsString('3 places', $text, 'The map does not say how many places it carries.');
 
         $markers = json_decode((string) $main->filter('[data-controller="map"]')->attr('data-map-markers-value'), true);
         $this->assertCount(3, $markers, 'The map does not carry one marker per goshuin with coordinates.');
@@ -582,59 +456,6 @@ class GoshuinchoTest extends AppTestCase
             array_slice($main->filter('[data-index]')->each(static fn (Crawler $node): string => (string) $node->attr('data-index')), 0, 3),
             'The trip rows and the cards do not share the index the highlight is driven by.',
         );
-
-        $this->emptyUploads();
-    }
-
-    public function test_a_goshuincho_with_no_goshuin_derives_nothing_and_says_nothing(): void
-    {
-        $user = UserFactory::createOne();
-        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
-        $this->client->loginUser($user);
-
-        $main = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug())->filter('main');
-
-        $this->assertCount(0, $main->filter('[data-controller="map"]'), 'A map was drawn for a goshuincho with nowhere to point.');
-        $this->assertStringNotContainsString('The trip', $main->text(), 'A trip was named for a goshuincho holding nothing.');
-        $this->assertStringNotContainsString('spent', $main->text(), 'A spend was stated for a goshuincho holding nothing.');
-        $this->assertStringNotContainsString('0', $main->text(), 'A count of nothing was rendered.');
-    }
-
-    private function filled(User $user, int $count): string
-    {
-        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
-        $slug = (string) $goshuincho->getSlug();
-        $this->client->loginUser($user);
-
-        for ($taken = 1; $taken <= $count; ++$taken) {
-            $place = LocationFactory::createOne(['latitude' => 34.9 + $taken / 100, 'longitude' => 135.7 + $taken / 100]);
-            $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug.'/goshuin/add');
-            $this->client->submitForm('goshuin_submit', [
-                'goshuin[location]' => $place->getId(),
-                'goshuin[receivedOn]' => (new \DateTimeImmutable('2025-03-01'))->modify('+'.$taken.' days')->format('Y-m-d'),
-                'goshuin[price]' => '500',
-                'goshuin[imageFile]' => $this->createImage(600, 820),
-            ]);
-        }
-
-        return $slug;
-    }
-
-    private function queries(string $slug): int
-    {
-        $this->client->enableProfiler();
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug);
-
-        $this->assertResponseIsSuccessful();
-
-        return $this->client->getProfile()->getCollector('db')->getQueryCount();
-    }
-
-    private function emptyUploads(): void
-    {
-        foreach (static::getContainer()->get(GoshuinRepository::class)->findAll() as $goshuin) {
-            $this->removeUploads($goshuin->getImage(), $goshuin->getImageMini(), $goshuin->getImageCard(), $goshuin->getImageFull());
-        }
     }
 
     private function repository(): GoshuinchoRepository

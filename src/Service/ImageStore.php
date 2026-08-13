@@ -54,7 +54,14 @@ final readonly class ImageStore
             throw $failure instanceof ImageRefused ? $failure : new ImageRefused('The image could not be stored.', previous: $failure);
         }
 
-        return new StoredImage($original, $derivatives['mini'], $derivatives['card'], $derivatives['full']);
+        return new StoredImage(
+            $original,
+            $derivatives['mini'],
+            $derivatives['card'],
+            $derivatives['full'],
+            imagesx($source),
+            imagesy($source),
+        );
     }
 
     public function remove(?string $path): void

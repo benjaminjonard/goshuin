@@ -1,0 +1,44 @@
+<main class="page mx-auto grid w-full max-w-[560px] gap-[clamp(12px,1.4vw,18px)]">
+    {{ form_start(form, {attr: {class: 'tile tile-pad grid gap-4'}}) }}
+        {{ form_errors(form) }}
+        {{ form_row(form.romanizedName) }}
+        {{ form_row(form.japaneseName) }}
+        {{ form_row(form.type) }}
+
+        <div class="grid items-start gap-3.5 sm:grid-cols-2">
+            {{ form_row(form.locality) }}
+            {{ form_row(form.prefecture) }}
+        </div>
+
+        {{ form_row(form.address) }}
+
+        <div data-controller="map"
+             data-map-mode-value="picker"
+             data-map-tiles-value="{{ map_tiles }}"
+             data-map-attribution-value="{{ map_attribution }}"
+             data-map-latitude-value="{{ form.vars.data.latitude|default(0) }}"
+             data-map-longitude-value="{{ form.vars.data.longitude|default(0) }}"
+             class="grid gap-3.5">
+            <div class="grid items-start gap-3.5 sm:grid-cols-2">
+                {{ form_row(form.latitude, {attr: {'data-map-target': 'latitude'}}) }}
+                {{ form_row(form.longitude, {attr: {'data-map-target': 'longitude'}}) }}
+            </div>
+
+            <div class="minimap h-[260px]" data-map-target="canvas" aria-label="{{ 'label.place_on_map'|trans }}"></div>
+            <p class="text-xs text-fg-3">{{ 'label.place_on_map'|trans }}</p>
+        </div>
+
+        <div class="grid gap-1.5">
+            {{ form_widget(form.photographFile, {attr: {'data-cover': form.vars.data.photographCard}}) }}
+            {{ form_errors(form.photographFile) }}
+            {{ form_row(form.removePhotograph) }}
+        </div>
+
+        {{ form_row(form.notes) }}
+
+        <div class="mt-1 flex justify-end gap-2.5">
+            {{ include('App/_partials/_button.html.twig', {label: 'label.cancel'|trans, href: cancel}) }}
+            {{ include('App/_partials/_button.html.twig', {label: 'label.save'|trans, variant: 'primary', type: 'submit', name: 'location_submit'}) }}
+        </div>
+    {{ form_end(form) }}
+</main>

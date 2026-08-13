@@ -37,35 +37,47 @@
                             </div>
                         {% endif %}
 
-                        {% if goshuincho.description is not empty %}
-                            <p class="text-sm leading-relaxed text-fg-2">{{ goshuincho.description|nl2br }}</p>
-                        {% endif %}
+                        {% set origin = goshuincho.boughtAt %}
 
                         {{ include('App/_partials/_kvs.html.twig', {rows: [
-                            {label: 'label.bought_at'|trans, value: goshuincho.boughtAt ? goshuincho.boughtAt.romanizedName : null},
+                            {
+                                label: 'label.origin'|trans,
+                                value: origin ? [origin.japaneseName, origin.romanizedName]|filter(part => part)|join(' · ') : null,
+                                jp: origin and origin.japaneseName is not empty,
+                            },
                             {label: 'label.purchased_on'|trans, value: goshuincho.purchasedAt ? goshuincho.purchasedAt|format_date('long') : null},
                             {label: 'label.price_paid'|trans, value: goshuincho.price|money(goshuincho.currency)},
                         ]}) }}
 
-                        {{ include('App/_partials/_pills.html.twig', {pills: [
-                            {text: summary.first ? summary.first|format_datetime(pattern='LLLL y') : null, icon: 'cal', hot: true},
-                            {text: summary.region ? summary.region.japanese ~ ' ' ~ summary.region.romanized : null, jp: true},
-                        ]}) }}
+                        {% for places in [
+                            {label: 'label.cities', held: summary.cities},
+                            {label: 'label.prefectures', held: summary.prefectures},
+                        ]|filter(places => places.held is not empty) %}
+                            <div class="grid gap-1.5">
+                                <span class="text-[12.5px] font-semibold text-fg-2">{{ places.label|trans }}</span>
+                                {{ include('App/_partials/_pills.html.twig', {pills: places.held|map(place => {text: place})}) }}
+                            </div>
+                        {% endfor %}
+
+                        {% if goshuincho.description is not empty %}
+                            <p class="text-sm leading-relaxed text-fg-2">{{ goshuincho.description|nl2br }}</p>
+                        {% endif %}
                     </div>
                 {% endblock %}
             {% endembed %}
 
             {% embed 'App/_partials/_section.html.twig' with {title: 'label.goshuin'|trans, aux: 'label.in_order'|trans} %}
                 {% block content %}
-                    {% if legs is not empty %}
-                        <ol class="grid grid-cols-[repeat(auto-fill,minmax(112px,1fr))] gap-3.5">
-                            {% for leg in legs %}
-                                <li data-index="{{ leg.goshuin.position }}">
-                                    <a href="{{ path('app_goshuin_show', {slug: goshuincho.slug, position: leg.goshuin.position}) }}" class="grid gap-1.5 no-underline">
-                                        <img src="{{ leg.goshuin.imageCard|image }}" alt="{{ leg.goshuin.location.romanizedName }}" class="image-frame">
-                                        <span class="text-[13px] font-semibold text-fg">{{ leg.goshuin.location.romanizedName }}</span>
-                                        {% if leg.goshuin.receivedOn %}
-                                            <span class="text-xs tabular-nums text-fg-3">{{ leg.goshuin.receivedOn|format_date('long') }}</span>
+                    {% if goshuincho.goshuins|length %}
+                        <ol class="gallery">
+                            {% for goshuin in goshuincho.goshuins %}
+                                <li class="card" data-index="{{ goshuin.position }}">
+                                    <a href="{{ path('app_goshuin_show', {slug: goshuincho.slug, position: goshuin.position}) }}" class="grid gap-1.5 no-underline">
+                                        <img src="{{ goshuin.imageCard|image }}" alt="{{ goshuin.location.romanizedName }}" class="image-frame"
+                                             {% if goshuin.imageWidth and goshuin.imageHeight %}width="{{ goshuin.imageWidth }}" height="{{ goshuin.imageHeight }}"{% endif %}>
+                                        <span class="block w-0 min-w-full text-[13px] font-semibold text-fg">{{ goshuin.location.romanizedName }}</span>
+                                        {% if goshuin.receivedOn %}
+                                            <span class="block w-0 min-w-full text-xs tabular-nums text-fg-3">{{ goshuin.receivedOn|format_date('long') }}</span>
                                         {% endif %}
                                     </a>
                                 </li>
@@ -93,12 +105,13 @@
 
             {% set tiles = [
                 {icon: 'goshuin', value: summary.goshuin ?: null, label: 'label.stat_goshuin'},
-                {icon: 'pin', value: summary.locations ?: null, label: 'label.stat_places'},
+                {icon: 'pin', value: summary.cities|length ?: null, label: 'label.stat_cities'},
+                {icon: 'map', value: summary.prefectures|length ?: null, label: 'label.stat_prefectures'},
                 {icon: 'cal', value: summary.days, label: 'label.stat_days'},
             ]|filter(tile => tile.value) %}
 
-            {% if tiles is not empty or summary.spend is not empty %}
-                <div class="grid grid-cols-2 gap-[clamp(10px,1.2vw,14px)] sm:grid-cols-4">
+            {% if tiles is not empty %}
+                <div class="grid grid-cols-2 gap-[clamp(10px,1.2vw,14px)] min-[560px]:grid-cols-4">
                     {% for tile in tiles %}
                         <div class="tile flex items-center gap-2.5 p-3.5">
                             <span class="grid size-8 shrink-0 place-items-center rounded-[10px] bg-accent-soft text-accent-text" aria-hidden="true">
@@ -110,17 +123,6 @@
                             </span>
                         </div>
                     {% endfor %}
-                    {% for currency, total in summary.spend %}
-                        <div class="tile flex items-center gap-2.5 p-3.5">
-                            <span class="grid size-8 shrink-0 place-items-center rounded-[10px] bg-accent-soft text-accent-text" aria-hidden="true">
-                                {{ include('App/_partials/_icon.html.twig', {name: 'yen', small: true}) }}
-                            </span>
-                            <span>
-                                <span class="block text-[19px] font-bold tabular-nums leading-none">{{ total|money(currency) }}</span>
-                                <span class="block text-[11.5px] text-fg-3">{{ 'label.stat_spent'|trans }}</span>
-                            </span>
-                        </div>
-                    {% endfor %}
                 </div>
             {% endif %}
         </div>
@@ -129,29 +131,25 @@
             {% if pinned is not empty %}
                 {% embed 'App/_partials/_section.html.twig' with {
                     title: 'label.where_they_come_from'|trans,
-                    aux: [
-                        'label.pins'|trans({'%count%': pinned|length}),
-                        'label.places'|trans({'%count%': summary.locations}),
-                        summary.spread ? 'label.spread'|trans({'%count%': summary.spread}) : null,
-                    ]|filter(part => part)|join(' · '),
+                    aux: 'label.places'|trans({'%count%': summary.locations}),
                 } %}
                     {% block content %}
                         <div data-controller="map"
                              data-map-mode-value="numbered"
                              data-map-tiles-value="{{ map_tiles }}"
                              data-map-attribution-value="{{ map_attribution }}"
-                             data-map-markers-value="{{ pinned|map(leg => {
-                                 latitude: leg.goshuin.location.latitude,
-                                 longitude: leg.goshuin.location.longitude,
-                                 number: leg.goshuin.position,
-                                 index: leg.goshuin.position,
-                                 label: leg.goshuin.location.romanizedName,
-                                 href: path('app_goshuin_show', {slug: goshuincho.slug, position: leg.goshuin.position}),
+                             data-map-markers-value="{{ pinned|map(goshuin => {
+                                 latitude: goshuin.location.latitude,
+                                 longitude: goshuin.location.longitude,
+                                 number: goshuin.position,
+                                 index: goshuin.position,
+                                 label: goshuin.location.romanizedName,
+                                 href: path('app_goshuin_show', {slug: goshuincho.slug, position: goshuin.position}),
                              })|json_encode }}">
                             <div class="minimap h-[clamp(260px,42vh,420px)]" data-map-target="canvas"></div>
                             <ul class="sr">
-                                {% for leg in pinned %}
-                                    <li>{{ leg.goshuin.position }}. {{ leg.goshuin.location.romanizedName }}{{ leg.goshuin.receivedOn ? ' · ' ~ leg.goshuin.receivedOn|format_date('long') }}</li>
+                                {% for goshuin in pinned %}
+                                    <li>{{ goshuin.position }}. {{ goshuin.location.romanizedName }}{{ goshuin.receivedOn ? ' · ' ~ goshuin.receivedOn|format_date('long') }}</li>
                                 {% endfor %}
                             </ul>
                         </div>
@@ -159,45 +157,48 @@
                 {% endembed %}
             {% endif %}
 
-            {% if legs is not empty %}
+            {% if days is not empty %}
                 {% embed 'App/_partials/_section.html.twig' with {
                     title: 'label.the_trip'|trans,
                     aux: summary.days ? 'label.days'|trans({'%count%': summary.days}) : null,
                 } %}
                     {% block content %}
                         <ol class="grid gap-0">
-                            {% for leg in legs %}
-                                {% if leg.days %}
-                                    <li class="flex items-center gap-[7px] py-1 pl-[38px] text-[11.5px] text-fg-3">
-                                        <span class="h-px w-3.5 bg-line-2" aria-hidden="true"></span>
-                                        {{ 'label.days_later'|trans({'%count%': leg.days}) }}
-                                    </li>
-                                {% elseif leg.sameDay %}
-                                    <li class="flex items-center gap-[7px] py-1 pl-[38px] text-[11.5px] text-fg-3">
-                                        <span class="h-px w-3.5 bg-line-2" aria-hidden="true"></span>
-                                        {{ 'label.same_day'|trans }}
-                                    </li>
-                                {% endif %}
-                                <li class="flex items-baseline gap-3 rounded-xl px-2 py-2 not-first:border-t not-first:border-line"
-                                    data-index="{{ leg.goshuin.position }}">
-                                    <span class="grid size-[26px] shrink-0 place-items-center rounded-full bg-tile-2 text-[12px] font-bold tabular-nums text-fg-2">{{ leg.goshuin.position }}</span>
-                                    <span class="min-w-0 flex-auto">
-                                        <a href="{{ path('app_goshuin_show', {slug: goshuincho.slug, position: leg.goshuin.position}) }}"
-                                           class="block truncate text-[14.5px] font-semibold text-fg no-underline hover:text-accent-text">
-                                            {{- leg.goshuin.location.japaneseName ?: leg.goshuin.location.romanizedName -}}
-                                        </a>
-                                        {% set below = [
-                                            leg.goshuin.location.japaneseName ? leg.goshuin.location.romanizedName : null,
-                                            leg.goshuin.location.locality,
-                                            leg.goshuin.price|money(leg.goshuin.currency) ?: null,
-                                        ]|filter(part => part)|join(' · ') %}
-                                        {% if below is not empty %}
-                                            <span class="block truncate text-xs text-fg-3">{{ below }}</span>
-                                        {% endif %}
-                                    </span>
-                                    {% if leg.goshuin.receivedOn %}
-                                        <span class="shrink-0 text-[12.5px] tabular-nums text-fg-2">{{ leg.goshuin.receivedOn|format_date('long') }}</span>
+                            {% for day in days %}
+                                <li class="not-first:mt-1 not-first:border-t not-first:border-line not-first:pt-2">
+                                    {% if day.date or day.after %}
+                                        <p class="flex flex-wrap items-baseline gap-2.5 px-2 pb-1">
+                                            {% if day.date %}
+                                                <span class="text-[12.5px] font-semibold tabular-nums text-fg-2">{{ day.date|format_date('long') }}</span>
+                                            {% endif %}
+                                            {% if day.after %}
+                                                <span class="flex items-center gap-[7px] text-[11.5px] text-fg-3">
+                                                    <span class="h-px w-3.5 bg-line-2" aria-hidden="true"></span>
+                                                    {{ 'label.days_later'|trans({'%count%': day.after}) }}
+                                                </span>
+                                            {% endif %}
+                                        </p>
                                     {% endif %}
+                                    <ol class="grid gap-0">
+                                        {% for goshuin in day.goshuins %}
+                                            <li class="flex items-baseline gap-3 rounded-xl px-2 py-1.5" data-index="{{ goshuin.position }}">
+                                                <span class="grid size-[26px] shrink-0 place-items-center rounded-full bg-tile-2 text-[12px] font-bold tabular-nums text-fg-2">{{ goshuin.position }}</span>
+                                                <span class="min-w-0 flex-auto">
+                                                    <a href="{{ path('app_goshuin_show', {slug: goshuincho.slug, position: goshuin.position}) }}"
+                                                       class="block truncate text-[14.5px] font-semibold text-fg no-underline hover:text-accent-text">
+                                                        {{- goshuin.location.japaneseName ?: goshuin.location.romanizedName -}}
+                                                    </a>
+                                                    {% set below = [
+                                                        goshuin.location.japaneseName ? goshuin.location.romanizedName : null,
+                                                        goshuin.location.locality,
+                                                    ]|filter(part => part)|join(' · ') %}
+                                                    {% if below is not empty %}
+                                                        <span class="block truncate text-xs text-fg-3">{{ below }}</span>
+                                                    {% endif %}
+                                                </span>
+                                            </li>
+                                        {% endfor %}
+                                    </ol>
                                 </li>
                             {% endfor %}
                         </ol>

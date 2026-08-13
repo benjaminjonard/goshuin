@@ -207,8 +207,10 @@
 }
 
 @utility image-frame {
-    width: 100%;
-    aspect-ratio: 3 / 4.1;
+    display: block;
+    height: clamp(132px, 13vw, 172px);
+    width: auto;
+    max-width: 100%;
     border-radius: 10px;
     background: #f2ece0;
     object-fit: contain;
@@ -218,18 +220,16 @@
     display: flex;
     justify-content: center;
     padding: clamp(18px, 2.4vw, 34px);
-    background: var(--color-tile-2);
 }
 
 @utility image-page {
     display: block;
-    width: 100%;
-    max-width: 420px;
-    aspect-ratio: 3 / 4.1;
+    height: auto;
+    width: auto;
+    max-height: clamp(320px, 46vh, 574px);
+    max-width: 100%;
     border-radius: 12px;
-    background: #f2ece0;
     box-shadow: var(--shadow-lift);
-    object-fit: contain;
 }
 
 @utility shot {
@@ -242,18 +242,46 @@
 @utility shot-image {
     display: block;
     width: 100%;
-    aspect-ratio: 4 / 3;
-    object-fit: cover;
+    height: auto;
+    background: var(--color-tile-2);
 }
 
 @utility shot-caption {
     position: absolute;
     inset: auto 0 0 0;
     padding: 16px 9px 7px;
+    border-radius: 0 0 12px 12px;
     background: linear-gradient(rgb(20 14 12 / 0), rgb(20 14 12 / 0.72));
     color: #fff;
     font-size: 11px;
     font-weight: 600;
+}
+
+@utility gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+@utility gallery-image {
+    display: block;
+    height: clamp(120px, 18vw, 180px);
+    width: auto;
+    max-width: 100%;
+    border: 1px solid var(--color-line);
+    border-radius: 12px;
+    background: var(--color-tile-2);
+    object-fit: contain;
+}
+
+@utility lightbox {
+    margin: auto;
+    max-width: min(96vw, 1600px);
+    max-height: 94vh;
+    padding: 0;
+    border: 0;
+    background: none;
+    overflow: visible;
 }
 
 @utility minimap {
@@ -353,10 +381,38 @@
         outline: 1px solid var(--color-accent-line);
     }
 
-    .map-pin.lit {
+    .lightbox::backdrop {
+        background: rgb(10 7 6 / 0.82);
+        backdrop-filter: blur(3px);
+    }
+
+    .card.lit {
+        box-shadow: 0 0 0 7px var(--color-accent-soft);
+        outline-offset: 7px;
+    }
+
+    .map-pin .tinted .body {
+        fill: oklch(var(--hue-l) var(--hue-c) var(--hue));
+        stroke: #241110;
+        stroke-width: 1.6;
+    }
+
+    .map-pin .tinted .num {
+        fill: #241110;
+    }
+
+    .map-pin .lit {
         background: none;
+        border-radius: 0;
         outline: none;
-        filter: drop-shadow(0 3px 5px color-mix(in srgb, var(--color-accent) 55%, transparent));
+    }
+
+    .map-pin .lit:not(.tinted) .body {
+        fill: var(--color-plum);
+    }
+
+    .map-pin .tinted:hover .body {
+        fill: oklch(calc(var(--hue-l) - 14%) calc(var(--hue-c) + 0.025) var(--hue));
     }
 
     .map-pin {

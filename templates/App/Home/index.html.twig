@@ -3,23 +3,141 @@
 {% block title %}{{ 'label.home'|trans }} · Goshuin{% endblock %}
 
 {% block bar %}
-    {% embed 'App/_partials/_bar.html.twig' with {kicker: 'label.collection_of'|trans({'%name%': app.user.name}), title: 'label.home'|trans} %}
+    {% embed 'App/_partials/_bar.html.twig' with {kicker: app.user.name, title: 'label.home'|trans} %}
         {% block tools %}
+            {{ include('App/_partials/_button.html.twig', {label: 'label.locations'|trans, icon: 'pin', href: path('app_location_index')}) }}
             {{ include('App/_partials/_button.html.twig', {label: 'label.add_goshuincho'|trans, icon: 'plus', variant: 'primary', href: path('app_goshuincho_add')}) }}
         {% endblock %}
     {% endembed %}
 {% endblock %}
 
 {% block body %}
-    <main class="mx-auto grid w-full max-w-[660px] gap-[clamp(12px,1.4vw,18px)] px-[clamp(14px,2.6vw,30px)] pt-[clamp(18px,5vw,64px)] pb-[clamp(34px,4vw,54px)]">
-        <div class="tile px-[clamp(20px,2.6vw,38px)] py-[clamp(24px,3.6vw,44px)] text-center">
-            <span class="mx-auto mb-5 grid size-[62px] place-items-center rounded-[18px] bg-accent-soft" aria-hidden="true">
-                <svg class="size-10 fill-accent" viewBox="0 0 32 32"><use href="#i-torii"/></svg>
-            </span>
-            <h2 class="text-[clamp(22px,2.8vw,28px)] font-bold leading-tight tracking-[-0.025em]">{{ 'label.home_empty'|trans }}</h2>
-            <div class="mt-6 flex flex-wrap justify-center gap-2.5">
-                {{ include('App/_partials/_button.html.twig', {label: 'label.home_empty_cta'|trans, icon: 'plus', variant: 'primary', href: path('app_goshuincho_add')}) }}
+    {% if shelf is empty %}
+        <main class="mx-auto grid w-full max-w-[660px] gap-[clamp(12px,1.4vw,18px)] px-[clamp(14px,2.6vw,30px)] pt-[clamp(18px,5vw,64px)] pb-[clamp(34px,4vw,54px)]">
+            <div class="tile px-[clamp(20px,2.6vw,38px)] py-[clamp(24px,3.6vw,44px)] text-center">
+                <span class="mx-auto mb-5 grid size-[62px] place-items-center rounded-[18px] bg-accent-soft" aria-hidden="true">
+                    <svg class="size-10 fill-accent" viewBox="0 0 32 32"><use href="#i-torii"/></svg>
+                </span>
+                <h2 class="text-[clamp(22px,2.8vw,28px)] font-bold leading-tight tracking-[-0.025em]">{{ 'label.home_empty'|trans }}</h2>
+                <div class="mt-6 flex flex-wrap justify-center gap-2.5">
+                    {{ include('App/_partials/_button.html.twig', {label: 'label.home_empty_cta'|trans, icon: 'plus', variant: 'primary', href: path('app_goshuincho_add')}) }}
+                </div>
             </div>
-        </div>
-    </main>
+        </main>
+    {% else %}
+        <main class="page grid gap-[clamp(12px,1.4vw,18px)]">
+            <div class="min-w-0" data-controller="carousel">
+                {% embed 'App/_partials/_section.html.twig' with {title: 'label.goshuincho'|trans} %}
+                    {% block aux %}
+                        <div class="flex items-center gap-3.5">
+                            <span class="text-[12.5px] tabular-nums text-fg-3">{{ 'label.pill_goshuincho'|trans({'%count%': tally.goshuincho}) }}</span>
+                            <div class="flex items-center gap-1.5" data-carousel-target="nav" style="display: none">
+                                {{ include('App/_partials/_button.html.twig', {
+                                    icon: 'back',
+                                    aria: 'label.previous'|trans,
+                                    class: 'disabled:opacity-35',
+                                    attributes: 'data-carousel-target="previous" data-action="carousel#previous"',
+                                }) }}
+                                {{ include('App/_partials/_button.html.twig', {
+                                    icon: 'right',
+                                    aria: 'label.next'|trans,
+                                    class: 'disabled:opacity-35',
+                                    attributes: 'data-carousel-target="next" data-action="carousel#next"',
+                                }) }}
+                            </div>
+                        </div>
+                    {% endblock %}
+
+                    {% block content %}
+                        <div class="grid snap-x grid-flow-col auto-cols-[clamp(136px,15vw,168px)] gap-[clamp(10px,1.2vw,14px)] overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                             data-carousel-target="track" data-action="scroll->carousel#update">
+                            {% for goshuincho in shelf %}
+                                {{ include('App/Home/_card.html.twig', {goshuincho: goshuincho}) }}
+                            {% endfor %}
+                        </div>
+                    {% endblock %}
+                {% endembed %}
+            </div>
+
+            {% if pins is not empty %}
+                {% embed 'App/_partials/_section.html.twig' with {
+                    title: 'label.map'|trans,
+                    aux: 'label.pill_goshuin'|trans({'%count%': placed}),
+                } %}
+                    {% block content %}
+                        <div data-controller="map"
+                             data-map-mode-value="cluster"
+                             data-map-tiles-value="{{ map_tiles }}"
+                             data-map-attribution-value="{{ map_attribution }}"
+                             data-map-markers-value="{{ pins|map(pin => {
+                                 latitude: pin.latitude,
+                                 longitude: pin.longitude,
+                                 number: pin.goshuin > 1 ? pin.goshuin : null,
+                                 hue: pin.hue,
+                                 label: pin.name,
+                                 href: pin.slug ? path('app_goshuincho_show', {slug: pin.slug}) : null,
+                             })|json_encode }}">
+                            <div class="minimap h-[clamp(280px,46vh,460px)]" data-map-target="canvas"></div>
+                            <ul class="sr">
+                                {% for pin in pins %}
+                                    <li>{{ pin.name }} · {{ 'label.pill_goshuin'|trans({'%count%': pin.goshuin}) }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endblock %}
+                {% endembed %}
+            {% endif %}
+
+            {% set totals = [
+                {icon: 'goshuincho', value: tally.goshuincho ?: null, label: 'label.stat_goshuincho'},
+                {icon: 'goshuin', value: tally.goshuin ?: null, label: 'label.stat_goshuin'},
+                {icon: 'pin', value: tally.cities ?: null, label: 'label.stat_cities'},
+                {icon: 'map', value: tally.prefectures ?: null, label: 'label.stat_prefectures'},
+            ]|filter(total => total.value) %}
+
+            {% if totals is not empty %}
+                <div class="grid grid-cols-2 gap-[clamp(10px,1.2vw,14px)] min-[560px]:grid-cols-4">
+                    {% for total in totals %}
+                        <div class="tile flex items-center gap-2.5 p-3.5">
+                            <span class="grid size-8 shrink-0 place-items-center rounded-[10px] bg-accent-soft text-accent-text" aria-hidden="true">
+                                {{ include('App/_partials/_icon.html.twig', {name: total.icon, small: true}) }}
+                            </span>
+                            <span>
+                                <span class="block text-[19px] font-bold tabular-nums leading-none">{{ total.value }}</span>
+                                <span class="block text-[11.5px] text-fg-3">{{ total.label|trans({'%count%': total.value}) }}</span>
+                            </span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if recent is not empty %}
+                {% embed 'App/_partials/_section.html.twig' with {title: 'label.recent'|trans} %}
+                    {% block content %}
+                        <ol class="grid gap-0">
+                            {% for goshuin in recent %}
+                                <li class="not-first:border-t not-first:border-line">
+                                    <a href="{{ path('app_goshuin_show', {slug: goshuin.goshuincho.slug, position: goshuin.position}) }}"
+                                       class="flex items-center gap-3 rounded-xl px-2 py-2 no-underline hover:bg-tile-2"
+                                       style="--hue: {{ goshuin.goshuincho.hue }}">
+                                        <img src="{{ goshuin.imageMini|image }}" alt="" class="size-9 shrink-0 rounded-md object-cover">
+                                        <span class="min-w-0 flex-auto">
+                                            <span class="block truncate text-[13.5px] font-semibold text-fg">{{ goshuin.location.romanizedName }}</span>
+                                            <span class="flex items-center gap-[7px] text-xs text-fg-3">
+                                                <span class="size-2 shrink-0 rounded-full hue-fill" aria-hidden="true"></span>
+                                                <span class="truncate">{{ goshuin.goshuincho.title }}</span>
+                                            </span>
+                                        </span>
+                                        {% if goshuin.receivedOn %}
+                                            <span class="shrink-0 text-[12.5px] tabular-nums text-fg-2">{{ goshuin.receivedOn|format_date('long') }}</span>
+                                        {% endif %}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ol>
+                    {% endblock %}
+                {% endembed %}
+            {% endif %}
+        </main>
+    {% endif %}
 {% endblock %}

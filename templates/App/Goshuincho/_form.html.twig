@@ -32,10 +32,10 @@
                             <img src="{{ goshuin.imageMini|image }}" alt="" class="size-9 shrink-0 rounded-md object-cover">
                             <span class="min-w-0 flex-auto truncate text-[13.5px] font-semibold">{{ goshuin.location.romanizedName }}</span>
                             <button type="button" class="{{ step }}" data-action="order#earlier" aria-label="{{ 'label.move_earlier'|trans }}">
-                                {{- include('App/_partials/_icon.html.twig', {name: 'back', small: true}) -}}
+                                {{- include('App/_partials/_icon.html.twig', {name: 'up', small: true}) -}}
                             </button>
                             <button type="button" class="{{ step }}" data-action="order#later" aria-label="{{ 'label.move_later'|trans }}">
-                                {{- include('App/_partials/_icon.html.twig', {name: 'right', small: true}) -}}
+                                {{- include('App/_partials/_icon.html.twig', {name: 'down', small: true}) -}}
                             </button>
                         </li>
                     {% endfor %}

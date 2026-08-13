@@ -47,6 +47,7 @@
                                         data-live-place-name-param="{{ place.name }}"
                                         data-live-japanese-name-param="{{ place.japaneseName }}"
                                         data-live-locality-param="{{ place.locality }}"
+                                        data-live-prefecture-param="{{ place.prefecture }}"
                                         data-live-address-param="{{ place.address }}"
                                         data-live-latitude-param="{{ place.latitude }}"
                                         data-live-longitude-param="{{ place.longitude }}">
@@ -86,6 +87,14 @@
                 <div class="grid gap-1.5">
                     <label class="text-[12.5px] font-semibold text-fg-2" for="{{ id }}-new-locality">{{ 'label.locality'|trans }}</label>
                     <input type="text" id="{{ id }}-new-locality" data-model="norender|newLocality" value="{{ newLocality }}"
+                           class="w-full rounded-xl border border-line-2 bg-tile px-3.5 py-2.5 text-[15px] text-fg focus-visible:border-accent">
+                </div>
+            </div>
+
+            <div class="grid gap-3.5 sm:grid-cols-2">
+                <div class="grid gap-1.5">
+                    <label class="text-[12.5px] font-semibold text-fg-2" for="{{ id }}-new-prefecture">{{ 'label.prefecture'|trans }}</label>
+                    <input type="text" id="{{ id }}-new-prefecture" data-model="norender|newPrefecture" value="{{ newPrefecture }}"
                            class="w-full rounded-xl border border-line-2 bg-tile px-3.5 py-2.5 text-[15px] text-fg focus-visible:border-accent">
                 </div>
             </div>

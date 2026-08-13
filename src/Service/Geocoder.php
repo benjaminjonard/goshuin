@@ -30,7 +30,7 @@ final readonly class Geocoder
     }
 
     /**
-     * @return list<array{name: string, japaneseName: string, locality: string, address: string, latitude: float, longitude: float}>
+     * @return list<array{name: string, japaneseName: string, locality: string, prefecture: string, address: string, latitude: float, longitude: float}>
      */
     public function search(string $query, int $limit = 5): array
     {
@@ -69,6 +69,7 @@ final readonly class Geocoder
                     'name' => $feature['name'],
                     'japaneseName' => $local[$id]['name'] ?? '',
                     'locality' => $feature['locality'],
+                    'prefecture' => $feature['prefecture'],
                     'address' => $feature['address'],
                     'latitude' => $feature['latitude'],
                     'longitude' => $feature['longitude'],
@@ -114,7 +115,7 @@ final readonly class Geocoder
         try {
             return $this->client->request('GET', rtrim($this->host, '/').'/api/', [
                 'query' => ['q' => $query, 'limit' => $limit, 'lang' => $language],
-                'headers' => ['User-Agent' => 'Goshuin (self-hosted goshuin collection)'],
+                'headers' => ['User-Agent' => 'Goshuin (self-hosted)'],
                 'timeout' => self::TIMEOUT,
                 'max_duration' => self::TIMEOUT,
                 'max_connect_duration' => self::TIMEOUT,
@@ -125,7 +126,7 @@ final readonly class Geocoder
     }
 
     /**
-     * @return array<string, array{name: string, locality: string, address: string, latitude: float, longitude: float}>
+     * @return array<string, array{name: string, locality: string, prefecture: string, address: string, latitude: float, longitude: float}>
      */
     private function readIfReady(?ResponseInterface $response): array
     {
@@ -181,6 +182,7 @@ final readonly class Geocoder
             $found[$properties['osm_type'].$properties['osm_id']] = [
                 'name' => (string) $properties['name'],
                 'locality' => (string) ($properties['city'] ?? $properties['state'] ?? ''),
+                'prefecture' => (string) ($properties['state'] ?? ''),
                 'address' => $this->address($properties),
                 'latitude' => (float) $coordinates[1],
                 'longitude' => (float) $coordinates[0],

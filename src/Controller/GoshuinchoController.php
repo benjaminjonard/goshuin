@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\Goshuin;
 use App\Entity\Goshuincho;
 use App\Form\Type\GoshuinchoType;
 use App\Repository\GoshuinchoRepository;
-use App\Service\Leg;
 use App\Service\Positioner;
 use App\Service\Trip;
 use Doctrine\ORM\EntityManagerInterface;
@@ -54,15 +54,14 @@ class GoshuinchoController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        $legs = $this->trip->legs($goshuincho->getGoshuins());
 
         return $this->render('App/Goshuincho/show.html.twig', [
             'goshuincho' => $goshuincho,
             'summary' => $this->goshuinchos->summary($goshuincho),
-            'legs' => $legs,
+            'days' => $this->trip->days($goshuincho->getGoshuins()),
             'pinned' => array_values(array_filter(
-                $legs,
-                static fn (Leg $leg): bool => $leg->goshuin->getLocation()?->hasCoordinates() === true,
+                iterator_to_array($goshuincho->getGoshuins()),
+                static fn (Goshuin $goshuin): bool => $goshuin->getLocation()?->hasCoordinates() === true,
             )),
         ]);
     }

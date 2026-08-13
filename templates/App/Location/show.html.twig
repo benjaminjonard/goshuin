@@ -1,0 +1,74 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ location.romanizedName }} · Goshuin{% endblock %}
+
+{% block bar %}
+    {% embed 'App/_partials/_bar.html.twig' with {
+        title: location.romanizedName,
+        jp: location.japaneseName,
+        kicker: 'label.locations'|trans,
+        back: path('app_location_index'),
+    } %}
+        {% block tools %}
+            {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_location_edit', {id: location.id}), aria: 'label.edit'|trans}) }}
+            {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_location_delete', {id: location.id}), aria: 'label.delete'|trans}) }}
+        {% endblock %}
+    {% endembed %}
+{% endblock %}
+
+{% block body %}
+    {% set coordinates = location.hasCoordinates ? '%.4f, %.4f'|format(location.latitude, location.longitude) : null %}
+
+    <main class="page mx-auto grid w-full max-w-[680px] gap-[clamp(12px,1.4vw,18px)]">
+        {% if location.photographFull %}
+            <section class="tile stage">
+                <img src="{{ location.photographFull|image }}" class="image-page" alt="{{ location.romanizedName }}">
+            </section>
+        {% endif %}
+
+        {% set record = [
+            {label: 'label.location_type'|trans, value: location.type ? ('label.' ~ location.type.value)|trans : null},
+            {label: 'label.locality'|trans, value: location.locality},
+            {label: 'label.prefecture'|trans, value: location.prefecture},
+            {label: 'label.address'|trans, value: location.address},
+            {label: 'label.coordinates'|trans, value: coordinates},
+        ]|filter(row => row.value is not empty) %}
+
+        {% if record is not empty %}
+            {% embed 'App/_partials/_section.html.twig' with {title: 'label.information'|trans} %}
+                {% block content %}
+                    {{ include('App/_partials/_kvs.html.twig', {rows: record}) }}
+                {% endblock %}
+            {% endembed %}
+        {% endif %}
+
+        {% if location.notes is not empty %}
+            {% embed 'App/_partials/_section.html.twig' with {title: 'label.notes'|trans} %}
+                {% block content %}
+                    <div class="text-[14.5px] leading-[1.75] text-fg-2">{{ location.notes|nl2br }}</div>
+                {% endblock %}
+            {% endembed %}
+        {% endif %}
+
+        {% if location.hasCoordinates %}
+            {% embed 'App/_partials/_section.html.twig' with {title: 'label.map'|trans} %}
+                {% block content %}
+                    <div data-controller="map"
+                         data-map-mode-value="numbered"
+                         data-map-tiles-value="{{ map_tiles }}"
+                         data-map-attribution-value="{{ map_attribution }}"
+                         data-map-markers-value="{{ [{
+                             latitude: location.latitude,
+                             longitude: location.longitude,
+                             label: location.romanizedName,
+                         }]|json_encode }}">
+                        <div class="minimap h-[260px]" data-map-target="canvas"></div>
+                        <ul class="sr">
+                            <li>{{ location.romanizedName }} · {{ coordinates }}</li>
+                        </ul>
+                    </div>
+                {% endblock %}
+            {% endembed %}
+        {% endif %}
+    </main>
+{% endblock %}

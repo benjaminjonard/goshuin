@@ -1,12 +1,14 @@
 {% if photos is not empty %}
     {% embed 'App/_partials/_section.html.twig' with {title: ('label.photos_' ~ type)|trans, aux: photos|length} %}
         {% block content %}
-            <ol class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2.5">
+            <ol class="gallery">
                 {% for photo in photos %}
                     <li>
-                        <figure class="shot">
-                            <img src="{{ photo.imageCard|image }}" class="shot-image"
-                                 alt="{{ photo.label ?: 'label.photographs'|trans }}">
+                        <figure class="relative">
+                            <a href="{{ photo.image|image }}" class="block" data-action="lightbox#open">
+                                <img src="{{ photo.imageCard|image }}" class="gallery-image"
+                                     alt="{{ photo.label ?: 'label.photographs'|trans }}">
+                            </a>
                             {% if photo.label %}
                                 <figcaption class="shot-caption">{{ photo.label }}</figcaption>
                             {% endif %}

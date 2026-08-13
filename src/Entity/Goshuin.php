@@ -69,11 +69,19 @@ class Goshuin
     #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $imageFull = null;
 
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    private ?int $imageWidth = null;
+
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    private ?int $imageHeight = null;
+
     #[Upload(
         pathProperty: 'image',
         miniProperty: 'imageMini',
         cardProperty: 'imageCard',
         fullProperty: 'imageFull',
+        widthProperty: 'imageWidth',
+        heightProperty: 'imageHeight',
     )]
     #[Assert\NotNull(message: 'error.image_required', groups: ['goshuin:create'])]
     #[Assert\Image(
@@ -269,6 +277,30 @@ class Goshuin
     public function setImageFull(?string $imageFull): Goshuin
     {
         $this->imageFull = $imageFull;
+
+        return $this;
+    }
+
+    public function getImageWidth(): ?int
+    {
+        return $this->imageWidth;
+    }
+
+    public function setImageWidth(?int $imageWidth): Goshuin
+    {
+        $this->imageWidth = $imageWidth;
+
+        return $this;
+    }
+
+    public function getImageHeight(): ?int
+    {
+        return $this->imageHeight;
+    }
+
+    public function setImageHeight(?int $imageHeight): Goshuin
+    {
+        $this->imageHeight = $imageHeight;
 
         return $this;
     }
