@@ -1,5 +1,5 @@
 {% if this.geocoderAvailable %}
-    <div class="grid gap-1.5">
+    <div class="grid gap-1.5" data-controller="dismiss">
         <label class="text-[12.5px] font-semibold text-fg-2" for="{{ id }}-address">{{ 'label.address_search'|trans }}</label>
         <input type="text" id="{{ id }}-address" data-model="debounce(1000)|address" value="{{ address }}"
                class="w-full rounded-xl border border-line-2 bg-tile px-3.5 py-2.5 text-[15px] text-fg focus-visible:border-accent"
@@ -12,7 +12,8 @@
         </p>
 
         {% if this.searchable %}
-            <div class="grid overflow-hidden rounded-xl border border-line bg-tile" role="listbox" data-loading="model(address)|addClass(hidden)">
+            <div class="grid overflow-hidden rounded-xl border border-line bg-tile" role="listbox"
+                 data-dismiss-target="panel" data-loading="model(address)|addClass(hidden)">
                 <span class="grid">
                 {% if this.failed %}
                     <p class="flex items-start gap-2.5 px-3.5 py-2.5 text-[13px] text-accent-text" role="alert">
@@ -45,55 +46,121 @@
     </div>
 {% endif %}
 
-{{ form_errors(form) }}
-{{ form_row(form.romanizedName) }}
+{% embed 'App/_partials/_section.html.twig' with {title: 'label.location'|trans} %}
+    {% block content %}
+        <div class="grid gap-3.5">
+            {{ form_errors(form) }}
+            {{ form_row(form.romanizedName) }}
 
-{% if this.duplicates is not empty %}
-    <p class="flex items-start gap-2.5 rounded-xl border border-accent-line bg-accent-soft px-3.5 py-3 text-[12.5px] leading-relaxed text-accent-text" role="alert">
-        {{ include('App/_partials/_icon.html.twig', {name: 'info', small: true, class: 'mt-px'}) }}
-        <span>{{ 'message.location_duplicate'|trans({'%count%': this.duplicates|length}) }}</span>
-    </p>
+            {% if this.duplicates is not empty %}
+                <p class="flex items-start gap-2.5 rounded-xl border border-accent-line bg-accent-soft px-3.5 py-3 text-[12.5px] leading-relaxed text-accent-text" role="alert">
+                    {{ include('App/_partials/_icon.html.twig', {name: 'info', small: true, class: 'mt-px'}) }}
+                    <span>{{ 'message.location_duplicate'|trans({'%count%': this.duplicates|length}) }}</span>
+                </p>
+            {% endif %}
+
+            <div class="grid items-start gap-3.5 sm:grid-cols-2">
+                {{ form_row(form.japaneseName) }}
+                {{ form_row(form.type) }}
+            </div>
+
+            <div class="grid items-start gap-3.5 sm:grid-cols-2">
+                {{ form_row(form.locality) }}
+                {{ form_row(form.prefecture) }}
+            </div>
+
+            {{ form_row(form.address) }}
+
+            <div data-controller="map"
+                 data-map-mode-value="picker"
+                 data-map-tiles-value="{{ map_tiles }}"
+                 data-map-attribution-value="{{ map_attribution }}"
+                 data-map-latitude-value="{{ form.vars.data.latitude|default(0) }}"
+                 data-map-longitude-value="{{ form.vars.data.longitude|default(0) }}"
+                 class="grid gap-3.5">
+                <div class="grid items-start gap-3.5 sm:grid-cols-2">
+                    {{ form_row(form.latitude, {attr: {'data-map-target': 'latitude'}}) }}
+                    {{ form_row(form.longitude, {attr: {'data-map-target': 'longitude'}}) }}
+                </div>
+
+                <div class="minimap h-[260px]" data-map-target="canvas" data-live-ignore aria-label="{{ 'label.place_on_map'|trans }}"></div>
+                <p class="text-xs text-fg-3">{{ 'label.place_on_map'|trans }}</p>
+            </div>
+        </div>
+    {% endblock %}
+{% endembed %}
+
+{% if form.deities is defined %}
+    {% embed 'App/_partials/_section.html.twig' with {title: 'label.additional_information'|trans, suggestions: this.deitySuggestions} %}
+        {% block content %}
+            <div class="grid gap-3.5">
+                {% set control = 'grid size-9 shrink-0 cursor-pointer place-items-center rounded-xl border border-line-2 bg-tile text-fg-2' %}
+                <div class="grid gap-1.5">
+                    {{ form_label(form.deities) }}
+
+                    <div class="grid gap-2.5">
+                        {% for entry in form.deities %}
+                            {% set offered = suggestions[loop.index0] ?? null %}
+                            <div class="grid gap-1.5" data-controller="dismiss">
+                                <div class="flex items-center gap-2">
+                                    <span class="min-w-0 flex-auto">{{ form_widget(entry, {attr: {'data-model': 'debounce(400)|' ~ entry.vars.full_name, autocomplete: 'off', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false'}}) }}</span>
+                                    <button type="button" class="{{ control }} hover:border-accent-line hover:text-accent-text"
+                                            aria-label="{{ entry.vars.button_delete.vars.label|trans }}"
+                                            {% for key, value in entry.vars.button_delete.vars.attr %}{{ key }}="{{ value }}" {% endfor %}>
+                                        {{- include('App/_partials/_icon.html.twig', {name: 'minus', small: true}) -}}
+                                    </button>
+                                </div>
+
+                                {% if offered is not null %}
+                                    {% set at = loop.index0 %}
+                                    <div class="grid overflow-hidden rounded-xl border border-line bg-tile" role="listbox" data-dismiss-target="panel">
+                                        {% if offered is empty %}
+                                            <p class="px-3.5 py-2.5 text-[13px] text-fg-3">{{ 'label.no_result'|trans }}</p>
+                                        {% endif %}
+                                        {% for found in offered %}
+                                            <button type="button" role="option" aria-selected="false"
+                                                    class="cursor-pointer px-3.5 py-2 text-left text-[13.5px] text-fg hover:bg-tile-2"
+                                                    data-action="live#action"
+                                                    data-live-action-param="useDeity"
+                                                    data-live-row-param="{{ at }}"
+                                                    data-live-name-param="{{ found }}">{{ found }}</button>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    {% do form.deities.setRendered %}
+                    <button type="button" class="{{ control }} justify-self-start hover:border-fg-3 hover:text-fg"
+                            aria-label="{{ form.deities.vars.button_add.vars.label|trans }}"
+                            {% for key, value in form.deities.vars.button_add.vars.attr %}{{ key }}="{{ value }}" {% endfor %}>
+                        {{- include('App/_partials/_icon.html.twig', {name: 'plus', small: true}) -}}
+                    </button>
+                </div>
+                {{ form_row(form.foundation) }}
+                {{ form_row(form.notes) }}
+            </div>
+        {% endblock %}
+    {% endembed %}
 {% endif %}
-
-<div class="grid items-start gap-3.5 sm:grid-cols-2">
-    {{ form_row(form.japaneseName) }}
-    {{ form_row(form.locality) }}
-</div>
-
-<div class="grid items-start gap-3.5 sm:grid-cols-2">
-    {{ form_row(form.prefecture) }}
-    {{ form_row(form.type) }}
-</div>
-
-{{ form_row(form.address) }}
-
-<div data-controller="map"
-     data-map-mode-value="picker"
-     data-map-tiles-value="{{ map_tiles }}"
-     data-map-attribution-value="{{ map_attribution }}"
-     data-map-latitude-value="{{ form.latitude.vars.value|default(0) ?: 0 }}"
-     data-map-longitude-value="{{ form.longitude.vars.value|default(0) ?: 0 }}"
-     class="grid gap-3.5">
-    <div class="grid items-start gap-3.5 sm:grid-cols-2">
-        {{ form_row(form.latitude, {attr: {'data-map-target': 'latitude'}}) }}
-        {{ form_row(form.longitude, {attr: {'data-map-target': 'longitude'}}) }}
-    </div>
-
-    <div class="minimap h-[260px]" data-map-target="canvas" data-live-ignore aria-label="{{ 'label.place_on_map'|trans }}"></div>
-    <p class="text-xs text-fg-3">{{ 'label.place_on_map'|trans }}</p>
-</div>
 
 {% if form.photographFile is defined %}
-    <div class="grid gap-1.5" data-live-ignore>
-        {{ form_widget(form.photographFile, {attr: {'data-cover': form.vars.data.photographCard}}) }}
-        {{ form_errors(form.photographFile) }}
-        {{ form_row(form.removePhotograph) }}
-    </div>
+    {% embed 'App/_partials/_section.html.twig' with {title: 'label.photographs'|trans} %}
+        {% block content %}
+            <div class="grid gap-3.5">
+                <div class="grid gap-1.5" data-live-ignore>
+                    {{ form_row(form.photographFile, {attr: {'data-cover': form.vars.data.photographCard, 'data-untitled': true}}) }}
+                    {{ form_errors(form.photographFile) }}
+                    <div class="flex justify-end">{{ form_widget(form.removePhotograph) }}</div>
+                </div>
 
-    <div data-live-ignore>
-        {{ include('App/_partials/_photos.html.twig', {scope: 'place', label: 'label.photographs', photos: form.vars.data.photos}) }}
-    </div>
+                <div data-live-ignore>
+                    {{ include('App/_partials/_photos.html.twig', {scope: 'place', label: 'label.additional_photographs', photos: form.vars.data.photos}) }}
+                </div>
+            </div>
+        {% endblock %}
+    {% endembed %}
 {% endif %}
 
-{{ form_row(form.notes) }}
 {{ form_rest(form) }}

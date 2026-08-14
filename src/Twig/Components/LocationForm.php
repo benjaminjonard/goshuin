@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Twig\Components;
 
+use App\Entity\Deity;
 use App\Entity\Location;
 use App\Form\Type\LocationType;
+use App\Repository\DeityRepository;
 use App\Repository\LocationRepository;
 use App\Service\Geocoder;
 use App\Service\GeocoderFailed;
@@ -21,11 +23,13 @@ use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\ComponentToolsTrait;
 use Symfony\UX\LiveComponent\ComponentWithFormTrait;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
+use Symfony\UX\LiveComponent\LiveCollectionTrait;
 
 #[AsLiveComponent]
 class LocationForm
 {
     use ComponentToolsTrait;
+    use LiveCollectionTrait;
     use ComponentWithFormTrait;
     use DefaultActionTrait;
 
@@ -48,9 +52,13 @@ class LocationForm
     #[LiveProp]
     public bool $failed = false;
 
+    /** @var array<int, list<string>>|null */
+    private ?array $offered = null;
+
     public function __construct(
         private readonly FormFactoryInterface $forms,
         private readonly LocationRepository $locations,
+        private readonly DeityRepository $deities,
         private readonly LocationTypeGuesser $guesser,
         private readonly Geocoder $geocoder,
         private readonly EntityManagerInterface $entityManager,
@@ -93,6 +101,42 @@ class LocationForm
         $this->entityManager->flush();
 
         $this->emitUp('location:created', ['location' => $location->getId()]);
+    }
+
+    #[LiveAction]
+    public function useDeity(#[LiveArg] int $row, #[LiveArg] string $name): void
+    {
+        $this->formValues['deities'][$row] = $name;
+        $this->offered = null;
+    }
+
+    /**
+     * Rows worth a panel, each holding what was found — an empty list saying so.
+     *
+     * @return array<int, list<string>>
+     */
+    public function getDeitySuggestions(): array
+    {
+        if ($this->offered !== null) {
+            return $this->offered;
+        }
+
+        $this->offered = [];
+
+        foreach ($this->formValues['deities'] ?? [] as $row => $typed) {
+            $typed = trim((string) $typed);
+
+            if ($typed === '' || $this->deities->namedExactly($typed) !== null) {
+                continue;
+            }
+
+            $this->offered[$row] = array_map(
+                static fn (Deity $deity): string => (string) $deity->getName(),
+                $this->deities->search($typed),
+            );
+        }
+
+        return $this->offered;
     }
 
     #[LiveAction]
@@ -164,7 +208,7 @@ class LocationForm
     protected function instantiateForm(): FormInterface
     {
         return $this->forms->create(LocationType::class, $this->location ?? $this->named(), [
-            'photograph' => $this->location !== null,
+            'editing' => $this->location !== null,
         ]);
     }
 

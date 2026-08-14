@@ -1,0 +1,62 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Form\DataTransformer;
+
+use App\Entity\Deity;
+use App\Repository\DeityRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Form\DataTransformerInterface;
+
+/**
+ * @implements DataTransformerInterface<Collection<int, Deity>, list<string>>
+ */
+final readonly class DeityNames implements DataTransformerInterface
+{
+    public function __construct(
+        private DeityRepository $deities,
+    ) {
+    }
+
+    /**
+     * @param Collection<int, Deity>|null $value
+     *
+     * @return list<string>
+     */
+    #[\Override]
+    public function transform(mixed $value): array
+    {
+        if (!$value instanceof Collection) {
+            return [''];
+        }
+
+        $named = array_values($value->map(static fn (Deity $deity): string => (string) $deity->getName())->toArray());
+
+        return $named === [] ? [''] : $named;
+    }
+
+    /**
+     * @param list<string|null>|null $value
+     *
+     * @return Collection<int, Deity>
+     */
+    #[\Override]
+    public function reverseTransform(mixed $value): Collection
+    {
+        $named = [];
+
+        foreach ($value ?? [] as $name) {
+            $name = trim((string) $name);
+
+            if ($name === '' || isset($named[mb_strtolower($name)])) {
+                continue;
+            }
+
+            $named[mb_strtolower($name)] = $this->deities->namedExactly($name) ?? new Deity()->setName($name);
+        }
+
+        return new ArrayCollection(array_values($named));
+    }
+}

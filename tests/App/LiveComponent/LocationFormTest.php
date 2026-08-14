@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\App\LiveComponent;
 
+use App\Entity\Deity;
 use App\Enum\LocationType as Kind;
+use App\Repository\DeityRepository;
 use App\Repository\LocationRepository;
 use App\Service\Geocoder;
 use App\Service\LocationTypeGuesser;
@@ -28,11 +30,13 @@ class LocationFormTest extends KernelTestCase
     use InteractsWithLiveComponents;
     use ResetDatabase;
 
+    private const array EDITION_ONLY = ['deities', 'foundation', 'notes', 'photographFile', 'removePhotograph'];
+
     public function test_creating_offers_every_field_but_the_photograph(): void
     {
         $rendered = $this->form()->render()->toString();
 
-        foreach (['romanizedName', 'japaneseName', 'type', 'locality', 'prefecture', 'address', 'latitude', 'longitude', 'notes'] as $field) {
+        foreach (['romanizedName', 'japaneseName', 'type', 'locality', 'prefecture', 'address', 'latitude', 'longitude'] as $field) {
             $this->assertStringContainsString('location['.$field.']', $rendered, $field.' is missing from the creation form.');
         }
 
@@ -48,6 +52,91 @@ class LocationFormTest extends KernelTestCase
         $this->assertStringContainsString('location[removePhotograph]', $rendered);
     }
 
+    public function test_the_creation_panel_offers_neither_deity_nor_period(): void
+    {
+        $rendered = $this->form()->render()->toString();
+
+        $this->assertStringNotContainsString('Add a deity', $rendered, 'The creation panel asked for a deity.');
+        $this->assertStringNotContainsString('location[foundation]', $rendered, 'The creation panel asked for a founding period.');
+    }
+
+    public function test_editing_offers_the_deity_and_the_period(): void
+    {
+        $rendered = $this->form(['location' => LocationFactory::createOne()])->render()->toString();
+
+        $this->assertStringContainsString('Add a deity', $rendered, 'The edit form offers no way to name a deity.');
+        $this->assertStringContainsString('location[foundation]', $rendered, 'The edit form has no founding period.');
+    }
+
+    public function test_a_location_with_no_deity_still_offers_a_field_to_name_one(): void
+    {
+        $rendered = $this->form(['location' => LocationFactory::createOne()])->render()->toString();
+
+        $this->assertStringContainsString('name="location[deities][0]"', $rendered, 'There was nowhere to name a first deity.');
+        $this->assertStringContainsString('debounce(400)|location[deities][0]', $rendered, 'Typing would never reach the search.');
+        $this->assertSame(1, substr_count($rendered, 'data-live-action-param="addCollectionItem"'), 'The field was rendered twice.');
+    }
+
+    public function test_typing_a_deity_offers_the_ones_already_known(): void
+    {
+        $this->store('八幡神');
+        $this->store('天照大神');
+
+        $component = $this->form(['location' => LocationFactory::createOne()])->set('location', ['deities' => ['八幡']]);
+
+        $this->assertSame([0 => ['八幡神']], $component->component()->getDeitySuggestions(), 'The known deity was not offered.');
+
+        $rendered = $component->render()->toString();
+        $this->assertStringContainsString('data-live-action-param="useDeity"', $rendered, 'The offer was never rendered.');
+        $this->assertStringContainsString('八幡神', $rendered);
+        $this->assertStringNotContainsString('天照大神', $rendered, 'A deity nobody was looking for was offered.');
+    }
+
+    public function test_a_name_that_matches_nothing_says_so(): void
+    {
+        $this->store('八幡神');
+
+        $component = $this->form(['location' => LocationFactory::createOne()])->set('location', ['deities' => ['Nowhere']]);
+
+        $this->assertSame([0 => []], $component->component()->getDeitySuggestions(), 'A fruitless search said nothing at all.');
+        $this->assertStringContainsString('No result', $component->render()->toString(), 'The empty search was not reported.');
+    }
+
+    public function test_a_name_already_exact_is_offered_nothing_more(): void
+    {
+        $this->store('八幡神');
+
+        $component = $this->form(['location' => LocationFactory::createOne()])->set('location', ['deities' => ['八幡神']]);
+
+        $this->assertSame([], $component->component()->getDeitySuggestions(), 'A settled row kept offering itself.');
+        $this->assertStringNotContainsString('No result', $component->render()->toString(), 'A settled row opened a panel.');
+    }
+
+    public function test_choosing_a_deity_fills_that_row_alone(): void
+    {
+        $this->store('八幡神');
+        $location = LocationFactory::createOne();
+
+        $values = $this->form(['location' => $location])
+            ->set('location', ['deities' => ['八幡', '天照大神']])
+            ->call('useDeity', ['row' => 0, 'name' => '八幡神'])
+            ->component()->formValues
+        ;
+
+        $this->assertSame(['八幡神', '天照大神'], $values['deities'], 'Choosing a deity disturbed another row.');
+    }
+
+    public function test_a_name_nobody_knows_becomes_a_deity_of_its_own(): void
+    {
+        $location = LocationFactory::createOne();
+
+        $this->form(['location' => $location])->set('location', ['deities' => ['鎌倉権五郎景政']])->render();
+
+        $stored = static::getContainer()->get(DeityRepository::class)->namedExactly('鎌倉権五郎景政');
+
+        $this->assertNull($stored, 'A deity was stored before the form was ever saved.');
+    }
+
     public function test_the_creation_panel_offers_no_gallery(): void
     {
         $this->assertStringNotContainsString('photo_add', $this->form()->render()->toString(), 'The creation panel offered a gallery.');
@@ -58,7 +147,7 @@ class LocationFormTest extends KernelTestCase
         $this->assertStringContainsString('photo_add[place][]', $this->form(['location' => LocationFactory::createOne()])->render()->toString(), 'The edit form has no gallery.');
     }
 
-    public function test_both_paths_offer_rigorously_the_same_fields_apart_from_the_photograph(): void
+    public function test_both_paths_offer_rigorously_the_same_fields_apart_from_what_only_edition_carries(): void
     {
         $user = UserFactory::createOne();
         $location = LocationFactory::createOne();
@@ -68,7 +157,7 @@ class LocationFormTest extends KernelTestCase
 
         $this->assertSame(
             $creating,
-            array_values(array_diff($editing, ['photographFile', 'removePhotograph'])),
+            array_values(array_diff($editing, self::EDITION_ONLY)),
             'The two paths do not describe a location the same way.',
         );
     }
@@ -350,6 +439,7 @@ class LocationFormTest extends KernelTestCase
         return new LocationForm(
             $container->get(FormFactoryInterface::class),
             $container->get(LocationRepository::class),
+            $container->get(DeityRepository::class),
             new LocationTypeGuesser(),
             new Geocoder($client ?? new MockHttpClient($responses), 'https://photon.example', new PrefectureNamer()),
             $container->get(EntityManagerInterface::class),
@@ -367,6 +457,17 @@ class LocationFormTest extends KernelTestCase
         ], $places);
 
         return new MockResponse(json_encode(['features' => $features], \JSON_THROW_ON_ERROR));
+    }
+
+    private function store(string $name): Deity
+    {
+        $manager = static::getContainer()->get(EntityManagerInterface::class);
+        $deity = new Deity()->setName($name);
+
+        $manager->persist($deity);
+        $manager->flush();
+
+        return $deity;
     }
 
     /**

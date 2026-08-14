@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\App\Controller;
 
+use App\Entity\Deity;
 use App\Entity\Goshuincho;
 use App\Entity\Location;
 use App\Entity\LocationPhoto;
+use App\Repository\DeityRepository;
 use App\Repository\GoshuinRepository;
 use App\Repository\LocationPhotoRepository;
 use App\Repository\LocationRepository;
@@ -298,6 +300,77 @@ class LocationTest extends AppTestCase
         $this->assertCount(0, $crawler->filter('input[name^="photo_add"]'), 'A collector was offered a way to add photographs.');
     }
 
+    public function test_a_location_records_several_deities_and_its_foundation(): void
+    {
+        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $location = LocationFactory::createOne(['romanizedName' => 'Goryo-jinja']);
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
+        $form = $crawler->selectButton('location_submit')->form();
+        $values = $form->getPhpValues();
+        $values['location']['deities'] = ['鎌倉権五郎景政', '福禄寿'];
+        $values['location']['foundation'] = 'Fin de l\'époque de Heian';
+
+        $this->client->request(Request::METHOD_POST, $form->getUri(), $values);
+        $this->assertResponseRedirects();
+
+        $this->manager()->clear();
+        $stored = static::getContainer()->get(LocationRepository::class)->find($location->getId());
+
+        $this->assertSame(['福禄寿', '鎌倉権五郎景政'], $this->named($stored), 'The deities were not all kept.');
+        $this->assertSame('Fin de l\'époque de Heian', $stored->getFoundation());
+
+        $text = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId())->filter('main')->text();
+
+        $this->assertStringContainsString('鎌倉権五郎景政', $text, 'The page does not name the deities.');
+        $this->assertStringContainsString('福禄寿', $text);
+        $this->assertStringContainsString('Heian', $text, 'The page does not say when the place was founded.');
+    }
+
+    public function test_two_locations_naming_the_same_deity_share_one(): void
+    {
+        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $first = LocationFactory::createOne(['romanizedName' => 'Tsurugaoka Hachimangu']);
+        $second = LocationFactory::createOne(['romanizedName' => 'Usa Jingu']);
+
+        foreach ([$first, $second] as $location) {
+            $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
+            $form = $crawler->selectButton('location_submit')->form();
+            $values = $form->getPhpValues();
+            $values['location']['deities'] = ['八幡神'];
+
+            $this->client->request(Request::METHOD_POST, $form->getUri(), $values);
+            $this->assertResponseRedirects();
+        }
+
+        $this->manager()->clear();
+        $deities = static::getContainer()->get(DeityRepository::class)->findAll();
+
+        $this->assertCount(1, $deities, 'The same deity was stored twice.');
+
+        $repository = static::getContainer()->get(LocationRepository::class);
+        $this->assertSame(['八幡神'], $this->named($repository->find($first->getId())));
+        $this->assertSame(['八幡神'], $this->named($repository->find($second->getId())), 'The second location did not reach the shared deity.');
+    }
+
+    public function test_a_blank_deity_is_not_kept(): void
+    {
+        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $location = LocationFactory::createOne();
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
+        $form = $crawler->selectButton('location_submit')->form();
+        $values = $form->getPhpValues();
+        $values['location']['deities'] = ['八幡神', '   ', ''];
+
+        $this->client->request(Request::METHOD_POST, $form->getUri(), $values);
+
+        $this->manager()->clear();
+        $stored = static::getContainer()->get(LocationRepository::class)->find($location->getId());
+
+        $this->assertSame(['八幡神'], $this->named($stored), 'A blank deity was stored.');
+    }
+
     public function test_a_collector_cannot_reach_the_edit_form(): void
     {
         $this->client->loginUser(UserFactory::createOne());
@@ -512,6 +585,17 @@ class LocationTest extends AppTestCase
             'goshuin[imageFile]' => $this->createImage(900, 1230),
         ]);
         $this->assertResponseRedirects();
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function named(Location $location): array
+    {
+        $names = array_map(static fn (Deity $deity): string => (string) $deity->getName(), $location->getDeities()->toArray());
+        sort($names);
+
+        return array_values($names);
     }
 
     /**

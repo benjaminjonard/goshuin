@@ -12,7 +12,7 @@
 
 {% block body %}
     <main class="page mx-auto grid w-full max-w-[560px] gap-[clamp(12px,1.4vw,18px)]">
-        <form method="post" enctype="multipart/form-data" class="tile tile-pad grid gap-4">
+        <form method="post" enctype="multipart/form-data" class="grid gap-[clamp(12px,1.4vw,18px)]">
             {{ component('LocationForm', {form: form, location: location, id: 'location'}) }}
 
             <div class="mt-1 flex justify-end gap-2.5">

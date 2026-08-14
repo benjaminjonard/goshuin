@@ -1,6 +1,7 @@
 twig:
     default_path: '%kernel.project_dir%/templates'
     form_themes:
+        - '@LiveComponent/form_theme.html.twig'
         - 'App/_partials/_form_theme.html.twig'
     globals:
         map_tiles: '%app.map_tile_url%'

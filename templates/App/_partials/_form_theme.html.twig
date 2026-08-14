@@ -41,12 +41,14 @@
     <div class="grid gap-2" data-controller="upload">
         <label class="grid cursor-pointer place-items-center gap-1 rounded-2xl border border-line-2 bg-tile-2 px-4 py-6 text-center hover:border-fg-3 {{ stored ? 'border-solid' : 'border-dashed' }}"
                data-upload-target="zone">
-            <img{% if stored %} src="{{ stored|image }}"{% endif %} alt="{{ label|trans }}"
+            <img{% if stored %} src="{{ stored|image }}"{% endif %} alt="{{ attr['data-untitled'] is defined ? '' : label|trans }}"
                  class="mb-1 max-h-40 rounded-xl object-contain{{ stored ? '' : ' hidden' }}" data-upload-target="preview">
             <span class="{{ stored ? 'hidden' : '' }}" data-upload-target="placeholder">
                 {{- include('App/_partials/_icon.html.twig', {name: 'img', class: 'text-fg-3'}) -}}
             </span>
-            <strong class="text-[13.5px] font-semibold text-fg">{{ label|trans }}</strong>
+            {% if attr['data-untitled'] is not defined %}
+                <strong class="text-[13.5px] font-semibold text-fg">{{ label|trans }}</strong>
+            {% endif %}
             <span class="text-xs text-fg-3{{ stored ? ' hidden' : '' }}" data-upload-target="hint">{{ 'label.drop_or_browse'|trans }}</span>
             <span class="text-xs text-fg-3{{ stored ? '' : ' hidden' }}" data-upload-target="replace">{{ 'label.replace_or_browse'|trans }}</span>
             <input type="file" id="{{ id }}" name="{{ full_name }}" accept="image/jpeg,image/png,image/webp" class="sr"
@@ -147,4 +149,12 @@
             {% endfor %}
         </ul>
     {% endif %}
+{% endblock %}
+
+{% block discard_widget %}
+    <label class="flex w-fit cursor-pointer items-center gap-1.5 text-[11.5px] font-semibold text-accent-text">
+        <input type="checkbox" id="{{ id }}" name="{{ full_name }}" value="1"{{ checked ? ' checked' }}
+               class="size-[15px] shrink-0 cursor-pointer rounded border-line-2 accent-accent">
+        {{ label|trans }}
+    </label>
 {% endblock %}

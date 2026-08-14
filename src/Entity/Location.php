@@ -36,6 +36,18 @@ class Location
     #[ORM\Column(type: Types::STRING, length: 8, enumType: LocationType::class, nullable: true)]
     private ?LocationType $type = null;
 
+    /**
+     * @var DoctrineCollection<int, Deity>
+     */
+    #[ORM\ManyToMany(targetEntity: Deity::class, cascade: ['persist'])]
+    #[ORM\JoinTable(name: 'gos_location_deity')]
+    #[ORM\OrderBy(['name' => 'ASC'])]
+    private DoctrineCollection $deities;
+
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    #[Assert\Length(max: 255)]
+    private ?string $foundation = null;
+
     #[ORM\Column(type: Types::STRING, nullable: true)]
     #[Assert\Length(max: 255)]
     private ?string $locality = null;
@@ -106,6 +118,7 @@ class Location
     {
         $this->id = Uuid::v7()->toRfc4122();
         $this->photos = new ArrayCollection();
+        $this->deities = new ArrayCollection();
     }
 
     /**
@@ -153,6 +166,42 @@ class Location
     public function setType(?LocationType $type): Location
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    /**
+     * @return DoctrineCollection<int, Deity>
+     */
+    public function getDeities(): DoctrineCollection
+    {
+        return $this->deities;
+    }
+
+    public function addDeity(Deity $deity): Location
+    {
+        if (!$this->deities->contains($deity)) {
+            $this->deities->add($deity);
+        }
+
+        return $this;
+    }
+
+    public function removeDeity(Deity $deity): Location
+    {
+        $this->deities->removeElement($deity);
+
+        return $this;
+    }
+
+    public function getFoundation(): ?string
+    {
+        return $this->foundation;
+    }
+
+    public function setFoundation(?string $foundation): Location
+    {
+        $this->foundation = $foundation;
 
         return $this;
     }

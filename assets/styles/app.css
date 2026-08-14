@@ -344,6 +344,14 @@
         color: inherit;
     }
 
+    /*
+     * Baseline in the browsers of NFR-6. Where it is not, the textarea keeps its
+     * rows and stays usable, which is the degradation this project prefers.
+     */
+    textarea {
+        field-sizing: content;
+    }
+
     html {
         -webkit-text-size-adjust: 100%;
     }
