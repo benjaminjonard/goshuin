@@ -23,6 +23,8 @@
 
     <main class="page stack">
         {% set record = [
+            {label: 'label.name'|trans, value: location.japaneseName, jp: true},
+            {label: 'label.romanized_name'|trans, value: location.romanizedName},
             {label: 'label.location_type'|trans, value: location.type ? ('label.' ~ location.type.value)|trans : null},
             {label: 'label.locality'|trans, value: location.locality},
             {label: 'label.prefecture'|trans, value: location.prefecture},
