@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Goshuin">
+    <style>
+        .mark { fill: #c0574a }
+        @media (prefers-color-scheme: dark) {
+            .mark { fill: #e8897b }
+        }
+    </style>
+    <path class="mark" fill-rule="evenodd" d="M2 11L11 8L21 11L30 8V25L21 28L11 25L2 28ZM10.6 8.2L11.4 8.2L11.4 25.1L10.6 25.1ZM20.6 11.2L21.4 11.2L21.4 28.1L20.6 28.1ZM13 14.1L19 15.9L19 21.9L13 20.1Z"/>
+</svg>
