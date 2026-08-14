@@ -17,9 +17,12 @@ final readonly class Geocoder
 
     private const float PACE = 1.0;
 
+    private const int SPREAD = 4;
+
     public function __construct(
         private HttpClientInterface $client,
         #[Autowire('%app.photon_host_url%')] private string $host,
+        private PrefectureNamer $namer,
         private float $pace = self::PACE,
     ) {
     }
@@ -45,7 +48,7 @@ final readonly class Geocoder
         try {
             $pending = [
                 'romanised' => $this->ask($query, 'en', $limit),
-                'local' => $this->ask($query, 'default', $limit),
+                'local' => $this->ask($query, 'default', $limit * self::SPREAD),
             ];
 
             try {
@@ -60,7 +63,7 @@ final readonly class Geocoder
                 throw $failure;
             }
 
-            $local = $this->readIfReady($pending['local']);
+            $local = $this->read($pending['local'], false);
 
             $places = [];
 
@@ -94,7 +97,7 @@ final readonly class Geocoder
     /**
      * @param array<string, mixed> $properties
      */
-    private function address(array $properties): string
+    private function address(array $properties, string $prefecture): string
     {
         $house = trim(($properties['housenumber'] ?? '').' '.($properties['street'] ?? ''));
 
@@ -102,12 +105,20 @@ final readonly class Geocoder
             $house,
             $properties['district'] ?? null,
             $properties['city'] ?? null,
-            $properties['state'] ?? null,
+            $prefecture,
             $properties['postcode'] ?? null,
             $properties['country'] ?? null,
         ], static fn (?string $part): bool => $part !== null && trim($part) !== '');
 
-        return implode(', ', array_map('trim', $parts));
+        $kept = [];
+
+        foreach (array_map('trim', $parts) as $part) {
+            if ($kept === [] || $part !== $kept[array_key_last($kept)]) {
+                $kept[] = $part;
+            }
+        }
+
+        return implode(', ', $kept);
     }
 
     private function ask(string $query, string $language, int $limit): ?ResponseInterface
@@ -128,31 +139,6 @@ final readonly class Geocoder
     /**
      * @return array<string, array{name: string, locality: string, prefecture: string, address: string, latitude: float, longitude: float}>
      */
-    private function readIfReady(?ResponseInterface $response): array
-    {
-        if ($response === null) {
-            return [];
-        }
-
-        try {
-            foreach ($this->client->stream([$response], 0) as $chunk) {
-                if ($chunk->isLast()) {
-                    return $this->read($response, false);
-                }
-
-                if ($chunk->isTimeout()) {
-                    break;
-                }
-            }
-        } catch (ExceptionInterface) {
-            return [];
-        }
-
-        $response->cancel();
-
-        return [];
-    }
-
     private function read(?ResponseInterface $response, bool $required): array
     {
         if ($response === null) {
@@ -179,11 +165,13 @@ final readonly class Geocoder
                 continue;
             }
 
+            $prefecture = $this->namer->name((string) ($properties['state'] ?? ''));
+
             $found[$properties['osm_type'].$properties['osm_id']] = [
                 'name' => (string) $properties['name'],
-                'locality' => (string) ($properties['city'] ?? $properties['state'] ?? ''),
-                'prefecture' => (string) ($properties['state'] ?? ''),
-                'address' => $this->address($properties),
+                'locality' => (string) ($properties['city'] ?? $prefecture),
+                'prefecture' => $prefecture,
+                'address' => $this->address($properties, $prefecture),
                 'latitude' => (float) $coordinates[1],
                 'longitude' => (float) $coordinates[0],
             ];

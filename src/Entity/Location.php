@@ -7,6 +7,8 @@ namespace App\Entity;
 use App\Attribute\Upload;
 use App\Enum\LocationType;
 use App\Repository\LocationRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection as DoctrineCollection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
@@ -85,6 +87,13 @@ class Location
 
     private bool $removePhotograph = false;
 
+    /**
+     * @var DoctrineCollection<int, LocationPhoto>
+     */
+    #[ORM\OneToMany(targetEntity: LocationPhoto::class, mappedBy: 'location', cascade: ['remove'], fetch: 'EXTRA_LAZY')]
+    #[ORM\OrderBy(['position' => 'ASC'])]
+    private DoctrineCollection $photos;
+
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Gedmo\Timestampable(on: 'create')]
     private \DateTimeImmutable $createdAt;
@@ -96,6 +105,15 @@ class Location
     public function __construct()
     {
         $this->id = Uuid::v7()->toRfc4122();
+        $this->photos = new ArrayCollection();
+    }
+
+    /**
+     * @return DoctrineCollection<int, LocationPhoto>
+     */
+    public function getPhotos(): DoctrineCollection
+    {
+        return $this->photos;
     }
 
     public function getId(): string

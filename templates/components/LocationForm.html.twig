@@ -1,0 +1,12 @@
+<div {{ attributes.defaults({class: 'grid gap-3.5'}) }}>
+    {{ include('App/Location/_form.html.twig', {id: id|default('location')}) }}
+
+    {% if this.creating %}
+        <div class="flex justify-end gap-2.5">
+            <button type="button" class="cursor-pointer rounded-xl border border-line-2 bg-tile px-[15px] py-[9px] text-[13.5px] font-semibold text-fg hover:border-fg-3"
+                    data-action="live#action" data-live-action-param="cancel">{{ 'label.cancel'|trans }}</button>
+            <button type="button" class="cursor-pointer rounded-xl border border-accent bg-accent px-[15px] py-[9px] text-[13.5px] font-semibold text-white hover:brightness-105 dark:text-[#24100d]"
+                    data-action="live#action" data-live-action-param="create">{{ 'label.create_location'|trans }}</button>
+        </div>
+    {% endif %}
+</div>

@@ -39,8 +39,8 @@
             open: photos.location is not empty or photos.other is not empty,
         } %}
             {% block content %}
-                {{ include('App/Goshuin/_photos.html.twig', {type: 'location', photos: photos.location}) }}
-                {{ include('App/Goshuin/_photos.html.twig', {type: 'other', photos: photos.other}) }}
+                {{ include('App/_partials/_photos.html.twig', {scope: 'location', label: 'label.photos_location', photos: photos.location}) }}
+                {{ include('App/_partials/_photos.html.twig', {scope: 'other', label: 'label.photos_other', photos: photos.other}) }}
             {% endblock %}
         {% endembed %}
 

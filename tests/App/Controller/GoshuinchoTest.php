@@ -350,6 +350,42 @@ class GoshuinchoTest extends AppTestCase
         $this->assertStringContainsString('/uploads/ab/cd/front-1200.jpg', $crawler->filter('main figure img')->attr('src'), 'The cover is not served from its derivative.');
     }
 
+    public function test_the_order_names_each_goshuin_by_its_place_and_its_day(): void
+    {
+        $user = UserFactory::createOne();
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
+        $this->client->loginUser($user);
+
+        GoshuinFactory::new()->in($goshuincho, 1)->on('2025-03-14')
+            ->create(['location' => LocationFactory::new(['romanizedName' => 'Kiyomizu-dera'])]);
+        GoshuinFactory::new()->in($goshuincho, 2)->on('2025-04-02')
+            ->create(['location' => LocationFactory::new(['romanizedName' => 'Kiyomizu-dera'])]);
+
+        $rows = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/edit')
+            ->filter('[data-order-target="row"]');
+
+        $this->assertCount(2, $rows);
+        $this->assertStringContainsString('March 14, 2025', $rows->eq(0)->text(), 'The order does not say which day a goshuin was received.');
+        $this->assertStringContainsString('April 2, 2025', $rows->eq(1)->text(), 'Two visits to the same place cannot be told apart.');
+    }
+
+    public function test_a_goshuin_with_no_day_is_still_named_in_the_order(): void
+    {
+        $user = UserFactory::createOne();
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
+        $this->client->loginUser($user);
+
+        GoshuinFactory::new()->in($goshuincho, 1)
+            ->create(['receivedOn' => null, 'location' => LocationFactory::new(['romanizedName' => 'Undated'])]);
+        GoshuinFactory::new()->in($goshuincho, 2)
+            ->create(['location' => LocationFactory::new(['romanizedName' => 'Dated'])]);
+
+        $rows = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/edit')
+            ->filter('[data-order-target="row"]');
+
+        $this->assertStringContainsString('Undated', $rows->eq(0)->text(), 'A goshuin with no day fell out of the order.');
+    }
+
     public function test_the_form_puts_the_goshuin_back_in_the_order_it_submits(): void
     {
         $user = UserFactory::createOne();
@@ -370,7 +406,7 @@ class GoshuinchoTest extends AppTestCase
         $this->assertCount(3, $rows, 'The form does not list the goshuin to order.');
         $this->assertSame(
             ['Alpha', 'Beta', 'Gamma'],
-            $rows->each(static fn (Crawler $row): string => trim($row->filter('span')->text())),
+            $rows->each(static fn (Crawler $row): string => trim($row->filter('span.font-semibold')->text())),
             'The form does not list them in their current order.',
         );
 

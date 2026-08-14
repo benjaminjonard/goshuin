@@ -5,16 +5,21 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Goshuin;
+use App\Entity\Location;
+use App\Entity\LocationPhoto;
 use App\Entity\Photo;
 use App\Enum\PhotoType;
+use App\Repository\LocationPhotoRepository;
 use App\Repository\PhotoRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final readonly class PhotoSet
 {
     public function __construct(
         private PhotoRepository $photos,
+        private LocationPhotoRepository $locationPhotos,
         private Positioner $positioner,
         private EntityManagerInterface $manager,
         private ValidatorInterface $validator,
@@ -23,15 +28,55 @@ final readonly class PhotoSet
 
     public function apply(Goshuin $goshuin, PhotoType $type, PhotoInstructions $instructions): int
     {
+        return $this->settle(
+            $this->photos->ofType($goshuin, $type),
+            $instructions,
+            fn (Photo $photo): null => $this->positioner->removePhoto($photo),
+            fn (array $order): null => $this->positioner->orderPhotos($goshuin, $type, $order),
+            fn (UploadedFile $file, ?string $label): Photo => new Photo()
+                ->setGoshuin($goshuin)
+                ->setType($type)
+                ->setLabel($label)
+                ->setImageFile($file),
+            fn (Photo $photo): null => $this->positioner->addPhoto($photo),
+        );
+    }
+
+    public function applyToLocation(Location $location, PhotoInstructions $instructions): int
+    {
+        return $this->settle(
+            $this->locationPhotos->ofLocation($location),
+            $instructions,
+            fn (LocationPhoto $photo): null => $this->positioner->removeLocationPhoto($photo),
+            fn (array $order): null => $this->positioner->orderLocationPhotos($location, $order),
+            fn (UploadedFile $file, ?string $label): LocationPhoto => new LocationPhoto()
+                ->setLocation($location)
+                ->setLabel($label)
+                ->setImageFile($file),
+            fn (LocationPhoto $photo): null => $this->positioner->addLocationPhoto($photo),
+        );
+    }
+
+    /**
+     * @param list<Photo|LocationPhoto> $existing
+     */
+    private function settle(
+        array $existing,
+        PhotoInstructions $instructions,
+        callable $remove,
+        callable $order,
+        callable $make,
+        callable $add,
+    ): int {
         $kept = [];
 
-        foreach ($this->photos->ofType($goshuin, $type) as $photo) {
+        foreach ($existing as $photo) {
             $kept[$photo->getId()] = $photo;
         }
 
         foreach ($instructions->removed as $id) {
             if (isset($kept[$id])) {
-                $this->positioner->removePhoto($kept[$id]);
+                $remove($kept[$id]);
                 unset($kept[$id]);
             }
         }
@@ -44,26 +89,16 @@ final readonly class PhotoSet
 
         $this->manager->flush();
 
-        $order = array_values(array_filter($instructions->order, static fn (string $id): bool => isset($kept[$id])));
+        $wanted = array_values(array_filter($instructions->order, static fn (string $id): bool => isset($kept[$id])));
 
-        if ($order !== []) {
-            $this->positioner->orderPhotos($goshuin, $type, $order);
+        if ($wanted !== []) {
+            $order($wanted);
         }
 
-        return $this->add($goshuin, $type, $instructions);
-    }
-
-    private function add(Goshuin $goshuin, PhotoType $type, PhotoInstructions $instructions): int
-    {
         $refused = 0;
 
         foreach ($instructions->added as $spot => $file) {
-            $photo = new Photo()
-                ->setGoshuin($goshuin)
-                ->setType($type)
-                ->setLabel($this->clean($instructions->addedLabels[$spot] ?? ''))
-                ->setImageFile($file)
-            ;
+            $photo = $make($file, $this->clean($instructions->addedLabels[$spot] ?? ''));
 
             if ($this->validator->validate($photo)->count() > 0) {
                 ++$refused;
@@ -71,7 +106,7 @@ final readonly class PhotoSet
                 continue;
             }
 
-            $this->positioner->addPhoto($photo);
+            $add($photo);
         }
 
         return $refused;

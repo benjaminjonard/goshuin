@@ -7,17 +7,21 @@ namespace App\Controller;
 use App\Entity\Location;
 use App\Form\Type\LocationType;
 use App\Repository\LocationRepository;
+use App\Service\PhotoInstructions;
+use App\Service\PhotoSet;
 use App\Service\Uses;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class LocationController extends AbstractController
 {
     public function __construct(
         private readonly LocationRepository $locations,
         private readonly Uses $uses,
+        private readonly PhotoSet $set,
         private readonly EntityManagerInterface $entityManager,
     ) {
     }
@@ -42,6 +46,7 @@ class LocationController extends AbstractController
     }
 
     #[Route(path: '/location/{id}/edit', name: 'app_location_edit', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function edit(Request $request, Location $location): Response
     {
         $form = $this->createForm(LocationType::class, $location);
@@ -49,6 +54,7 @@ class LocationController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->entityManager->flush();
+            $this->photograph($request, $location);
 
             return $this->redirectToRoute('app_location_show', ['id' => $location->getId()]);
         }
@@ -60,6 +66,7 @@ class LocationController extends AbstractController
     }
 
     #[Route(path: '/location/{id}/delete', name: 'app_location_delete', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function delete(Request $request, Location $location): Response
     {
         $held = $this->uses->of($location);
@@ -82,5 +89,16 @@ class LocationController extends AbstractController
             'held' => $held,
             'form' => $form,
         ]);
+    }
+
+    private function photograph(Request $request, Location $location): void
+    {
+        $this->set->applyToLocation($location, new PhotoInstructions(
+            order: array_values($request->request->all()['photo_order']['place'] ?? []),
+            labels: $request->request->all()['photo_label']['place'] ?? [],
+            removed: array_values($request->request->all()['photo_remove']['place'] ?? []),
+            added: array_values(array_filter($request->files->all()['photo_add']['place'] ?? [])),
+            addedLabels: array_values($request->request->all()['photo_add_label']['place'] ?? []),
+        ));
     }
 }

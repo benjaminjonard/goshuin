@@ -6,7 +6,9 @@ namespace App\Tests\App\Controller;
 
 use App\Entity\Goshuincho;
 use App\Entity\Location;
+use App\Entity\LocationPhoto;
 use App\Repository\GoshuinRepository;
+use App\Repository\LocationPhotoRepository;
 use App\Repository\LocationRepository;
 use App\Tests\AppTestCase;
 use App\Tests\Factory\GoshuinchoFactory;
@@ -200,9 +202,183 @@ class LocationTest extends AppTestCase
         $this->emptyUploads();
     }
 
+    public function test_photographs_are_added_ordered_labelled_and_removed(): void
+    {
+        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $location = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']);
+
+        $this->correct($location, [
+            'photo_add' => ['place' => [$this->createImage(600, 450), $this->createImage(600, 450), $this->createImage(600, 450)]],
+            'photo_add_label' => ['place' => ['The gate', '', 'The pagoda']],
+        ]);
+
+        $photos = $this->gallery($location);
+        $this->assertCount(3, $photos, 'The three photographs did not all land.');
+        $this->assertSame([1, 2, 3], array_map(static fn (LocationPhoto $p): ?int => $p->getPosition(), $photos), 'The photographs are not numbered from one.');
+        $this->assertSame(['The gate', null, 'The pagoda'], array_map(static fn (LocationPhoto $p): ?string => $p->getLabel(), $photos), 'A label was lost or invented.');
+
+        [$first, $second, $third] = array_map(static fn (LocationPhoto $p): string => $p->getId(), $photos);
+
+        $this->correct($location, [
+            'photo_order' => ['place' => [$third, $first, $second]],
+            'photo_label' => ['place' => [$second => 'The spring']],
+            'photo_remove' => ['place' => [$first]],
+        ]);
+
+        $left = $this->gallery($location);
+        $this->assertCount(2, $left, 'The removal took the wrong number of photographs.');
+        $this->assertSame([$third, $second], array_map(static fn (LocationPhoto $p): string => $p->getId(), $left), 'The order was not kept.');
+        $this->assertSame([1, 2], array_map(static fn (LocationPhoto $p): ?int => $p->getPosition(), $left), 'The positions left a gap.');
+        $this->assertSame('The spring', $left[1]->getLabel(), 'A label typed on an existing photograph was lost.');
+
+        $this->discard($location);
+    }
+
+    public function test_a_photograph_that_is_not_an_image_is_refused_without_taking_the_others_down(): void
+    {
+        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $location = LocationFactory::createOne();
+
+        $this->correct($location, [
+            'photo_add' => ['place' => [$this->createImage(600, 450), $this->createTextFile()]],
+        ]);
+
+        $this->assertCount(1, $this->gallery($location), 'The refused file was stored, or it took the good one down with it.');
+
+        $this->discard($location);
+    }
+
+    public function test_every_collector_sees_the_photographs_of_a_location(): void
+    {
+        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $location = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']);
+        $this->correct($location, [
+            'photo_add' => ['place' => [$this->createImage(600, 450)]],
+            'photo_add_label' => ['place' => ['The gate']],
+        ]);
+
+        $this->client->loginUser(UserFactory::createOne());
+        $main = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId())->filter('main');
+
+        $this->assertCount(1, $main->filter('.gallery img'), 'A photograph added by somebody else was hidden.');
+        $this->assertSame('The gate', trim($main->filter('figcaption')->text()), 'The label does not caption the photograph.');
+        $this->assertCount(0, $main->filter('form'), 'A collector was offered something to change.');
+
+        $this->discard($location);
+    }
+
+    public function test_deleting_a_location_takes_its_photographs_with_it(): void
+    {
+        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $location = LocationFactory::createOne();
+        $this->correct($location, ['photo_add' => ['place' => [$this->createImage(600, 450)]]]);
+
+        $photo = $this->gallery($location)[0];
+        $paths = [$photo->getImage(), $photo->getImageMini(), $photo->getImageCard(), $photo->getImageFull()];
+        $id = $location->getId();
+
+        $confirmation = $this->client->request(Request::METHOD_GET, '/location/'.$id.'/delete');
+        $this->client->submit($confirmation->selectButton('delete_submit')->form());
+
+        $this->assertNull(static::getContainer()->get(LocationRepository::class)->find($id), 'The location survived.');
+        $this->assertCount(0, static::getContainer()->get(LocationPhotoRepository::class)->findAll(), 'A photograph outlived its location.');
+        $this->assertFileDoesNotExist($this->uploadsDir().'/'.$paths[0], 'The stored image outlived its location.');
+
+        $this->removeUploads(...$paths);
+    }
+
+    public function test_the_location_page_offers_no_way_to_add_photographs(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+        $location = LocationFactory::createOne();
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId());
+
+        $this->assertResponseIsSuccessful();
+        $this->assertCount(0, $crawler->filter('input[name^="photo_add"]'), 'A collector was offered a way to add photographs.');
+    }
+
+    public function test_a_collector_cannot_reach_the_edit_form(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+        $location = LocationFactory::createOne();
+
+        $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
+
+        $this->assertResponseStatusCodeSame(403, 'A collector reached the reference data.');
+    }
+
+    public function test_a_collector_cannot_delete_a_location(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+        $location = LocationFactory::createOne();
+
+        $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/delete');
+
+        $this->assertResponseStatusCodeSame(403, 'A collector could delete reference data.');
+    }
+
+    public function test_a_collector_is_offered_neither_edition_nor_deletion(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+        $location = LocationFactory::createOne();
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId());
+
+        $this->assertResponseIsSuccessful();
+        $this->assertCount(0, $crawler->filter('a[href$="/edit"]'), 'A collector was offered a door they cannot open.');
+        $this->assertCount(0, $crawler->filter('a[href$="/delete"]'));
+    }
+
+    public function test_an_administrator_is_offered_both(): void
+    {
+        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $location = LocationFactory::createOne();
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId());
+
+        $this->assertResponseIsSuccessful();
+        $this->assertCount(1, $crawler->filter('a[href$="/edit"]'), 'The administrator lost the way in.');
+        $this->assertCount(1, $crawler->filter('a[href$="/delete"]'));
+    }
+
+    public function test_a_collector_still_creates_a_missing_location(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+
+        $this->client->request(Request::METHOD_GET, '/locations');
+
+        $this->assertResponseIsSuccessful('A collector lost sight of the locations.');
+    }
+
+    public function test_the_edit_form_is_the_shared_location_form(): void
+    {
+        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $location = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']);
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertCount(1, $crawler->filter('[data-live-name-value="LocationForm"]'), 'The edit page does not render the shared location form.');
+        $this->assertCount(1, $crawler->filter('input[name="location[romanizedName]"]'));
+        $this->assertCount(1, $crawler->filter('input[name="location[photographFile]"]'), 'The edit form lost the photograph.');
+    }
+
+    public function test_the_edit_form_offers_no_address_search_without_a_geocoder(): void
+    {
+        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $location = LocationFactory::createOne();
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertCount(0, $crawler->filter('[data-model="debounce(1000)|address"]'), 'The address search appeared without a geocoder configured.');
+        $this->assertCount(1, $crawler->filter('input[name="location[romanizedName]"]'), 'The manual fields disappeared with it.');
+    }
+
     public function test_a_location_is_corrected_from_its_own_form_and_the_correction_shows_everywhere(): void
     {
-        $user = UserFactory::createOne();
+        $user = UserFactory::new()->admin()->create();
         $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $location = LocationFactory::createOne([
@@ -245,7 +421,7 @@ class LocationTest extends AppTestCase
 
     public function test_a_location_carries_a_photograph_of_the_place(): void
     {
-        $this->client->loginUser(UserFactory::createOne());
+        $this->client->loginUser(UserFactory::new()->admin()->create());
         $location = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']);
 
         $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
@@ -267,14 +443,14 @@ class LocationTest extends AppTestCase
 
     public function test_a_location_still_in_use_cannot_be_deleted_whoever_uses_it(): void
     {
-        $owner = UserFactory::createOne();
+        $owner = UserFactory::new()->admin()->create();
         $this->client->loginUser($owner);
         $location = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $owner]);
         $this->collect($goshuincho, $location, '2025-03-14');
         $id = $location->getId();
 
-        $this->client->loginUser(UserFactory::createOne());
+        $this->client->loginUser(UserFactory::new()->admin()->create());
         $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$id.'/delete');
 
         $this->assertStringContainsString('still in use', $crawler->filter('main')->text(), 'The refusal is not stated.');
@@ -294,7 +470,7 @@ class LocationTest extends AppTestCase
 
     public function test_a_location_nothing_uses_is_deleted_and_leaves_the_index(): void
     {
-        $this->client->loginUser(UserFactory::createOne());
+        $this->client->loginUser(UserFactory::new()->admin()->create());
         $location = LocationFactory::createOne(['romanizedName' => 'Never used']);
         $id = $location->getId();
 
@@ -310,7 +486,7 @@ class LocationTest extends AppTestCase
 
     public function test_the_form_refuses_a_location_with_no_romanized_name(): void
     {
-        $this->client->loginUser(UserFactory::createOne());
+        $this->client->loginUser(UserFactory::new()->admin()->create());
         $location = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']);
 
         $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
@@ -336,6 +512,47 @@ class LocationTest extends AppTestCase
             'goshuin[imageFile]' => $this->createImage(900, 1230),
         ]);
         $this->assertResponseRedirects();
+    }
+
+    /**
+     * @param array<string, mixed> $photographs
+     */
+    private function correct(Location $location, array $photographs): void
+    {
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
+        $form = $crawler->selectButton('location_submit')->form();
+
+        $added = $photographs['photo_add'] ?? [];
+        unset($photographs['photo_add']);
+
+        $this->client->request(
+            Request::METHOD_POST,
+            $form->getUri(),
+            [...$form->getPhpValues(), ...$photographs],
+            $added === [] ? [] : ['photo_add' => $added],
+        );
+
+        $this->assertResponseRedirects();
+        $this->manager()->clear();
+    }
+
+    /**
+     * @return list<LocationPhoto>
+     */
+    private function gallery(Location $location): array
+    {
+        $this->manager()->clear();
+
+        return static::getContainer()->get(LocationPhotoRepository::class)->ofLocation(
+            static::getContainer()->get(LocationRepository::class)->find($location->getId()),
+        );
+    }
+
+    private function discard(Location $location): void
+    {
+        foreach ($this->gallery($location) as $photo) {
+            $this->removeUploads($photo->getImage(), $photo->getImageMini(), $photo->getImageCard(), $photo->getImageFull());
+        }
     }
 
     private function emptyUploads(): void

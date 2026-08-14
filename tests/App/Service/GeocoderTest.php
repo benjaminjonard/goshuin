@@ -6,6 +6,7 @@ namespace App\Tests\App\Service;
 
 use App\Service\Geocoder;
 use App\Service\GeocoderFailed;
+use App\Service\PrefectureNamer;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
@@ -15,7 +16,7 @@ class GeocoderTest extends TestCase
 {
     public function test_it_is_unavailable_without_a_host(): void
     {
-        $geocoder = new Geocoder(new MockHttpClient(), '');
+        $geocoder = new Geocoder(new MockHttpClient(), '', new PrefectureNamer());
 
         $this->assertFalse($geocoder->isAvailable());
         $this->assertSame([], $geocoder->search('kiyomizu'), 'A search was attempted with no host configured.');
@@ -27,7 +28,7 @@ class GeocoderTest extends TestCase
             throw new \LogicException('A request left the instance.');
         });
 
-        $this->assertSame([], (new Geocoder($client, ''))->search('kiyomizu'));
+        $this->assertSame([], (new Geocoder($client, '', new PrefectureNamer()))->search('kiyomizu'));
     }
 
     public function test_an_empty_query_asks_nothing(): void
@@ -36,7 +37,7 @@ class GeocoderTest extends TestCase
             throw new \LogicException('A request left the instance.');
         });
 
-        $this->assertSame([], (new Geocoder($client, 'https://photon.example', 0.0))->search('   '));
+        $this->assertSame([], (new Geocoder($client, 'https://photon.example', new PrefectureNamer(), 0.0))->search('   '));
     }
 
     public function test_a_query_too_short_asks_nothing(): void
@@ -45,7 +46,7 @@ class GeocoderTest extends TestCase
             throw new \LogicException('A request left the instance for a two-letter query.');
         });
 
-        $this->assertSame([], (new Geocoder($client, 'https://photon.example', 0.0))->search('ky'));
+        $this->assertSame([], (new Geocoder($client, 'https://photon.example', new PrefectureNamer(), 0.0))->search('ky'));
     }
 
     public function test_both_languages_are_asked_before_either_is_read(): void
@@ -59,7 +60,7 @@ class GeocoderTest extends TestCase
             ]);
         });
 
-        (new Geocoder($client, 'https://photon.example', 0.0))->search('kiyomizu');
+        (new Geocoder($client, 'https://photon.example', new PrefectureNamer(), 0.0))->search('kiyomizu');
 
         $this->assertSame(['asked', 'asked'], $order, 'The two requests were not both started.');
     }
@@ -73,7 +74,7 @@ class GeocoderTest extends TestCase
             return new MockResponse(json_encode(['features' => []], \JSON_THROW_ON_ERROR));
         });
 
-        (new Geocoder($client, 'https://photon.example', 0.0))->search('kiyomizu');
+        (new Geocoder($client, 'https://photon.example', new PrefectureNamer(), 0.0))->search('kiyomizu');
 
         $this->assertSame(20.0, $seen['timeout']);
     }
@@ -83,7 +84,7 @@ class GeocoderTest extends TestCase
         $geocoder = new Geocoder($this->clientReturning(
             $this->collection([['W', 336641107, 'Kiyomizu-dera', 'Kyoto', 135.7844, 34.9943]]),
             $this->collection([['W', 336641107, '清水寺', '京都市', 135.7844, 34.9943]]),
-        ), 'https://photon.example', 0.0);
+        ), 'https://photon.example', new PrefectureNamer(), 0.0);
 
         $places = $geocoder->search('kiyomizu');
 
@@ -91,9 +92,122 @@ class GeocoderTest extends TestCase
         $this->assertSame('Kiyomizu-dera', $places[0]['name']);
         $this->assertSame('清水寺', $places[0]['japaneseName'], 'The local name was not paired with the romanised one.');
         $this->assertSame('Kyoto', $places[0]['locality']);
-        $this->assertSame('Kiyomizu Slope, Kyoto, Kyoto Prefecture, 605-0862, Japan', $places[0]['address'], 'The address was not composed from what Photon returned.');
+        $this->assertSame('Kyoto', $places[0]['prefecture'], 'The long form Photon returns was not named.');
+        $this->assertSame('Kiyomizu Slope, Kyoto, 605-0862, Japan', $places[0]['address'], 'The address was not composed from what Photon returned.');
         $this->assertSame(34.9943, $places[0]['latitude']);
         $this->assertSame(135.7844, $places[0]['longitude']);
+    }
+
+    public function test_a_prefecture_in_kanji_is_named_in_romaji(): void
+    {
+        $geocoder = new Geocoder($this->clientReturning($this->kandaMyojin(), $this->kandaMyojin()), 'https://photon.example', new PrefectureNamer(), 0.0);
+
+        $places = $geocoder->search('kanda-myojin');
+
+        $this->assertSame('Tokyo', $places[0]['prefecture'], 'The prefecture came back in kanji.');
+    }
+
+    public function test_a_prefecture_is_not_repeated_in_the_address(): void
+    {
+        $geocoder = new Geocoder($this->clientReturning($this->kandaMyojin(), $this->kandaMyojin()), 'https://photon.example', new PrefectureNamer(), 0.0);
+
+        $places = $geocoder->search('kanda-myojin');
+
+        $this->assertSame('2 16, Chiyoda, Tokyo, 101-0021, Japan', $places[0]['address'], 'The locality and the prefecture were both written out.');
+    }
+
+    public function test_a_state_outside_japan_is_left_alone(): void
+    {
+        $body = json_encode(['features' => [[
+            'properties' => ['osm_type' => 'W', 'osm_id' => 9, 'name' => 'Todai-Ji', 'city' => 'Tubarão', 'state' => 'Santa Catarina', 'country' => 'Brazil'],
+            'geometry' => ['coordinates' => [-48.9, -28.4]],
+        ]]], \JSON_THROW_ON_ERROR);
+
+        $geocoder = new Geocoder($this->clientReturning(new MockResponse($body), new MockResponse($body)), 'https://photon.example', new PrefectureNamer(), 0.0);
+
+        $places = $geocoder->search('todai-ji');
+
+        $this->assertSame('Santa Catarina', $places[0]['prefecture'], 'A state outside Japan was rewritten.');
+        $this->assertSame('Tubarão, Santa Catarina, Brazil', $places[0]['address']);
+    }
+
+    public function test_a_locality_falling_back_to_the_prefecture_is_named_too(): void
+    {
+        $body = json_encode(['features' => [[
+            'properties' => ['osm_type' => 'W', 'osm_id' => 11, 'name' => 'Shuri-jo', 'state' => '沖縄県', 'country' => 'Japan'],
+            'geometry' => ['coordinates' => [127.7, 26.2]],
+        ]]], \JSON_THROW_ON_ERROR);
+
+        $geocoder = new Geocoder($this->clientReturning(new MockResponse($body), new MockResponse($body)), 'https://photon.example', new PrefectureNamer(), 0.0);
+
+        $places = $geocoder->search('shuri-jo');
+
+        $this->assertSame('Okinawa', $places[0]['locality'], 'A locality falling back to the prefecture kept the kanji.');
+        $this->assertSame('Okinawa, Japan', $places[0]['address']);
+    }
+
+    public function test_a_state_that_is_not_text_does_not_break_the_search(): void
+    {
+        $body = json_encode(['features' => [[
+            'properties' => ['osm_type' => 'W', 'osm_id' => 3, 'name' => 'Odd', 'state' => 13, 'city' => 'Tokyo'],
+            'geometry' => ['coordinates' => [139.0, 35.0]],
+        ]]], \JSON_THROW_ON_ERROR);
+
+        $geocoder = new Geocoder($this->clientReturning(new MockResponse($body), new MockResponse($body)), 'https://photon.example', new PrefectureNamer(), 0.0);
+
+        $this->assertSame('13', $geocoder->search('odd')[0]['prefecture'], 'A malformed state took the whole search down.');
+    }
+
+    public function test_a_local_answer_arriving_in_pieces_is_waited_for(): void
+    {
+        $body = json_encode(['features' => [[
+            'properties' => ['osm_type' => 'W', 'osm_id' => 336641107, 'name' => '清水寺', 'city' => '京都市'],
+            'geometry' => ['coordinates' => [135.7844, 34.9943]],
+        ]]], \JSON_THROW_ON_ERROR);
+
+        $pieces = new MockResponse((static function () use ($body): \Generator {
+            yield substr($body, 0, 20);
+
+            yield substr($body, 20);
+        })());
+
+        $geocoder = new Geocoder($this->clientReturning(
+            $this->collection([['W', 336641107, 'Kiyomizu-dera', 'Kyoto', 135.7844, 34.9943]]),
+            $pieces,
+        ), 'https://photon.example', new PrefectureNamer(), 0.0);
+
+        $places = $geocoder->search('kiyomizu');
+
+        $this->assertSame('清水寺', $places[0]['japaneseName'], 'A local answer split across chunks was abandoned.');
+    }
+
+    public function test_the_local_answer_is_asked_for_a_wider_net(): void
+    {
+        $asked = [];
+        $client = new MockHttpClient(function (string $method, string $url) use (&$asked): MockResponse {
+            $asked[] = $url;
+
+            return $this->collection([]);
+        });
+
+        (new Geocoder($client, 'https://photon.example', new PrefectureNamer(), 0.0))->search('senso-ji', 5);
+
+        $this->assertStringContainsString('limit=5', $asked[0], 'The romanised answer decides what is shown and must keep its limit.');
+        $this->assertStringContainsString('limit=20', $asked[1], 'Photon ranks the two languages differently, so a narrow local answer loses names.');
+    }
+
+    public function test_the_local_answer_is_never_cancelled(): void
+    {
+        $local = $this->collection([['W', 336641107, '清水寺', '京都市', 135.7844, 34.9943]]);
+
+        $geocoder = new Geocoder($this->clientReturning(
+            $this->collection([['W', 336641107, 'Kiyomizu-dera', 'Kyoto', 135.7844, 34.9943]]),
+            $local,
+        ), 'https://photon.example', new PrefectureNamer(), 0.0);
+
+        $geocoder->search('kiyomizu');
+
+        $this->assertNotTrue($local->getInfo('canceled'), 'The local answer was hung up on instead of being waited for.');
     }
 
     public function test_a_place_missing_from_the_local_answer_keeps_its_romanised_name(): void
@@ -101,7 +215,7 @@ class GeocoderTest extends TestCase
         $geocoder = new Geocoder($this->clientReturning(
             $this->collection([['N', 42, 'Somewhere', 'Nara', 135.0, 34.0]]),
             $this->collection([]),
-        ), 'https://photon.example', 0.0);
+        ), 'https://photon.example', new PrefectureNamer(), 0.0);
 
         $places = $geocoder->search('somewhere');
 
@@ -116,9 +230,12 @@ class GeocoderTest extends TestCase
             'geometry' => ['coordinates' => [135.0, 34.0]],
         ]]], \JSON_THROW_ON_ERROR);
 
-        $geocoder = new Geocoder($this->clientReturning(new MockResponse($body), new MockResponse($body)), 'https://photon.example', 0.0);
+        $geocoder = new Geocoder($this->clientReturning(new MockResponse($body), new MockResponse($body)), 'https://photon.example', new PrefectureNamer(), 0.0);
 
-        $this->assertSame('Nara', $geocoder->search('bare')[0]['address'], 'Empty parts left separators behind.');
+        $place = $geocoder->search('bare')[0];
+
+        $this->assertSame('Nara', $place['address'], 'Empty parts left separators behind.');
+        $this->assertSame('', $place['prefecture'], 'A prefecture was invented for an answer without a state.');
     }
 
     public function test_a_feature_without_a_name_or_coordinates_is_dropped(): void
@@ -128,7 +245,7 @@ class GeocoderTest extends TestCase
             ['properties' => ['osm_type' => 'W', 'osm_id' => 2, 'name' => 'No geometry'], 'geometry' => null],
         ]], \JSON_THROW_ON_ERROR);
 
-        $geocoder = new Geocoder($this->clientReturning(new MockResponse($body), new MockResponse($body)), 'https://photon.example', 0.0);
+        $geocoder = new Geocoder($this->clientReturning(new MockResponse($body), new MockResponse($body)), 'https://photon.example', new PrefectureNamer(), 0.0);
 
         $this->assertSame([], $geocoder->search('broken'));
     }
@@ -138,7 +255,7 @@ class GeocoderTest extends TestCase
         $geocoder = new Geocoder(new MockHttpClient([
             new MockResponse('', ['http_code' => 503]),
             new MockResponse('', ['http_code' => 503]),
-        ]), 'https://photon.example', 0.0);
+        ]), 'https://photon.example', new PrefectureNamer(), 0.0);
 
         $this->expectException(GeocoderFailed::class);
 
@@ -150,7 +267,7 @@ class GeocoderTest extends TestCase
         $geocoder = new Geocoder(new MockHttpClient([
             $this->collection([['W', 1, 'Kiyomizu-dera', 'Kyoto', 135.7844, 34.9943]]),
             new MockResponse('', ['http_code' => 503]),
-        ]), 'https://photon.example', 0.0);
+        ]), 'https://photon.example', new PrefectureNamer(), 0.0);
 
         $places = $geocoder->search('kiyomizu');
 
@@ -167,7 +284,7 @@ class GeocoderTest extends TestCase
             return $this->collection([]);
         });
 
-        (new Geocoder($client, 'https://photon.example/', 0.0))->search('kiyomizu');
+        (new Geocoder($client, 'https://photon.example/', new PrefectureNamer(), 0.0))->search('kiyomizu');
 
         $this->assertCount(2, $asked);
         $this->assertStringStartsWith('https://photon.example/api/', $asked[0], 'The configured host was not used.');
@@ -177,7 +294,7 @@ class GeocoderTest extends TestCase
 
     public function test_an_answer_is_not_handed_back_before_the_pace_has_elapsed(): void
     {
-        $geocoder = new Geocoder($this->clientReturning($this->collection([]), $this->collection([])), 'https://photon.example', 0.4);
+        $geocoder = new Geocoder($this->clientReturning($this->collection([]), $this->collection([])), 'https://photon.example', new PrefectureNamer(), 0.4);
 
         $started = microtime(true);
         $geocoder->search('kiyomizu');
@@ -190,7 +307,7 @@ class GeocoderTest extends TestCase
         $geocoder = new Geocoder(new MockHttpClient([
             new MockResponse('', ['http_code' => 503]),
             new MockResponse('', ['http_code' => 503]),
-        ]), 'https://photon.example', 0.4);
+        ]), 'https://photon.example', new PrefectureNamer(), 0.4);
 
         $started = microtime(true);
 
@@ -222,6 +339,25 @@ class GeocoderTest extends TestCase
         ], $places);
 
         return new MockResponse(json_encode(['features' => $features], \JSON_THROW_ON_ERROR));
+    }
+
+    private function kandaMyojin(): MockResponse
+    {
+        return new MockResponse(json_encode(['features' => [[
+            'properties' => [
+                'osm_type' => 'W',
+                'osm_id' => 89431876,
+                'name' => 'Kanda-myojin',
+                'housenumber' => '2',
+                'street' => '16',
+                'district' => 'Chiyoda',
+                'city' => 'Tokyo',
+                'state' => '東京都',
+                'postcode' => '101-0021',
+                'country' => 'Japan',
+            ],
+            'geometry' => ['coordinates' => [139.7677388, 35.7019403]],
+        ]]], \JSON_THROW_ON_ERROR));
     }
 
     private function clientReturning(MockResponse ...$responses): HttpClientInterface

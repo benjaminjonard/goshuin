@@ -63,25 +63,34 @@ class LocationType extends AbstractType
                 'html5' => false,
                 'attr' => ['inputmode' => 'decimal'],
             ])
-            ->add('photographFile', FileType::class, [
-                'label' => 'label.photograph',
-                'required' => false,
-                'block_prefix' => 'cover',
-            ])
-            ->add('removePhotograph', CheckboxType::class, [
-                'label' => 'label.remove_photograph',
-                'required' => false,
-            ])
-            ->add('notes', TextareaType::class, [
-                'label' => 'label.notes',
-                'required' => false,
-            ])
         ;
+
+        if ($options['photograph']) {
+            $builder
+                ->add('photographFile', FileType::class, [
+                    'label' => 'label.photograph',
+                    'required' => false,
+                    'block_prefix' => 'cover',
+                ])
+                ->add('removePhotograph', CheckboxType::class, [
+                    'label' => 'label.remove_photograph',
+                    'required' => false,
+                ])
+            ;
+        }
+
+        $builder->add('notes', TextareaType::class, [
+            'label' => 'label.notes',
+            'required' => false,
+        ]);
     }
 
     #[\Override]
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(['data_class' => Location::class]);
+        $resolver
+            ->setDefaults(['data_class' => Location::class, 'photograph' => true])
+            ->setAllowedTypes('photograph', 'bool')
+        ;
     }
 }

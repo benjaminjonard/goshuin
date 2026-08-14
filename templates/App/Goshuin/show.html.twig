@@ -37,7 +37,7 @@
             </section>
 
             {% for type, set in photos %}
-                {{ include('App/Goshuin/_gallery.html.twig', {photos: set, type: type}) }}
+                {{ include('App/_partials/_gallery.html.twig', {photos: set, title: ('label.photos_' ~ type)|trans}) }}
             {% endfor %}
 
             <dialog class="lightbox" data-lightbox-target="frame"

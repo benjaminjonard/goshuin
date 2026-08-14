@@ -1,5 +1,5 @@
 {% if photos is not empty %}
-    {% embed 'App/_partials/_section.html.twig' with {title: ('label.photos_' ~ type)|trans, aux: photos|length} %}
+    {% embed 'App/_partials/_section.html.twig' with {title: title, aux: photos|length} %}
         {% block content %}
             <ol class="gallery">
                 {% for photo in photos %}

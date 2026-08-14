@@ -6,7 +6,10 @@ namespace App\Tests\App\Service;
 
 use App\Entity\Goshuin;
 use App\Entity\Goshuincho;
+use App\Entity\Location;
+use App\Entity\LocationPhoto;
 use App\Repository\GoshuinRepository;
+use App\Repository\LocationPhotoRepository;
 use App\Repository\PhotoRepository;
 use App\Service\Positioner;
 use Doctrine\DBAL\LockMode;
@@ -53,7 +56,7 @@ class PositionerTest extends TestCase
         $repository = $this->createStub(GoshuinRepository::class);
         $repository->method('lastPosition')->willReturn(0);
 
-        new Positioner($manager, $repository, $this->createStub(PhotoRepository::class))->add($goshuin);
+        new Positioner($manager, $repository, $this->createStub(PhotoRepository::class), $this->createStub(LocationPhotoRepository::class))->add($goshuin);
     }
 
     public function test_an_order_submitted_whole_is_applied_and_stays_contiguous(): void
@@ -99,6 +102,62 @@ class PositionerTest extends TestCase
         $this->assertSame([1, 2], array_values($this->positionsOf($goshuins)));
     }
 
+    public function test_the_first_photograph_of_a_location_takes_position_one(): void
+    {
+        $photo = new LocationPhoto()->setLocation(new Location());
+
+        $this->placing([])->addLocationPhoto($photo);
+
+        $this->assertSame(1, $photo->getPosition());
+    }
+
+    public function test_a_photograph_takes_the_place_after_the_last_one(): void
+    {
+        $photo = new LocationPhoto()->setLocation(new Location());
+
+        $this->placing([$this->shot(1), $this->shot(2)])->addLocationPhoto($photo);
+
+        $this->assertSame(3, $photo->getPosition());
+    }
+
+    public function test_a_photograph_outside_a_location_is_refused(): void
+    {
+        $this->expectException(\LogicException::class);
+
+        $this->placing([])->addLocationPhoto(new LocationPhoto());
+    }
+
+    public function test_reordering_photographs_keeps_them_contiguous(): void
+    {
+        $shots = [$this->shot(1), $this->shot(2), $this->shot(3)];
+        $ids = array_map(static fn (LocationPhoto $p): string => $p->getId(), $shots);
+
+        $this->placing($shots)->orderLocationPhotos(new Location(), [$ids[2], $ids[0], $ids[1]]);
+
+        $this->assertSame([2, 3, 1], array_map(static fn (LocationPhoto $p): ?int => $p->getPosition(), $shots), 'The submitted order was not applied.');
+    }
+
+    public function test_a_photograph_left_out_of_the_order_keeps_a_place_at_the_end(): void
+    {
+        $shots = [$this->shot(1), $this->shot(2), $this->shot(3)];
+        $ids = array_map(static fn (LocationPhoto $p): string => $p->getId(), $shots);
+
+        $this->placing($shots)->orderLocationPhotos(new Location(), [$ids[2]]);
+
+        $this->assertSame(1, $shots[2]->getPosition(), 'The named photograph did not come first.');
+        $this->assertSame([2, 3], [$shots[0]->getPosition(), $shots[1]->getPosition()], 'The unnamed photographs lost their contiguity.');
+    }
+
+    public function test_removing_a_photograph_closes_the_hole_behind_it(): void
+    {
+        $shots = [$this->shot(1), $this->shot(2), $this->shot(3)];
+        $left = [$shots[0], $shots[2]];
+
+        $this->placing($left)->removeLocationPhoto($shots[1]);
+
+        $this->assertSame([1, 2], array_map(static fn (LocationPhoto $p): ?int => $p->getPosition(), $left), 'The removal left a gap.');
+    }
+
     /**
      * @return list<Goshuin>
      */
@@ -142,7 +201,7 @@ class PositionerTest extends TestCase
             return array_values($found);
         });
 
-        return new Positioner($manager, $repository, $this->createStub(PhotoRepository::class));
+        return new Positioner($manager, $repository, $this->createStub(PhotoRepository::class), $this->createStub(LocationPhotoRepository::class));
     }
 
     /**
@@ -176,11 +235,31 @@ class PositionerTest extends TestCase
         $repository = $this->createStub(GoshuinRepository::class);
         $repository->method('lastPosition')->willReturn($lastPosition);
 
-        return new Positioner($manager, $repository, $this->createStub(PhotoRepository::class));
+        return new Positioner($manager, $repository, $this->createStub(PhotoRepository::class), $this->createStub(LocationPhotoRepository::class));
     }
 
     private function goshuin(): Goshuin
     {
         return new Goshuin()->setGoshuincho(new Goshuincho());
+    }
+
+    private function shot(int $position): LocationPhoto
+    {
+        return new LocationPhoto()->setLocation(new Location())->setPosition($position);
+    }
+
+    /**
+     * @param list<LocationPhoto> $existing
+     */
+    private function placing(array $existing): Positioner
+    {
+        $manager = $this->createStub(EntityManagerInterface::class);
+        $manager->method('wrapInTransaction')->willReturnCallback(static fn (callable $work): mixed => $work());
+
+        $photos = $this->createStub(LocationPhotoRepository::class);
+        $photos->method('lastPosition')->willReturn($existing === [] ? 0 : max(array_map(static fn (LocationPhoto $p): int => (int) $p->getPosition(), $existing)));
+        $photos->method('ofLocation')->willReturn($existing);
+
+        return new Positioner($manager, $this->createStub(GoshuinRepository::class), $this->createStub(PhotoRepository::class), $photos);
     }
 }

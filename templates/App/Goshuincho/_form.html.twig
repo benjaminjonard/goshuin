@@ -30,7 +30,12 @@
                         <li class="flex items-center gap-2.5 rounded-xl border border-line-2 bg-tile-2 px-2.5 py-1.5" data-order-target="row">
                             <input type="hidden" name="goshuin_order[]" value="{{ goshuin.id }}">
                             <img src="{{ goshuin.imageMini|image }}" alt="" class="size-9 shrink-0 rounded-md object-cover">
-                            <span class="min-w-0 flex-auto truncate text-[13.5px] font-semibold">{{ goshuin.location.romanizedName }}</span>
+                            <span class="min-w-0 flex-auto">
+                                <span class="block truncate text-[13.5px] font-semibold">{{ goshuin.location.romanizedName }}</span>
+                                {% if goshuin.receivedOn %}
+                                    <span class="block truncate text-xs tabular-nums text-fg-3">{{ goshuin.receivedOn|format_date('long') }}</span>
+                                {% endif %}
+                            </span>
                             <button type="button" class="{{ step }}" data-action="order#earlier" aria-label="{{ 'label.move_earlier'|trans }}">
                                 {{- include('App/_partials/_icon.html.twig', {name: 'up', small: true}) -}}
                             </button>
