@@ -29,7 +29,7 @@ class PrefectureTest extends AppTestCase
     {
         $prefecture = PrefectureFactory::createOne();
 
-        foreach (['/prefectures', '/prefecture/'.$prefecture->getId(), '/prefecture/'.$prefecture->getId().'/edit', '/prefecture/'.$prefecture->getId().'/delete'] as $url) {
+        foreach (['/prefectures', '/prefecture/'.$prefecture->getSlug(), '/prefecture/'.$prefecture->getSlug().'/edit', '/prefecture/'.$prefecture->getSlug().'/delete'] as $url) {
             $this->client->request(Request::METHOD_GET, $url);
 
             $this->assertResponseRedirects();
@@ -43,7 +43,7 @@ class PrefectureTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
         $prefecture = PrefectureFactory::createOne();
 
-        foreach (['/prefecture/'.$prefecture->getId().'/edit', '/prefecture/'.$prefecture->getId().'/delete'] as $url) {
+        foreach (['/prefecture/'.$prefecture->getSlug().'/edit', '/prefecture/'.$prefecture->getSlug().'/delete'] as $url) {
             $this->client->request(Request::METHOD_GET, $url);
 
             $this->assertResponseStatusCodeSame(403, sprintf('%s is open to a collector.', $url));
@@ -62,7 +62,7 @@ class PrefectureTest extends AppTestCase
         $this->assertCount(2, $crawler->filter('main ul li a'), 'The index does not list every prefecture.');
 
         $first = $crawler->filter('main ul li a')->first();
-        $this->assertSame('/prefecture/'.$kanagawa->getId(), $first->attr('href'), 'A prefecture does not open its own page.');
+        $this->assertSame('/prefecture/'.$kanagawa->getSlug(), $first->attr('href'), 'A prefecture does not open its own page.');
         $this->assertStringContainsString('Kanagawa', $first->text());
     }
 
@@ -158,7 +158,7 @@ class PrefectureTest extends AppTestCase
         LocationFactory::createOne(['romanizedName' => 'Hase-dera', 'city' => $kamakura, 'prefecture' => $kanagawa]);
         LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$kanagawa->getId());
+        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$kanagawa->getSlug());
 
         $this->assertResponseIsSuccessful();
         $this->assertSame('Kanagawa', trim($crawler->filter('h1')->text()), 'The page does not name the prefecture.');
@@ -168,8 +168,8 @@ class PrefectureTest extends AppTestCase
         );
 
         $this->assertSame([
-            ['/cities?prefecture='.$kanagawa->getId(), '2 cities'],
-            ['/locations?prefecture='.$kanagawa->getId(), '1 location'],
+            ['/cities?prefecture='.$kanagawa->getSlug(), '2 cities'],
+            ['/locations?prefecture='.$kanagawa->getSlug(), '1 location'],
         ], $totals, 'The page does not count what it holds, nor lead to each list.');
     }
 
@@ -178,7 +178,7 @@ class PrefectureTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
         $prefecture = PrefectureFactory::createOne(['name' => 'Nara']);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getId());
+        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getSlug());
 
         $this->assertResponseIsSuccessful();
         $this->assertCount(0, $crawler->filter('main a.tile'), 'A count was invented for a prefecture holding nothing.');
@@ -191,7 +191,7 @@ class PrefectureTest extends AppTestCase
         CityFactory::createOne(['name' => 'Kamakura', 'prefecture' => $kanagawa]);
         CityFactory::createOne(['name' => 'Nara']);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/cities?prefecture='.$kanagawa->getId());
+        $crawler = $this->client->request(Request::METHOD_GET, '/cities?prefecture='.$kanagawa->getSlug());
 
         $this->assertResponseIsSuccessful();
         $this->assertCount(1, $crawler->filter('main ul li a'), 'The list is not narrowed to the cities of the prefecture.');
@@ -206,7 +206,7 @@ class PrefectureTest extends AppTestCase
         LocationFactory::createOne(['romanizedName' => 'Hase-dera', 'prefecture' => $kanagawa]);
         LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/locations?prefecture='.$kanagawa->getId());
+        $crawler = $this->client->request(Request::METHOD_GET, '/locations?prefecture='.$kanagawa->getSlug());
 
         $this->assertResponseIsSuccessful();
         $this->assertCount(1, $crawler->filter('main ul li a'), 'The list is not narrowed to the locations of the prefecture.');
@@ -239,7 +239,7 @@ class PrefectureTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
         $prefecture = PrefectureFactory::createOne(['notes' => 'Faces the bay.']);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getId());
+        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getSlug());
 
         $this->assertResponseIsSuccessful();
         $this->assertCount(0, $crawler->filter('main form'), 'A collector was offered something to change.');
@@ -252,13 +252,13 @@ class PrefectureTest extends AppTestCase
         $prefecture = PrefectureFactory::createOne(['name' => 'Kanagawa']);
         $location = LocationFactory::createOne(['romanizedName' => 'Hase-dera', 'prefecture' => $prefecture]);
 
-        $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getId().'/edit');
+        $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getSlug().'/edit');
         $this->client->submitForm('prefecture_submit', [
             'prefecture[name]' => 'Kanagawa-ken',
             'prefecture[notes]' => 'Faces the bay.',
         ]);
 
-        $this->assertResponseRedirects('/prefecture/'.$prefecture->getId());
+        $this->assertResponseRedirects('/prefecture/'.$prefecture->getSlug());
 
         $this->manager()->clear();
         $stored = $this->stored($prefecture->getId());
@@ -266,7 +266,7 @@ class PrefectureTest extends AppTestCase
         $this->assertSame('Kanagawa-ken', $stored->getName(), 'The new name was not stored.');
         $this->assertSame('Faces the bay.', $stored->getNotes(), 'The notes were not stored.');
 
-        $page = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId())->filter('main')->text();
+        $page = $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug())->filter('main')->text();
         $this->assertStringContainsString('Kanagawa-ken', $page, 'The renamed prefecture did not reach the location sitting in it.');
     }
 
@@ -275,7 +275,7 @@ class PrefectureTest extends AppTestCase
         $this->client->loginUser(UserFactory::new()->admin()->create());
         $prefecture = PrefectureFactory::createOne(['name' => 'Kanagawa']);
 
-        $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getId().'/edit');
+        $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getSlug().'/edit');
         $this->client->submitForm('prefecture_submit', ['prefecture[name]' => '']);
 
         $this->assertResponseStatusCodeSame(422);
@@ -290,7 +290,7 @@ class PrefectureTest extends AppTestCase
         PrefectureFactory::createOne(['name' => 'Nara']);
         $kanagawa = PrefectureFactory::createOne(['name' => 'Kanagawa']);
 
-        $this->client->request(Request::METHOD_GET, '/prefecture/'.$kanagawa->getId().'/edit');
+        $this->client->request(Request::METHOD_GET, '/prefecture/'.$kanagawa->getSlug().'/edit');
         $crawler = $this->client->submitForm('prefecture_submit', ['prefecture[name]' => 'Nara']);
 
         $this->assertResponseStatusCodeSame(422);
@@ -306,7 +306,7 @@ class PrefectureTest extends AppTestCase
         $prefecture = PrefectureFactory::createOne(['name' => 'Kanagawa']);
         CityFactory::createOne(['name' => 'Kamakura', 'prefecture' => $prefecture]);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getId().'/delete');
+        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getSlug().'/delete');
 
         $this->assertStringContainsString('still holds a city or a location', $crawler->filter('main')->text(), 'The refusal is not stated.');
         $this->assertCount(0, $crawler->filter('main form'), 'A prefecture still in use was offered for deletion anyway.');
@@ -321,7 +321,7 @@ class PrefectureTest extends AppTestCase
         $prefecture = PrefectureFactory::createOne(['name' => 'Kanagawa']);
         LocationFactory::createOne(['romanizedName' => 'Hase-dera', 'prefecture' => $prefecture]);
 
-        $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getId().'/delete');
+        $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getSlug().'/delete');
 
         $this->assertCount(0, $this->client->getCrawler()->filter('main form'), 'A prefecture still in use was offered for deletion anyway.');
 
@@ -334,8 +334,9 @@ class PrefectureTest extends AppTestCase
         $this->client->loginUser(UserFactory::new()->admin()->create());
         $prefecture = PrefectureFactory::createOne(['name' => 'Kanagawa']);
         $id = $prefecture->getId();
+        $slug = $prefecture->getSlug();
 
-        $this->client->request(Request::METHOD_GET, '/prefecture/'.$id.'/delete');
+        $this->client->request(Request::METHOD_GET, '/prefecture/'.$slug.'/delete');
         $this->client->submitForm('delete_submit');
 
         $this->assertResponseRedirects('/prefectures');
@@ -362,7 +363,7 @@ class PrefectureTest extends AppTestCase
         $this->assertSame([1, 2], $photos->map(static fn (PrefecturePhoto $p): ?int => $p->getPosition())->toArray(), 'The gallery is not numbered from one.');
         $this->assertSame(['The bay', null], $photos->map(static fn (PrefecturePhoto $p): ?string => $p->getLabel())->toArray(), 'A blank label was stored as a string.');
 
-        $page = $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getId());
+        $page = $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getSlug());
         $this->assertCount(1, $page->filter('main .stage img'), 'The page does not show the main photograph.');
         $this->assertCount(2, $page->filter('main .gallery img'), 'The page does not show the gallery.');
 
@@ -388,7 +389,7 @@ class PrefectureTest extends AppTestCase
      */
     private function correct(Prefecture $prefecture, array $photographs): void
     {
-        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getId().'/edit');
+        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getSlug().'/edit');
         $form = $crawler->selectButton('prefecture_submit')->form();
 
         $added = $photographs['photo_add'] ?? [];
@@ -449,7 +450,7 @@ class PrefectureTest extends AppTestCase
             'location' => LocationFactory::createOne(['romanizedName' => 'Sensō-ji', 'prefecture' => PrefectureFactory::createOne(['name' => 'Tōkyō'])]),
         ]);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$kyoto->getId());
+        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$kyoto->getSlug());
 
         $this->assertResponseIsSuccessful();
         $body = $crawler->filter('main')->text();
@@ -467,7 +468,7 @@ class PrefectureTest extends AppTestCase
         ]);
         $this->client->loginUser(UserFactory::createOne());
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$kyoto->getId());
+        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$kyoto->getSlug());
 
         $this->assertStringNotContainsString('Not yours', $crawler->filter('main')->text(), 'A foreign goshuincho reached the prefecture page.');
         $this->assertCount(0, $crawler->filter('main a[href*="/goshuin/"]'), 'A foreign goshuin reached the prefecture page.');

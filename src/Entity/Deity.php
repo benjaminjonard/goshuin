@@ -17,6 +17,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: DeityRepository::class)]
 #[ORM\Table(name: 'gos_deity')]
 #[ORM\UniqueConstraint(name: 'un_deity_name', columns: ['name'])]
+#[ORM\UniqueConstraint(name: 'un_deity_slug', columns: ['slug'])]
 #[UniqueEntity(fields: ['name'], message: 'error.deity.not_unique')]
 class Deity
 {
@@ -28,6 +29,10 @@ class Deity
     #[Assert\NotBlank]
     #[Assert\Length(max: 255)]
     private ?string $name = null;
+
+    #[ORM\Column(type: Types::STRING, length: 255)]
+    #[Gedmo\Slug(fields: ['name'], unique: true)]
+    private ?string $slug = null;
 
     /** @var list<string> */
     #[ORM\Column(type: Types::JSON)]
@@ -72,6 +77,18 @@ class Deity
     public function __construct()
     {
         $this->id = Uuid::v7()->toRfc4122();
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(?string $slug): Deity
+    {
+        $this->slug = $slug;
+
+        return $this;
     }
 
     public function getId(): string

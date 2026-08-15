@@ -14,7 +14,7 @@
         noun: 'label.prefectures',
         back: 'label.all_prefectures',
         cards: prefectures|map(prefecture => {
-            href: path('app_prefecture_show', {id: prefecture.id}),
+            href: path('app_prefecture_show', {slug: prefecture.slug}),
             image: prefecture.photographCard,
             icon: 'prefecture',
             title: prefecture.name,

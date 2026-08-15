@@ -14,6 +14,7 @@ use App\Service\PhotoSet;
 use App\Service\Scope;
 use App\Service\Uses;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -52,17 +53,17 @@ class LocationController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/location/{id}', name: 'app_location_show', methods: ['GET'])]
-    public function show(Location $location): Response
+    #[Route(path: '/location/{slug}', name: 'app_location_show', methods: ['GET'])]
+    public function show(#[MapEntity(mapping: ['slug' => 'slug'])] Location $location): Response
     {
         return $this->render('App/Location/show.html.twig', [
             'location' => $location,
         ]);
     }
 
-    #[Route(path: '/location/{id}/edit', name: 'app_location_edit', methods: ['GET', 'POST'])]
+    #[Route(path: '/location/{slug}/edit', name: 'app_location_edit', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function edit(Request $request, Location $location): Response
+    public function edit(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Location $location): Response
     {
         $form = $this->createForm(LocationType::class, $location);
         $form->handleRequest($request);
@@ -71,7 +72,7 @@ class LocationController extends AbstractController
             $this->entityManager->flush();
             $this->photograph($request, $location);
 
-            return $this->redirectToRoute('app_location_show', ['id' => $location->getId()]);
+            return $this->redirectToRoute('app_location_show', ['slug' => $location->getSlug()]);
         }
 
         return $this->render('App/Location/edit.html.twig', [
@@ -80,17 +81,17 @@ class LocationController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/location/{id}/delete', name: 'app_location_delete', methods: ['GET', 'POST'])]
+    #[Route(path: '/location/{slug}/delete', name: 'app_location_delete', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function delete(Request $request, Location $location): Response
+    public function delete(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Location $location): Response
     {
         $held = $this->uses->of($location);
-        $form = $this->createDeleteForm('app_location_delete', ['id' => $location->getId()]);
+        $form = $this->createDeleteForm('app_location_delete', ['slug' => $location->getSlug()]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             if ($held > 0) {
-                return $this->redirectToRoute('app_location_show', ['id' => $location->getId()]);
+                return $this->redirectToRoute('app_location_show', ['slug' => $location->getSlug()]);
             }
 
             $this->entityManager->remove($location);
@@ -112,13 +113,13 @@ class LocationController extends AbstractController
             ['key' => 'city', 'route' => 'app_city_show', 'repository' => $this->cities],
             ['key' => 'prefecture', 'route' => 'app_prefecture_show', 'repository' => $this->prefectures],
         ] as $narrowing) {
-            $id = trim($request->query->getString($narrowing['key']));
+            $slug = trim($request->query->getString($narrowing['key']));
 
-            if ($id === '') {
+            if ($slug === '') {
                 continue;
             }
 
-            $place = $narrowing['repository']->find($id);
+            $place = $narrowing['repository']->findOneBy(['slug' => $slug]);
 
             if ($place === null) {
                 throw $this->createNotFoundException();
@@ -126,10 +127,10 @@ class LocationController extends AbstractController
 
             return new Scope(
                 key: $narrowing['key'],
-                value: $id,
+                value: $slug,
                 icon: $narrowing['key'],
                 label: $place->getName(),
-                href: $this->generateUrl($narrowing['route'], ['id' => $id]),
+                href: $this->generateUrl($narrowing['route'], ['slug' => $slug]),
                 subject: $place,
             );
         }

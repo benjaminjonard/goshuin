@@ -29,7 +29,7 @@ class CityTest extends AppTestCase
     {
         $city = CityFactory::createOne();
 
-        foreach (['/cities', '/city/'.$city->getId(), '/city/'.$city->getId().'/edit', '/city/'.$city->getId().'/delete'] as $url) {
+        foreach (['/cities', '/city/'.$city->getSlug(), '/city/'.$city->getSlug().'/edit', '/city/'.$city->getSlug().'/delete'] as $url) {
             $this->client->request(Request::METHOD_GET, $url);
 
             $this->assertResponseRedirects();
@@ -43,7 +43,7 @@ class CityTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
         $city = CityFactory::createOne();
 
-        foreach (['/city/'.$city->getId().'/edit', '/city/'.$city->getId().'/delete'] as $url) {
+        foreach (['/city/'.$city->getSlug().'/edit', '/city/'.$city->getSlug().'/delete'] as $url) {
             $this->client->request(Request::METHOD_GET, $url);
 
             $this->assertResponseStatusCodeSame(403, sprintf('%s is open to a collector.', $url));
@@ -62,7 +62,7 @@ class CityTest extends AppTestCase
         $this->assertCount(2, $crawler->filter('main ul li a'), 'The index does not list every city.');
 
         $first = $crawler->filter('main ul li a')->first();
-        $this->assertSame('/city/'.$kamakura->getId(), $first->attr('href'), 'A city does not open its own page.');
+        $this->assertSame('/city/'.$kamakura->getSlug(), $first->attr('href'), 'A city does not open its own page.');
         $this->assertStringContainsString('Kamakura', $first->text());
         $this->assertStringContainsString('Kanagawa', $first->text(), 'The index does not say which prefecture holds the city.');
     }
@@ -158,7 +158,7 @@ class CityTest extends AppTestCase
         LocationFactory::createOne(['romanizedName' => 'Hase-dera', 'city' => $kamakura]);
         LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$kamakura->getId());
+        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$kamakura->getSlug());
 
         $this->assertResponseIsSuccessful();
         $this->assertSame('Kamakura', trim($crawler->filter('h1')->text()), 'The page does not name the city.');
@@ -167,8 +167,8 @@ class CityTest extends AppTestCase
         );
 
         $this->assertSame([
-            ['/prefecture/'.$kanagawa->getId(), 'Kanagawa Prefecture'],
-            ['/locations?city='.$kamakura->getId(), '2 locations'],
+            ['/prefecture/'.$kanagawa->getSlug(), 'Kanagawa Prefecture'],
+            ['/locations?city='.$kamakura->getSlug(), '2 locations'],
         ], $tiles, 'The page does not name its prefecture and count its locations, nor lead to either.');
     }
 
@@ -177,7 +177,7 @@ class CityTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
         $city = CityFactory::createOne(['name' => 'Nara']);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$city->getId());
+        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$city->getSlug());
 
         $this->assertResponseIsSuccessful();
         $this->assertCount(0, $crawler->filter('main a.tile'), 'A count was invented for a city holding nothing.');
@@ -190,7 +190,7 @@ class CityTest extends AppTestCase
         LocationFactory::createOne(['romanizedName' => 'Hase-dera', 'city' => $kamakura]);
         LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/locations?city='.$kamakura->getId());
+        $crawler = $this->client->request(Request::METHOD_GET, '/locations?city='.$kamakura->getSlug());
 
         $this->assertResponseIsSuccessful();
         $this->assertCount(1, $crawler->filter('main ul li a'), 'The list is not narrowed to the locations of the city.');
@@ -221,7 +221,7 @@ class CityTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
         $city = CityFactory::createOne(['notes' => 'The old capital.']);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$city->getId());
+        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$city->getSlug());
 
         $this->assertResponseIsSuccessful();
         $this->assertCount(0, $crawler->filter('main form'), 'A collector was offered something to change.');
@@ -236,14 +236,14 @@ class CityTest extends AppTestCase
         $city = CityFactory::createOne(['name' => 'Kamakura']);
         $location = LocationFactory::createOne(['romanizedName' => 'Hase-dera', 'city' => $city]);
 
-        $this->client->request(Request::METHOD_GET, '/city/'.$city->getId().'/edit');
+        $this->client->request(Request::METHOD_GET, '/city/'.$city->getSlug().'/edit');
         $this->client->submitForm('city_submit', [
             'city[name]' => 'Kamakura-shi',
             'city[prefecture]' => $kanagawa->getId(),
             'city[notes]' => 'Seat of the shogunate.',
         ]);
 
-        $this->assertResponseRedirects('/city/'.$city->getId());
+        $this->assertResponseRedirects('/city/'.$city->getSlug());
 
         $this->manager()->clear();
         $stored = static::getContainer()->get(CityRepository::class)->find($city->getId());
@@ -252,7 +252,7 @@ class CityTest extends AppTestCase
         $this->assertSame('Kanagawa', $stored->getPrefecture()->getName(), 'The city was not moved.');
         $this->assertSame('Seat of the shogunate.', $stored->getNotes(), 'The notes were not stored.');
 
-        $page = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId())->filter('main')->text();
+        $page = $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug())->filter('main')->text();
         $this->assertStringContainsString('Kamakura-shi', $page, 'The renamed city did not reach the location sitting in it.');
     }
 
@@ -261,7 +261,7 @@ class CityTest extends AppTestCase
         $this->client->loginUser(UserFactory::new()->admin()->create());
         $city = CityFactory::createOne(['name' => 'Kamakura']);
 
-        $this->client->request(Request::METHOD_GET, '/city/'.$city->getId().'/edit');
+        $this->client->request(Request::METHOD_GET, '/city/'.$city->getSlug().'/edit');
         $this->client->submitForm('city_submit', ['city[name]' => '']);
 
         $this->assertResponseStatusCodeSame(422);
@@ -276,7 +276,7 @@ class CityTest extends AppTestCase
         CityFactory::createOne(['name' => 'Nara']);
         $kamakura = CityFactory::createOne(['name' => 'Kamakura']);
 
-        $this->client->request(Request::METHOD_GET, '/city/'.$kamakura->getId().'/edit');
+        $this->client->request(Request::METHOD_GET, '/city/'.$kamakura->getSlug().'/edit');
         $crawler = $this->client->submitForm('city_submit', ['city[name]' => 'Nara']);
 
         $this->assertResponseStatusCodeSame(422);
@@ -292,7 +292,7 @@ class CityTest extends AppTestCase
         $city = CityFactory::createOne(['name' => 'Kamakura']);
         LocationFactory::createOne(['romanizedName' => 'Hase-dera', 'city' => $city]);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$city->getId().'/delete');
+        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$city->getSlug().'/delete');
 
         $this->assertStringContainsString('still holds a location', $crawler->filter('main')->text(), 'The refusal is not stated.');
         $this->assertCount(0, $crawler->filter('main form'), 'A city still in use was offered for deletion anyway.');
@@ -306,8 +306,9 @@ class CityTest extends AppTestCase
         $this->client->loginUser(UserFactory::new()->admin()->create());
         $city = CityFactory::createOne(['name' => 'Kamakura']);
         $id = $city->getId();
+        $slug = $city->getSlug();
 
-        $this->client->request(Request::METHOD_GET, '/city/'.$id.'/delete');
+        $this->client->request(Request::METHOD_GET, '/city/'.$slug.'/delete');
         $this->client->submitForm('delete_submit');
 
         $this->assertResponseRedirects('/cities');
@@ -334,7 +335,7 @@ class CityTest extends AppTestCase
         $this->assertSame([1, 2], $photos->map(static fn (CityPhoto $p): ?int => $p->getPosition())->toArray(), 'The gallery is not numbered from one.');
         $this->assertSame(['The great buddha', null], $photos->map(static fn (CityPhoto $p): ?string => $p->getLabel())->toArray(), 'A blank label was stored as a string.');
 
-        $page = $this->client->request(Request::METHOD_GET, '/city/'.$city->getId());
+        $page = $this->client->request(Request::METHOD_GET, '/city/'.$city->getSlug());
         $this->assertCount(1, $page->filter('main .stage img'), 'The page does not show the main photograph.');
         $this->assertCount(2, $page->filter('main .gallery img'), 'The page does not show the gallery.');
 
@@ -360,7 +361,7 @@ class CityTest extends AppTestCase
      */
     private function correct(City $city, array $photographs): void
     {
-        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$city->getId().'/edit');
+        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$city->getSlug().'/edit');
         $form = $crawler->selectButton('city_submit')->form();
 
         $added = $photographs['photo_add'] ?? [];
@@ -421,7 +422,7 @@ class CityTest extends AppTestCase
             'location' => LocationFactory::createOne(['romanizedName' => 'Sensō-ji', 'city' => CityFactory::createOne(['name' => 'Tōkyō'])]),
         ]);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$kyoto->getId());
+        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$kyoto->getSlug());
 
         $this->assertResponseIsSuccessful();
         $body = $crawler->filter('main')->text();
@@ -439,7 +440,7 @@ class CityTest extends AppTestCase
         ]);
         $this->client->loginUser(UserFactory::createOne());
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$kyoto->getId());
+        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$kyoto->getSlug());
 
         $this->assertStringNotContainsString('Not yours', $crawler->filter('main')->text(), 'A foreign goshuincho reached the city page.');
         $this->assertCount(0, $crawler->filter('main a[href*="/goshuin/"]'), 'A foreign goshuin reached the city page.');

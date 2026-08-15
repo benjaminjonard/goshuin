@@ -5,6 +5,12 @@
 {% block bar %}
     {% embed 'App/_partials/_bar.html.twig' with {kicker: [{label: 'label.goshuincho'|trans, href: path('app_homepage')}], title: goshuincho.title} %}
         {% block tools %}
+            {{ include('App/_partials/_button.html.twig', {
+                label: 'label.add_goshuin'|trans,
+                icon: 'plus',
+                variant: 'primary',
+                href: path('app_goshuin_add', {slug: goshuincho.slug}),
+            }) }}
             {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_goshuincho_edit', {slug: goshuincho.slug}), aria: 'label.edit'|trans}) }}
             {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_goshuincho_delete', {slug: goshuincho.slug}), aria: 'label.delete'|trans}) }}
         {% endblock %}
@@ -43,7 +49,7 @@
                             {
                                 label: 'label.origin'|trans,
                                 value: origin ? [origin.romanizedName, origin.japaneseName]|filter(part => part)|join(' · ') : null,
-                                href: origin ? path('app_location_show', {id: origin.id}) : null,
+                                href: origin ? path('app_location_show', {slug: origin.slug}) : null,
                             },
                             {label: 'label.purchased_on'|trans, value: goshuincho.purchasedAt ? goshuincho.purchasedAt|format_date('long') : null},
                             {label: 'label.price_paid'|trans, value: goshuincho.price|money(goshuincho.currency)},
@@ -56,7 +62,7 @@
                             <div class="grid gap-1.5">
                                 <span class="text-[12.5px] font-semibold text-fg-2">{{ places.label|trans }}</span>
                                 {{ include('App/_partials/_pills.html.twig', {
-                                    pills: places.held|map(place => {text: place.name, href: path(places.route, {id: place.id})}),
+                                    pills: places.held|map(place => {text: place.name, href: path(places.route, {slug: place.slug})}),
                                 }) }}
                             </div>
                         {% endfor %}
@@ -93,24 +99,8 @@
                             <span class="text-[13px] text-fg-3">{{ 'label.no_goshuin_yet'|trans }}</span>
                         </div>
                     {% endif %}
-
-                    <div class="mt-4 flex justify-center">
-                        {{ include('App/_partials/_button.html.twig', {
-                            label: 'label.add_goshuin'|trans,
-                            variant: 'primary',
-                            icon: 'plus',
-                            href: path('app_goshuin_add', {slug: goshuincho.slug}),
-                        }) }}
-                    </div>
                 {% endblock %}
             {% endembed %}
-
-            {{ include('App/_partials/_totals.html.twig', {totals: [
-                {icon: 'goshuin', value: summary.goshuin, label: 'label.stat_goshuin', href: path('app_goshuin_index', {goshuincho: goshuincho.slug})},
-                {icon: 'city', value: summary.cities|length, label: 'label.stat_cities', href: path('app_city_index', {goshuincho: goshuincho.slug})},
-                {icon: 'prefecture', value: summary.prefectures|length, label: 'label.stat_prefectures', href: path('app_prefecture_index', {goshuincho: goshuincho.slug})},
-                {icon: 'cal', value: summary.days, label: 'label.stat_days'},
-            ]}) }}
         </div>
 
         <div class="stack">

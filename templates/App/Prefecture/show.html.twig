@@ -9,8 +9,8 @@
     } %}
         {% block tools %}
             {% if is_granted('ROLE_ADMIN') %}
-                {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_prefecture_edit', {id: prefecture.id}), aria: 'label.edit'|trans}) }}
-                {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_prefecture_delete', {id: prefecture.id}), aria: 'label.delete'|trans}) }}
+                {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_prefecture_edit', {slug: prefecture.slug}), aria: 'label.edit'|trans}) }}
+                {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_prefecture_delete', {slug: prefecture.slug}), aria: 'label.delete'|trans}) }}
             {% endif %}
         {% endblock %}
     {% endembed %}
@@ -30,8 +30,8 @@
 
             <div class="grid content-start gap-[clamp(12px,1.4vw,18px)]">
                 {{ include('App/_partials/_totals.html.twig', {totals: [
-                    {icon: 'city', value: cities, label: 'label.stat_cities', href: path('app_city_index', {prefecture: prefecture.id})},
-                    {icon: 'pin', value: locations, label: 'label.stat_locations', href: path('app_location_index', {prefecture: prefecture.id})},
+                    {icon: 'city', value: cities, label: 'label.stat_cities', href: path('app_city_index', {prefecture: prefecture.slug})},
+                    {icon: 'pin', value: locations, label: 'label.stat_locations', href: path('app_location_index', {prefecture: prefecture.slug})},
                 ]}) }}
 
                 {% if prefecture.notes is not empty %}

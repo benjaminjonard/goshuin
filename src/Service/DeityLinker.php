@@ -39,7 +39,7 @@ final readonly class DeityLinker
 
             $html .= $deity === null
                 ? $this->escaped($part)
-                : sprintf(self::ANCHOR, $this->escaped($this->urls->generate('app_deity_show', ['id' => $deity->getId()])), $this->escaped($part));
+                : sprintf(self::ANCHOR, $this->escaped($this->urls->generate('app_deity_show', ['slug' => $deity->getSlug()])), $this->escaped($part));
         }
 
         return nl2br($html);

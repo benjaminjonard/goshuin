@@ -14,7 +14,7 @@
         noun: 'label.locations',
         back: 'label.all_locations',
         cards: locations|map(location => {
-            href: path('app_location_show', {id: location.id}),
+            href: path('app_location_show', {slug: location.slug}),
             image: location.photographCard,
             icon: 'pin',
             title: location.romanizedName,

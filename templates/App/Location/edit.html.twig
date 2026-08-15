@@ -15,7 +15,7 @@
             {{ component('LocationForm', {form: form, location: location, id: 'location'}) }}
 
             <div class="mt-1 flex justify-end gap-2.5">
-                {{ include('App/_partials/_button.html.twig', {label: 'label.cancel'|trans, href: path('app_location_show', {id: location.id})}) }}
+                {{ include('App/_partials/_button.html.twig', {label: 'label.cancel'|trans, href: path('app_location_show', {slug: location.slug})}) }}
                 {{ include('App/_partials/_button.html.twig', {label: 'label.save'|trans, variant: 'primary', type: 'submit', name: 'location_submit'}) }}
             </div>
         </form>

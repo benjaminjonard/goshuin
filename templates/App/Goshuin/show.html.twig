@@ -56,7 +56,7 @@
         <div class="grid min-w-0 gap-[clamp(12px,1.4vw,18px)]">
             <section class="tile tile-pad">
                 <h2 class="text-[clamp(26px,3.2vw,34px)] font-bold leading-[1.15] tracking-[-0.01em]">
-                    <a href="{{ path('app_location_show', {id: place.id}) }}" class="text-fg no-underline hover:text-accent-text">
+                    <a href="{{ path('app_location_show', {slug: place.slug}) }}" class="text-fg no-underline hover:text-accent-text">
                         {{- place.romanizedName -}}
                     </a>
                 </h2>

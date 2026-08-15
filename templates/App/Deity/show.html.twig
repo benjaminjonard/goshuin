@@ -9,8 +9,8 @@
     } %}
         {% block tools %}
             {% if is_granted('ROLE_ADMIN') %}
-                {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_deity_edit', {id: deity.id}), aria: 'label.edit'|trans}) }}
-                {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_deity_delete', {id: deity.id}), aria: 'label.delete'|trans}) }}
+                {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_deity_edit', {slug: deity.slug}), aria: 'label.edit'|trans}) }}
+                {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_deity_delete', {slug: deity.slug}), aria: 'label.delete'|trans}) }}
             {% endif %}
         {% endblock %}
     {% endembed %}
@@ -61,7 +61,7 @@
                     <ul class="grid gap-0">
                         {% for location in locations %}
                             <li class="not-first:border-t not-first:border-line">
-                                <a href="{{ path('app_location_show', {id: location.id}) }}"
+                                <a href="{{ path('app_location_show', {slug: location.slug}) }}"
                                    class="flex items-center gap-3 rounded-xl px-2 py-2.5 no-underline hover:bg-tile-2">
                                     <span class="grid size-8 shrink-0 place-items-center rounded-[10px] bg-accent-soft text-accent-text" aria-hidden="true">
                                         {{ include('App/_partials/_icon.html.twig', {name: 'pin', small: true}) }}

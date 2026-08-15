@@ -117,7 +117,7 @@ class DeityLinkerTest extends KernelTestCase
     {
         return sprintf(
             '<a href="/deity/%s" class="font-semibold text-accent-text no-underline hover:underline">%s</a>',
-            $deity->getId(),
+            $deity->getSlug(),
             $text,
         );
     }

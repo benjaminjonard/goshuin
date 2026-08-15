@@ -13,7 +13,7 @@
         nothing: 'label.no_deity_yet',
         noun: 'label.deities',
         cards: deities|map(deity => {
-            href: path('app_deity_show', {id: deity.id}),
+            href: path('app_deity_show', {slug: deity.slug}),
             image: deity.photographCard,
             icon: 'tag',
             title: deity.name,

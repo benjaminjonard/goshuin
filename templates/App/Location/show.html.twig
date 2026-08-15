@@ -10,8 +10,8 @@
     } %}
         {% block tools %}
             {% if is_granted('ROLE_ADMIN') %}
-                {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_location_edit', {id: location.id}), aria: 'label.edit'|trans}) }}
-                {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_location_delete', {id: location.id}), aria: 'label.delete'|trans}) }}
+                {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_location_edit', {slug: location.slug}), aria: 'label.edit'|trans}) }}
+                {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_location_delete', {slug: location.slug}), aria: 'label.delete'|trans}) }}
             {% endif %}
         {% endblock %}
     {% endembed %}
@@ -23,7 +23,7 @@
     {% set deities %}
         {%- for deity in location.deities -%}
             {%- if not loop.first %} · {% endif -%}
-            <a href="{{ path('app_deity_show', {id: deity.id}) }}" class="text-fg no-underline hover:text-accent-text">{{ deity.name }}</a>
+            <a href="{{ path('app_deity_show', {slug: deity.slug}) }}" class="text-fg no-underline hover:text-accent-text">{{ deity.name }}</a>
         {%- endfor -%}
     {% endset %}
 
@@ -37,12 +37,12 @@
             {
                 label: 'label.city'|trans,
                 value: location.city ? location.city.name : null,
-                href: location.city ? path('app_city_show', {id: location.city.id}) : null,
+                href: location.city ? path('app_city_show', {slug: location.city.slug}) : null,
             },
             {
                 label: 'label.prefecture'|trans,
                 value: location.prefecture ? location.prefecture.name : null,
-                href: location.prefecture ? path('app_prefecture_show', {id: location.prefecture.id}) : null,
+                href: location.prefecture ? path('app_prefecture_show', {slug: location.prefecture.slug}) : null,
             },
             {label: 'label.address'|trans, value: location.address},
             {label: 'label.coordinates'|trans, value: coordinates},

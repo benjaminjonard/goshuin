@@ -17,6 +17,7 @@ use App\Service\PhotoSet;
 use App\Service\Scope;
 use App\Service\Uses;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -57,8 +58,8 @@ class CityController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/city/{id}', name: 'app_city_show', methods: ['GET'])]
-    public function show(City $city): Response
+    #[Route(path: '/city/{slug}', name: 'app_city_show', methods: ['GET'])]
+    public function show(#[MapEntity(mapping: ['slug' => 'slug'])] City $city): Response
     {
         return $this->render('App/City/show.html.twig', [
             'city' => $city,
@@ -68,9 +69,9 @@ class CityController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/city/{id}/edit', name: 'app_city_edit', methods: ['GET', 'POST'])]
+    #[Route(path: '/city/{slug}/edit', name: 'app_city_edit', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function edit(Request $request, City $city): Response
+    public function edit(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] City $city): Response
     {
         $form = $this->createForm(CityType::class, $city);
         $form->handleRequest($request);
@@ -79,7 +80,7 @@ class CityController extends AbstractController
             $this->entityManager->flush();
             $this->photograph($request, $city);
 
-            return $this->redirectToRoute('app_city_show', ['id' => $city->getId()]);
+            return $this->redirectToRoute('app_city_show', ['slug' => $city->getSlug()]);
         }
 
         return $this->render('App/City/edit.html.twig', [
@@ -88,17 +89,17 @@ class CityController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/city/{id}/delete', name: 'app_city_delete', methods: ['GET', 'POST'])]
+    #[Route(path: '/city/{slug}/delete', name: 'app_city_delete', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function delete(Request $request, City $city): Response
+    public function delete(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] City $city): Response
     {
         $held = $this->uses->of($city);
-        $form = $this->createDeleteForm('app_city_delete', ['id' => $city->getId()]);
+        $form = $this->createDeleteForm('app_city_delete', ['slug' => $city->getSlug()]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             if ($held > 0) {
-                return $this->redirectToRoute('app_city_show', ['id' => $city->getId()]);
+                return $this->redirectToRoute('app_city_show', ['slug' => $city->getSlug()]);
             }
 
             $this->entityManager->remove($city);
@@ -135,10 +136,10 @@ class CityController extends AbstractController
             );
         }
 
-        $id = trim($request->query->getString('prefecture'));
+        $name = trim($request->query->getString('prefecture'));
 
-        if ($id !== '') {
-            $prefecture = $this->prefectures->find($id);
+        if ($name !== '') {
+            $prefecture = $this->prefectures->findOneBy(['slug' => $name]);
 
             if ($prefecture === null) {
                 throw $this->createNotFoundException();
@@ -146,10 +147,10 @@ class CityController extends AbstractController
 
             return new Scope(
                 key: 'prefecture',
-                value: $id,
+                value: $name,
                 icon: 'prefecture',
                 label: $prefecture->getName(),
-                href: $this->generateUrl('app_prefecture_show', ['id' => $id]),
+                href: $this->generateUrl('app_prefecture_show', ['slug' => $name]),
                 subject: $prefecture,
             );
         }

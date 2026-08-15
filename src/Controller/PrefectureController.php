@@ -17,6 +17,7 @@ use App\Service\PhotoSet;
 use App\Service\Scope;
 use App\Service\Uses;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -57,8 +58,8 @@ class PrefectureController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/prefecture/{id}', name: 'app_prefecture_show', methods: ['GET'])]
-    public function show(Prefecture $prefecture): Response
+    #[Route(path: '/prefecture/{slug}', name: 'app_prefecture_show', methods: ['GET'])]
+    public function show(#[MapEntity(mapping: ['slug' => 'slug'])] Prefecture $prefecture): Response
     {
         return $this->render('App/Prefecture/show.html.twig', [
             'prefecture' => $prefecture,
@@ -69,9 +70,9 @@ class PrefectureController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/prefecture/{id}/edit', name: 'app_prefecture_edit', methods: ['GET', 'POST'])]
+    #[Route(path: '/prefecture/{slug}/edit', name: 'app_prefecture_edit', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function edit(Request $request, Prefecture $prefecture): Response
+    public function edit(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Prefecture $prefecture): Response
     {
         $form = $this->createForm(PrefectureType::class, $prefecture);
         $form->handleRequest($request);
@@ -80,7 +81,7 @@ class PrefectureController extends AbstractController
             $this->entityManager->flush();
             $this->photograph($request, $prefecture);
 
-            return $this->redirectToRoute('app_prefecture_show', ['id' => $prefecture->getId()]);
+            return $this->redirectToRoute('app_prefecture_show', ['slug' => $prefecture->getSlug()]);
         }
 
         return $this->render('App/Prefecture/edit.html.twig', [
@@ -89,17 +90,17 @@ class PrefectureController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/prefecture/{id}/delete', name: 'app_prefecture_delete', methods: ['GET', 'POST'])]
+    #[Route(path: '/prefecture/{slug}/delete', name: 'app_prefecture_delete', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function delete(Request $request, Prefecture $prefecture): Response
+    public function delete(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Prefecture $prefecture): Response
     {
         $held = $this->uses->of($prefecture);
-        $form = $this->createDeleteForm('app_prefecture_delete', ['id' => $prefecture->getId()]);
+        $form = $this->createDeleteForm('app_prefecture_delete', ['slug' => $prefecture->getSlug()]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             if ($held > 0) {
-                return $this->redirectToRoute('app_prefecture_show', ['id' => $prefecture->getId()]);
+                return $this->redirectToRoute('app_prefecture_show', ['slug' => $prefecture->getSlug()]);
             }
 
             $this->entityManager->remove($prefecture);

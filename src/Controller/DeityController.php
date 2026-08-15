@@ -10,6 +10,7 @@ use App\Repository\DeityRepository;
 use App\Repository\LocationRepository;
 use App\Service\Uses;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -44,8 +45,8 @@ class DeityController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/deity/{id}', name: 'app_deity_show', methods: ['GET'])]
-    public function show(Deity $deity): Response
+    #[Route(path: '/deity/{slug}', name: 'app_deity_show', methods: ['GET'])]
+    public function show(#[MapEntity(mapping: ['slug' => 'slug'])] Deity $deity): Response
     {
         return $this->render('App/Deity/show.html.twig', [
             'deity' => $deity,
@@ -53,9 +54,9 @@ class DeityController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/deity/{id}/edit', name: 'app_deity_edit', methods: ['GET', 'POST'])]
+    #[Route(path: '/deity/{slug}/edit', name: 'app_deity_edit', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function edit(Request $request, Deity $deity): Response
+    public function edit(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Deity $deity): Response
     {
         $form = $this->createForm(DeityType::class, $deity);
         $form->handleRequest($request);
@@ -63,7 +64,7 @@ class DeityController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->entityManager->flush();
 
-            return $this->redirectToRoute('app_deity_show', ['id' => $deity->getId()]);
+            return $this->redirectToRoute('app_deity_show', ['slug' => $deity->getSlug()]);
         }
 
         return $this->render('App/Deity/edit.html.twig', [
@@ -72,17 +73,17 @@ class DeityController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/deity/{id}/delete', name: 'app_deity_delete', methods: ['GET', 'POST'])]
+    #[Route(path: '/deity/{slug}/delete', name: 'app_deity_delete', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function delete(Request $request, Deity $deity): Response
+    public function delete(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Deity $deity): Response
     {
         $held = $this->uses->of($deity);
-        $form = $this->createDeleteForm('app_deity_delete', ['id' => $deity->getId()]);
+        $form = $this->createDeleteForm('app_deity_delete', ['slug' => $deity->getSlug()]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             if ($held > 0) {
-                return $this->redirectToRoute('app_deity_show', ['id' => $deity->getId()]);
+                return $this->redirectToRoute('app_deity_show', ['slug' => $deity->getSlug()]);
             }
 
             $this->entityManager->remove($deity);

@@ -312,7 +312,7 @@ class GoshuinTest extends AppTestCase
         GoshuinFactory::new()->in($goshuincho)->create(['notes' => 'Given at the 稲荷大明神 hall, below Inari itself.']);
 
         $this->client->loginUser($user);
-        $notes = $this->client->request(Request::METHOD_GET, $this->page($goshuincho, 1))->filter('main a[href="/deity/'.$inari->getId().'"]');
+        $notes = $this->client->request(Request::METHOD_GET, $this->page($goshuincho, 1))->filter('main a[href="/deity/'.$inari->getSlug().'"]');
 
         $this->assertCount(2, $notes, 'The names in the notes do not lead to the deity.');
         $this->assertSame('稲荷大明神', $notes->first()->text(), 'The additional name was not read as the deity.');

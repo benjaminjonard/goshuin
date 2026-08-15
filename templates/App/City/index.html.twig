@@ -14,7 +14,7 @@
         noun: 'label.cities',
         back: 'label.all_cities',
         cards: cities|map(city => {
-            href: path('app_city_show', {id: city.id}),
+            href: path('app_city_show', {slug: city.slug}),
             image: city.photographCard,
             icon: 'city',
             title: city.name,

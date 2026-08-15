@@ -19,6 +19,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: CityRepository::class)]
 #[ORM\Table(name: 'gos_city')]
 #[ORM\UniqueConstraint(name: 'un_city_name', columns: ['name'])]
+#[ORM\UniqueConstraint(name: 'un_city_slug', columns: ['slug'])]
 #[UniqueEntity(fields: ['name'], message: 'error.city.not_unique')]
 class City implements Photographed
 {
@@ -30,6 +31,10 @@ class City implements Photographed
     #[Assert\NotBlank]
     #[Assert\Length(max: 255)]
     private ?string $name = null;
+
+    #[ORM\Column(type: Types::STRING, length: 255)]
+    #[Gedmo\Slug(fields: ['name'], unique: true)]
+    private ?string $slug = null;
 
     #[ORM\ManyToOne(targetEntity: Prefecture::class, cascade: ['persist'])]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
@@ -91,6 +96,18 @@ class City implements Photographed
     public static function photoClass(): string
     {
         return CityPhoto::class;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(?string $slug): City
+    {
+        $this->slug = $slug;
+
+        return $this;
     }
 
     #[\Override]

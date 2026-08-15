@@ -18,6 +18,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: LocationRepository::class)]
 #[ORM\Table(name: 'gos_location')]
+#[ORM\UniqueConstraint(name: 'un_location_slug', columns: ['slug'])]
 class Location implements Photographed
 {
     #[ORM\Id]
@@ -28,6 +29,10 @@ class Location implements Photographed
     #[Assert\NotBlank]
     #[Assert\Length(max: 255)]
     private ?string $romanizedName = null;
+
+    #[ORM\Column(type: Types::STRING, length: 255)]
+    #[Gedmo\Slug(fields: ['romanizedName'], unique: true)]
+    private ?string $slug = null;
 
     #[ORM\Column(type: Types::STRING, nullable: true)]
     #[Assert\Length(max: 255)]
@@ -134,6 +139,18 @@ class Location implements Photographed
     public function getPhotos(): DoctrineCollection
     {
         return $this->photos;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(?string $slug): Location
+    {
+        $this->slug = $slug;
+
+        return $this;
     }
 
     #[\Override]
