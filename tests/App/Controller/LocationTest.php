@@ -327,6 +327,35 @@ class LocationTest extends AppTestCase
         $this->assertStringContainsString('Heian', $text, 'The page does not say when the place was founded.');
     }
 
+    public function test_the_named_deities_lead_to_their_own_page(): void
+    {
+        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $location = LocationFactory::createOne(['romanizedName' => 'Goryo-jinja']);
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
+        $form = $crawler->selectButton('location_submit')->form();
+        $values = $form->getPhpValues();
+        $values['location']['deities'] = ['八幡神', '福禄寿'];
+
+        $this->client->request(Request::METHOD_POST, $form->getUri(), $values);
+
+        $this->manager()->clear();
+        $deities = static::getContainer()->get(DeityRepository::class)->findAll();
+        $this->assertCount(2, $deities);
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId());
+
+        foreach ($deities as $deity) {
+            $link = $crawler->filter('main dd a[href="/deity/'.$deity->getId().'"]');
+
+            $this->assertCount(1, $link, 'The deity '.$deity->getName().' is named without leading anywhere.');
+            $this->assertSame($deity->getName(), $link->text(), 'The link does not carry the name of the deity.');
+        }
+
+        $this->client->click($crawler->filter('main dd a')->first()->link());
+        $this->assertRouteSame('app_deity_show');
+    }
+
     public function test_two_locations_naming_the_same_deity_share_one(): void
     {
         $this->client->loginUser(UserFactory::new()->admin()->create());

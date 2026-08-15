@@ -138,6 +138,7 @@ label:
     password_current: 'Mot de passe actuel'
     password_new: 'Nouveau mot de passe'
     password_change: 'Changer le mot de passe'
+    avatar: 'Avatar'
     your_name: 'Nom'
     name: 'Nom'
     email: 'Adresse e-mail'

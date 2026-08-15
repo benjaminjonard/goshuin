@@ -1,0 +1,37 @@
+<?php
+
+declare(strict_types=1);
+
+namespace DoctrineMigrations;
+
+use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\Migrations\AbstractMigration;
+
+final class Version20260815161500 extends AbstractMigration
+{
+    public function getDescription(): string
+    {
+        return 'Let an account carry an avatar.';
+    }
+
+    public function up(Schema $schema): void
+    {
+        $this->skipIf(!$this->connection->getDatabasePlatform() instanceof PostgreSQLPlatform, 'Migration can only be executed safely on \'postgresql\'.');
+
+        $this->addSql('ALTER TABLE gos_user ADD avatar VARCHAR(255) DEFAULT NULL');
+        $this->addSql('ALTER TABLE gos_user ADD avatar_mini VARCHAR(255) DEFAULT NULL');
+        $this->addSql('ALTER TABLE gos_user ADD avatar_card VARCHAR(255) DEFAULT NULL');
+        $this->addSql('ALTER TABLE gos_user ADD avatar_full VARCHAR(255) DEFAULT NULL');
+    }
+
+    public function down(Schema $schema): void
+    {
+        $this->skipIf(!$this->connection->getDatabasePlatform() instanceof PostgreSQLPlatform, 'Migration can only be executed safely on \'postgresql\'.');
+
+        $this->addSql('ALTER TABLE gos_user DROP avatar');
+        $this->addSql('ALTER TABLE gos_user DROP avatar_mini');
+        $this->addSql('ALTER TABLE gos_user DROP avatar_card');
+        $this->addSql('ALTER TABLE gos_user DROP avatar_full');
+    }
+}

@@ -8,9 +8,11 @@ use App\Entity\User;
 use App\Enum\Theme;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Intl\Locales;
@@ -52,6 +54,17 @@ class AccountType extends AbstractType
                 'label' => 'label.theme',
                 'class' => Theme::class,
                 'choice_label' => static fn (Theme $theme): string => 'label.theme_'.$theme->value,
+            ])
+            ->add('avatarFile', FileType::class, [
+                'label' => 'label.avatar',
+                'required' => false,
+                'block_prefix' => 'cover',
+                'attr' => ['data-untitled' => true],
+            ])
+            ->add('removeAvatar', CheckboxType::class, [
+                'label' => 'label.remove',
+                'required' => false,
+                'block_prefix' => 'discard',
             ])
         ;
     }

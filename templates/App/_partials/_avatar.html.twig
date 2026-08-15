@@ -1,0 +1,5 @@
+{% if user.avatarMini %}
+    <img src="{{ user.avatarMini|image }}" alt="" class="{{ shape|default('size-[38px]') }} shrink-0 rounded-full border border-line-2 object-cover">
+{% else %}
+    <span class="{{ shape|default('size-[38px]') }} grid shrink-0 place-items-center rounded-full border border-line-2 bg-tile-2 text-[13px] font-bold tracking-[0.02em] text-fg-2" aria-hidden="true">{{ user.initials }}</span>
+{% endif %}

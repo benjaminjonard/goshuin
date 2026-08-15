@@ -10,6 +10,16 @@
     <main class="page mx-auto grid w-full max-w-[620px] gap-[clamp(12px,1.4vw,18px)]">
         {{ form_start(account, {attr: {class: 'tile tile-pad grid gap-4'}}) }}
             <h2 class="text-[15px] font-bold tracking-[-0.015em]">{{ 'label.account'|trans }}</h2>
+
+            <div class="grid gap-1.5">
+                {{ form_row(account.avatarFile, {attr: {'data-cover': account.vars.data.avatarCard, 'data-untitled': true, 'data-round': true}}) }}
+                {% if account.vars.data.avatarCard %}
+                    <div class="flex justify-end">{{ form_widget(account.removeAvatar) }}</div>
+                {% else %}
+                    {% do account.removeAvatar.setRendered %}
+                {% endif %}
+            </div>
+
             {{ form_row(account.name) }}
             {{ form_row(account.email) }}
             {{ form_row(account.locale) }}

@@ -5,7 +5,7 @@
         {% for row in kept %}
             <div class="flex items-baseline justify-between gap-3.5 py-2 text-sm not-first:border-t not-first:border-line">
                 <dt class="text-fg-2">{{ row.label }}</dt>
-                <dd class="font-semibold tabular-nums{{ row.jp|default(false) ? ' font-jp' }}">{{ row.value }}</dd>
+                <dd class="text-right font-semibold tabular-nums{{ row.jp|default(false) ? ' font-jp' }}">{{ row.value }}</dd>
             </div>
         {% endfor %}
     </dl>

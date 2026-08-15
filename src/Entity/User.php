@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Attribute\Upload;
 use App\Enum\Theme;
 use App\Repository\UserRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Uid\Uuid;
@@ -40,6 +42,34 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\NotBlank(groups: ['user:password'])]
     #[Assert\Length(min: 12, max: 4096, groups: ['user:password'])]
     private ?string $plainPassword = null;
+
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $avatar = null;
+
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $avatarMini = null;
+
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $avatarCard = null;
+
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $avatarFull = null;
+
+    #[Upload(
+        pathProperty: 'avatar',
+        miniProperty: 'avatarMini',
+        cardProperty: 'avatarCard',
+        fullProperty: 'avatarFull',
+        deleteProperty: 'removeAvatar',
+    )]
+    #[Assert\Image(
+        mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+        mimeTypesMessage: 'error.upload_format',
+        uploadIniSizeErrorMessage: 'error.upload_too_large',
+    )]
+    private ?File $avatarFile = null;
+
+    private bool $removeAvatar = false;
 
     #[ORM\Column(type: Types::JSON)]
     private array $roles = ['ROLE_USER'];
@@ -136,6 +166,78 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getAvatar(): ?string
+    {
+        return $this->avatar;
+    }
+
+    public function setAvatar(?string $avatar): User
+    {
+        $this->avatar = $avatar;
+
+        return $this;
+    }
+
+    public function getAvatarMini(): ?string
+    {
+        return $this->avatarMini;
+    }
+
+    public function setAvatarMini(?string $avatarMini): User
+    {
+        $this->avatarMini = $avatarMini;
+
+        return $this;
+    }
+
+    public function getAvatarCard(): ?string
+    {
+        return $this->avatarCard;
+    }
+
+    public function setAvatarCard(?string $avatarCard): User
+    {
+        $this->avatarCard = $avatarCard;
+
+        return $this;
+    }
+
+    public function getAvatarFull(): ?string
+    {
+        return $this->avatarFull;
+    }
+
+    public function setAvatarFull(?string $avatarFull): User
+    {
+        $this->avatarFull = $avatarFull;
+
+        return $this;
+    }
+
+    public function getAvatarFile(): ?File
+    {
+        return $this->avatarFile;
+    }
+
+    public function setAvatarFile(?File $avatarFile): User
+    {
+        $this->avatarFile = $avatarFile;
+
+        return $this;
+    }
+
+    public function isRemoveAvatar(): bool
+    {
+        return $this->removeAvatar;
+    }
+
+    public function setRemoveAvatar(bool $removeAvatar): User
+    {
+        $this->removeAvatar = $removeAvatar;
+
+        return $this;
+    }
+
     #[\Override]
     public function getRoles(): array
     {
@@ -224,5 +326,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function eraseCredentials(): void
     {
         $this->plainPassword = null;
+    }
+
+    public function __serialize(): array
+    {
+        $data = (array) $this;
+        unset($data["\0".self::class."\0avatarFile"]);
+
+        return $data;
     }
 }

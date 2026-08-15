@@ -20,12 +20,19 @@
 {% block body %}
     {% set coordinates = location.hasCoordinates ? '%.4f, %.4f'|format(location.latitude, location.longitude) : null %}
 
+    {% set deities %}
+        {%- for deity in location.deities -%}
+            {%- if not loop.first %} · {% endif -%}
+            <a href="{{ path('app_deity_show', {id: deity.id}) }}" class="text-fg no-underline hover:text-accent-text">{{ deity.name }}</a>
+        {%- endfor -%}
+    {% endset %}
+
     <main class="page stack">
         {% set record = [
             {label: 'label.name'|trans, value: location.japaneseName, jp: true},
             {label: 'label.romanized_name'|trans, value: location.romanizedName},
             {label: 'label.location_type'|trans, value: location.type ? ('label.' ~ location.type.value)|trans : null},
-            {label: 'label.deities'|trans, value: location.deities|map(deity => deity.name)|join(' · ')},
+            {label: 'label.deities'|trans, value: deities},
             {label: 'label.foundation'|trans, value: location.foundation},
             {label: 'label.locality'|trans, value: location.locality},
             {label: 'label.prefecture'|trans, value: location.prefecture},

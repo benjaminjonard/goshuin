@@ -38,11 +38,12 @@
 
 {% block cover_widget %}
     {% set stored = attr['data-cover'] ?? null %}
+    {% set portrait = attr['data-round'] is defined %}
     <div class="grid gap-2" data-controller="upload">
         <label class="grid cursor-pointer place-items-center gap-1 rounded-2xl border border-line-2 bg-tile-2 px-4 py-6 text-center hover:border-fg-3 {{ stored ? 'border-solid' : 'border-dashed' }}"
                data-upload-target="zone">
             <img{% if stored %} src="{{ stored|image }}"{% endif %} alt="{{ attr['data-untitled'] is defined ? '' : label|trans }}"
-                 class="mb-1 max-h-40 rounded-xl object-contain{{ stored ? '' : ' hidden' }}" data-upload-target="preview">
+                 class="mb-1 {{ portrait ? 'size-28 rounded-full object-cover' : 'max-h-40 rounded-xl object-contain' }}{{ stored ? '' : ' hidden' }}" data-upload-target="preview">
             <span class="{{ stored ? 'hidden' : '' }}" data-upload-target="placeholder">
                 {{- include('App/_partials/_icon.html.twig', {name: 'img', class: 'text-fg-3'}) -}}
             </span>

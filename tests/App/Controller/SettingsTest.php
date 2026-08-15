@@ -84,6 +84,93 @@ class SettingsTest extends AppTestCase
         $this->assertNull($crawler->filter('html')->attr('data-theme'), 'System put an attribute on the document.');
     }
 
+    public function test_a_user_gives_themselves_an_avatar(): void
+    {
+        $user = UserFactory::createOne(['name' => 'Kenji Mori']);
+        $this->client->loginUser($user);
+        $this->client->request(Request::METHOD_GET, '/settings');
+
+        $this->client->submitForm('account_submit', [
+            'account[name]' => 'Kenji Mori',
+            'account[email]' => $user->getEmail(),
+            'account[locale]' => 'en',
+            'account[theme]' => 'system',
+            'account[avatarFile]' => $this->createImage(800, 800),
+        ]);
+
+        $this->assertResponseRedirects();
+        $crawler = $this->client->followRedirect();
+
+        $stored = $this->users()->find($user->getId());
+        $this->assertNotNull($stored->getAvatarMini(), 'The avatar was not stored.');
+        $this->assertSame(
+            '/uploads/'.$stored->getAvatarMini(),
+            $crawler->filter('header img')->attr('src'),
+            'The bar does not serve the avatar at size.',
+        );
+        $this->assertStringNotContainsString('KM', $crawler->filter('header')->text(), 'The initials outlived the avatar.');
+
+        $this->removeUploads($stored->getAvatar(), $stored->getAvatarMini(), $stored->getAvatarCard(), $stored->getAvatarFull());
+    }
+
+    public function test_a_user_takes_their_avatar_back_off(): void
+    {
+        $user = UserFactory::createOne(['name' => 'Kenji Mori']);
+        $this->client->loginUser($user);
+        $this->client->request(Request::METHOD_GET, '/settings');
+
+        $this->client->submitForm('account_submit', [
+            'account[name]' => 'Kenji Mori',
+            'account[email]' => $user->getEmail(),
+            'account[locale]' => 'en',
+            'account[theme]' => 'system',
+            'account[avatarFile]' => $this->createImage(800, 800),
+        ]);
+        $this->client->followRedirect();
+
+        $stored = $this->users()->find($user->getId());
+        $paths = [$stored->getAvatar(), $stored->getAvatarMini(), $stored->getAvatarCard(), $stored->getAvatarFull()];
+
+        $this->client->request(Request::METHOD_GET, '/settings');
+        $this->client->submitForm('account_submit', [
+            'account[name]' => 'Kenji Mori',
+            'account[email]' => $user->getEmail(),
+            'account[locale]' => 'en',
+            'account[theme]' => 'system',
+            'account[removeAvatar]' => '1',
+        ]);
+
+        $this->assertResponseRedirects();
+        $crawler = $this->client->followRedirect();
+
+        $stored = $this->users()->find($user->getId());
+        $this->assertNull($stored->getAvatarMini(), 'The avatar survived its removal.');
+        $this->assertFileDoesNotExist($this->uploadsDir().'/'.$paths[0], 'The stored image outlived the avatar.');
+        $this->assertCount(0, $crawler->filter('header img'), 'The bar still shows an avatar.');
+        $this->assertStringContainsString('KM', $crawler->filter('header')->text(), 'The initials did not come back.');
+        $this->assertCount(0, $crawler->filter('input[name="account[removeAvatar]"]'), 'An account without an avatar is still offered to remove one.');
+
+        $this->removeUploads(...$paths);
+    }
+
+    public function test_an_avatar_refuses_anything_but_an_image(): void
+    {
+        $user = UserFactory::createOne();
+        $this->client->loginUser($user);
+        $this->client->request(Request::METHOD_GET, '/settings');
+
+        $this->client->submitForm('account_submit', [
+            'account[name]' => $user->getName(),
+            'account[email]' => $user->getEmail(),
+            'account[locale]' => 'en',
+            'account[theme]' => 'system',
+            'account[avatarFile]' => $this->createTextFile(),
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
+        $this->assertNull($this->users()->find($user->getId())->getAvatar(), 'A text file was stored as an avatar.');
+    }
+
     public function test_a_password_change_needs_the_current_one(): void
     {
         $user = UserFactory::createOne();
