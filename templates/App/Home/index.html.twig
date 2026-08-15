@@ -65,21 +65,21 @@
                 } %}
                     {% block content %}
                         <div data-controller="map"
-                             data-map-mode-value="cluster"
+                             data-map-mode-value="numbered"
                              data-map-tiles-value="{{ map_tiles }}"
                              data-map-attribution-value="{{ map_attribution }}"
                              data-map-markers-value="{{ pins|map(pin => {
                                  latitude: pin.latitude,
                                  longitude: pin.longitude,
-                                 number: pin.goshuin > 1 ? pin.goshuin : null,
+                                 number: pin.position,
                                  hue: pin.hue,
                                  label: pin.name,
-                                 href: pin.slug ? path('app_goshuincho_show', {slug: pin.slug}) : null,
+                                 href: path('app_goshuin_show', {slug: pin.slug, position: pin.position}),
                              })|json_encode }}">
                             <div class="minimap h-[clamp(280px,46vh,460px)]" data-map-target="canvas"></div>
                             <ul class="sr">
                                 {% for pin in pins %}
-                                    <li>{{ pin.name }} · {{ 'label.pill_goshuin'|trans({'%count%': pin.goshuin}) }}</li>
+                                    <li>{{ pin.position }}. {{ pin.name }} · {{ pin.title }}</li>
                                 {% endfor %}
                             </ul>
                         </div>

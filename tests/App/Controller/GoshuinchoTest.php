@@ -494,6 +494,26 @@ class GoshuinchoTest extends AppTestCase
         );
     }
 
+    public function test_the_map_pins_take_the_colour_the_goshuincho_was_given(): void
+    {
+        $user = UserFactory::createOne();
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'hue' => 210]);
+        $this->client->loginUser($user);
+
+        GoshuinFactory::new()->in($goshuincho)->create([
+            'location' => LocationFactory::new([
+                'romanizedName' => 'Kiyomizu-dera',
+                'latitude' => 34.9949,
+                'longitude' => 135.7850,
+            ]),
+        ]);
+
+        $map = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug())->filter('main [data-controller="map"]');
+        $markers = json_decode((string) $map->attr('data-map-markers-value'), true);
+
+        $this->assertSame(210, $markers[0]['hue'], 'The pin does not carry the colour chosen for the goshuincho.');
+    }
+
     private function repository(): GoshuinchoRepository
     {
         $this->manager();

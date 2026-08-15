@@ -49,35 +49,30 @@ class GoshuinRepository extends ServiceEntityRepository
             ->select('location.romanizedName AS name')
             ->addSelect('location.latitude AS latitude')
             ->addSelect('location.longitude AS longitude')
-            ->addSelect('COUNT(g.id) AS held')
-            ->addSelect('COUNT(DISTINCT goshuincho.id) AS holders')
-            ->addSelect('MIN(goshuincho.title) AS title')
-            ->addSelect('MIN(goshuincho.slug) AS slug')
-            ->addSelect('MIN(goshuincho.hue) AS hue')
+            ->addSelect('g.position AS position')
+            ->addSelect('goshuincho.title AS title')
+            ->addSelect('goshuincho.slug AS slug')
+            ->addSelect('goshuincho.hue AS hue')
             ->innerJoin('g.location', 'location')
             ->innerJoin('g.goshuincho', 'goshuincho')
             ->andWhere('location.latitude IS NOT NULL')
             ->andWhere('location.longitude IS NOT NULL')
-            ->groupBy('location.id')
-            ->orderBy('location.romanizedName', 'ASC')
+            ->orderBy('goshuincho.title', 'ASC')
+            ->addOrderBy('g.position', 'ASC')
             ->getQuery()
             ->getArrayResult()
         ;
 
         return array_map(
-            static function (array $row): Pin {
-                $alone = (int) $row['holders'] === 1;
-
-                return new Pin(
-                    name: (string) $row['name'],
-                    latitude: (float) $row['latitude'],
-                    longitude: (float) $row['longitude'],
-                    goshuin: (int) $row['held'],
-                    title: $alone ? (string) $row['title'] : null,
-                    slug: $alone ? (string) $row['slug'] : null,
-                    hue: $alone && $row['hue'] !== null ? (int) $row['hue'] : null,
-                );
-            },
+            static fn (array $row): Pin => new Pin(
+                name: (string) $row['name'],
+                latitude: (float) $row['latitude'],
+                longitude: (float) $row['longitude'],
+                position: (int) $row['position'],
+                title: (string) $row['title'],
+                slug: (string) $row['slug'],
+                hue: $row['hue'] === null ? null : (int) $row['hue'],
+            ),
             $rows,
         );
     }

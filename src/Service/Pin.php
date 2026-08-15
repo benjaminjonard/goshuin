@@ -10,9 +10,9 @@ final readonly class Pin
         public string $name,
         public float $latitude,
         public float $longitude,
-        public int $goshuin,
-        public ?string $title,
-        public ?string $slug,
+        public int $position,
+        public string $title,
+        public string $slug,
         public ?int $hue,
     ) {
     }

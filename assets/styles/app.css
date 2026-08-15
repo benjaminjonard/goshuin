@@ -406,12 +406,6 @@
 
     .map-pin .tinted .body {
         fill: oklch(var(--hue-l) var(--hue-c) var(--hue));
-        stroke: #241110;
-        stroke-width: 1.6;
-    }
-
-    .map-pin .tinted .num {
-        fill: #241110;
     }
 
     .map-pin .lit {
@@ -443,7 +437,8 @@
     }
 
     .map-pin .num {
-        fill: var(--color-tile);
+        fill: #fff;
+        filter: drop-shadow(0 1px 1.5px rgb(0 0 0 / 0.9));
         font-family: var(--font-ui);
         font-size: 13px;
         font-weight: 700;

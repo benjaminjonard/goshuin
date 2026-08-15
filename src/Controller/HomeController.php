@@ -6,7 +6,6 @@ namespace App\Controller;
 
 use App\Repository\GoshuinRepository;
 use App\Repository\GoshuinchoRepository;
-use App\Service\Pin;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -27,7 +26,7 @@ class HomeController extends AbstractController
         return $this->render('App/Home/index.html.twig', [
             'shelf' => $this->goshuinchos->shelf(),
             'pins' => $pins,
-            'placed' => array_sum(array_map(static fn (Pin $pin): int => $pin->goshuin, $pins)),
+            'placed' => count($pins),
             'tally' => $this->goshuinchos->tally(),
             'recent' => $this->goshuins->recent(),
         ]);

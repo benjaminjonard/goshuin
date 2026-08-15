@@ -230,7 +230,7 @@ class HomeTest extends AppTestCase
         ]);
     }
 
-    public function test_the_map_carries_a_marker_for_every_place_a_goshuin_came_from(): void
+    public function test_the_map_carries_a_marker_for_every_placed_goshuin(): void
     {
         $user = UserFactory::createOne();
         $this->client->loginUser($user);
@@ -246,24 +246,23 @@ class HomeTest extends AppTestCase
         $map = $this->client->request(Request::METHOD_GET, '/')->filter('main [data-controller="map"]');
 
         $this->assertCount(1, $map, 'The places are not put on a map.');
-        $this->assertSame('cluster', $map->attr('data-map-mode-value'), 'The map is not the cluster mode of the one controller.');
+        $this->assertSame('numbered', $map->attr('data-map-mode-value'), 'The map is not the numbered mode of the one controller.');
 
         $markers = json_decode((string) $map->attr('data-map-markers-value'), true);
 
-        $this->assertCount(2, $markers, 'The map does not carry one marker per placed location, and none for a goshuin placed nowhere.');
-        $this->assertSame(['North', 'Twice over'], array_column($markers, 'label'), 'The markers do not name the places they stand on.');
+        $this->assertCount(3, $markers, 'The map does not carry one marker per placed goshuin, and none for a goshuin placed nowhere.');
+        $this->assertSame(['North', 'Twice over', 'Twice over'], array_column($markers, 'label'), 'The markers do not name the places they stand on.');
         $this->assertSame(35.0, (float) $markers[0]['latitude'], 'The marker is not on the coordinates of its location.');
         $this->assertSame(135.0, (float) $markers[0]['longitude'], 'The marker is not on the coordinates of its location.');
-        $this->assertNull($markers[0]['number'], 'A place visited once was given a count to display.');
-        $this->assertSame(2, $markers[1]['number'], 'A place visited twice does not count both goshuin.');
+        $this->assertSame([1, 2, 3], array_column($markers, 'number'), 'The markers are not numbered after the page each goshuin sits on.');
         $this->assertSame(12, $markers[0]['hue'], 'The marker does not carry the colour of the goshuincho it belongs to.');
         $this->assertSame(
-            '/goshuincho/'.$kansai->getSlug(),
+            '/goshuincho/'.$kansai->getSlug().'/goshuin/1',
             $markers[0]['href'],
-            'A marker standing on one goshuincho does not lead to it.',
+            'The marker does not lead to the goshuin it stands for.',
         );
 
-        $this->assertCount(2, $map->filter('ul.sr li'), 'The marker set has no readable list.');
+        $this->assertCount(3, $map->filter('ul.sr li'), 'The marker set has no readable list.');
         $this->assertStringContainsString('Twice over', $map->filter('ul.sr')->text());
         $this->assertStringContainsString(
             '3 goshuin',
@@ -273,7 +272,7 @@ class HomeTest extends AppTestCase
 
     }
 
-    public function test_a_place_two_goshuincho_share_carries_one_marker_that_claims_neither(): void
+    public function test_a_place_two_goshuincho_share_carries_a_marker_for_each(): void
     {
         $user = UserFactory::createOne();
         $this->client->loginUser($user);
@@ -287,10 +286,13 @@ class HomeTest extends AppTestCase
         $map = $this->client->request(Request::METHOD_GET, '/')->filter('main [data-controller="map"]');
         $markers = json_decode((string) $map->attr('data-map-markers-value'), true);
 
-        $this->assertCount(1, $markers, 'One place carries two markers.');
-        $this->assertSame(2, $markers[0]['number'], 'The marker does not count the goshuin of both goshuincho.');
-        $this->assertNull($markers[0]['hue'], 'A place two goshuincho share took the colour of one of them.');
-        $this->assertNull($markers[0]['href'], 'A place two goshuincho share leads to one of them.');
+        $this->assertCount(2, $markers, 'A place two goshuincho share does not carry a marker for each goshuin.');
+        $this->assertSame([12, 210], array_column($markers, 'hue'), 'The markers do not each take the colour of their own goshuincho.');
+        $this->assertSame(
+            ['/goshuincho/'.$kansai->getSlug().'/goshuin/1', '/goshuincho/'.$kanto->getSlug().'/goshuin/1'],
+            array_column($markers, 'href'),
+            'The markers do not each lead to their own goshuin.',
+        );
 
     }
 
