@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\App\LiveComponent;
 
 use App\Repository\LocationRepository;
+use App\Tests\Factory\CityFactory;
 use App\Tests\Factory\LocationFactory;
 use App\Tests\Factory\UserFactory;
 use App\Twig\Components\LocationCombobox;
@@ -32,7 +33,7 @@ class LocationComboboxTest extends KernelTestCase
 
     public function test_typing_offers_the_matching_locations(): void
     {
-        LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'japaneseName' => '清水寺', 'locality' => 'Kyōto']);
+        LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'japaneseName' => '清水寺', 'city' => CityFactory::createOne(['name' => 'Kyōto'])]);
         LocationFactory::createOne(['romanizedName' => 'Byodo-in']);
 
         $rendered = $this->combobox()->set('term', 'kiyomizu')->render()->toString();

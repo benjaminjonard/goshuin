@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'label.cities'|trans }} · Goshuin{% endblock %}
+
+{% block bar %}
+    {{ include('App/_partials/_bar.html.twig', {title: 'label.cities'|trans}) }}
+{% endblock %}
+
+{% block body %}
+    {{ include('App/_partials/_list.html.twig', {
+        route: 'app_city_index',
+        search: 'label.city_search',
+        nothing: 'label.no_city_yet',
+        noun: 'label.cities',
+        back: 'label.all_cities',
+        cards: cities|map(city => {
+            href: path('app_city_show', {id: city.id}),
+            image: city.photographCard,
+            icon: 'city',
+            title: city.name,
+            below: city.prefecture ? city.prefecture.name : null,
+        }),
+    }) }}
+{% endblock %}

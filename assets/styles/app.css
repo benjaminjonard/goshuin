@@ -232,6 +232,16 @@
     box-shadow: var(--shadow-lift);
 }
 
+@utility photograph {
+    display: block;
+    height: auto;
+    width: auto;
+    max-height: clamp(260px, 28vw, 440px);
+    max-width: 100%;
+    border-radius: 12px;
+    box-shadow: var(--shadow-lift);
+}
+
 @utility shot {
     display: flex;
     align-items: center;
@@ -248,6 +258,17 @@
     border: 1px solid var(--color-line);
     border-radius: 12px;
     background: var(--color-tile-2);
+}
+
+@utility shot-empty {
+    display: grid;
+    height: 100%;
+    aspect-ratio: 4 / 3;
+    place-items: center;
+    border: 1px solid var(--color-line);
+    border-radius: 12px;
+    background: var(--color-tile-2);
+    color: var(--color-fg-3);
 }
 
 @utility shot-caption {

@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'label.goshuin'|trans }} · Goshuin{% endblock %}
+
+{% block bar %}
+    {{ include('App/_partials/_bar.html.twig', {title: 'label.goshuin'|trans}) }}
+{% endblock %}
+
+{% block body %}
+    {{ include('App/_partials/_list.html.twig', {
+        route: 'app_goshuin_index',
+        search: 'label.goshuin_search',
+        nothing: 'label.no_goshuin_yet',
+        noun: 'label.goshuin',
+        back: 'label.all_goshuin',
+        cards: goshuins|map(goshuin => {
+            href: path('app_goshuin_show', {slug: goshuin.goshuincho.slug, position: goshuin.position}),
+            image: goshuin.imageCard,
+            width: goshuin.imageWidth,
+            height: goshuin.imageHeight,
+            icon: 'goshuin',
+            title: goshuin.location.romanizedName,
+            hue: goshuin.goshuincho.hue,
+            below: [goshuin.goshuincho.title, goshuin.receivedOn ? goshuin.receivedOn|format_date('long') : null]|filter(part => part)|join(' · '),
+        }),
+    }) }}
+{% endblock %}

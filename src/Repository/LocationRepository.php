@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\City;
 use App\Entity\Deity;
+use App\Entity\Goshuincho;
 use App\Entity\Location;
+use App\Entity\Prefecture;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -25,15 +28,10 @@ class LocationRepository extends ServiceEntityRepository
     /**
      * @return list<Location>
      */
-    public function browse(?string $term = null, int $page = 1): array
+    public function browse(?string $term = null, int $page = 1, Goshuincho|City|Prefecture|null $narrow = null): array
     {
-        $builder = $this->createQueryBuilder('l')->orderBy('l.romanizedName', 'ASC');
-
-        if ($term !== null && $term !== '') {
-            $this->named($builder, $term);
-        }
-
-        return $builder
+        return $this->listing($term, $narrow)
+            ->orderBy('l.romanizedName', 'ASC')
             ->setFirstResult(($page - 1) * self::PER_PAGE)
             ->setMaxResults(self::PER_PAGE)
             ->getQuery()
@@ -41,17 +39,42 @@ class LocationRepository extends ServiceEntityRepository
         ;
     }
 
-    public function pages(?string $term = null): int
+    public function pages(?string $term = null, Goshuincho|City|Prefecture|null $narrow = null): int
     {
-        $builder = $this->createQueryBuilder('l')->select('COUNT(l.id)');
+        $total = (int) $this->listing($term, $narrow)
+            ->select('COUNT(l.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return max(1, (int) ceil($total / self::PER_PAGE));
+    }
+
+    public function countIn(City|Prefecture $place): int
+    {
+        return (int) $this->createQueryBuilder('l')
+            ->select('COUNT(l.id)')
+            ->andWhere(sprintf('l.%s = :place', $place instanceof City ? 'city' : 'prefecture'))
+            ->setParameter('place', $place)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    private function listing(?string $term, Goshuincho|City|Prefecture|null $narrow): QueryBuilder
+    {
+        $builder = $this->createQueryBuilder('l');
 
         if ($term !== null && $term !== '') {
             $this->named($builder, $term);
         }
 
-        $total = (int) $builder->getQuery()->getSingleScalarResult();
+        if ($narrow instanceof City || $narrow instanceof Prefecture) {
+            $builder
+                ->andWhere(sprintf('l.%s = :narrow', $narrow instanceof City ? 'city' : 'prefecture'))
+                ->setParameter('narrow', $narrow)
+            ;
+        }
 
-        return max(1, (int) ceil($total / self::PER_PAGE));
+        return $builder;
     }
 
     /**
@@ -63,6 +86,34 @@ class LocationRepository extends ServiceEntityRepository
             ->innerJoin('l.deities', 'd')
             ->andWhere('d = :deity')
             ->setParameter('deity', $deity)
+            ->orderBy('l.romanizedName', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    /**
+     * @return list<Location>
+     */
+    public function inCity(City $city): array
+    {
+        return $this->createQueryBuilder('l')
+            ->andWhere('l.city = :city')
+            ->setParameter('city', $city)
+            ->orderBy('l.romanizedName', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    /**
+     * @return list<Location>
+     */
+    public function inPrefecture(Prefecture $prefecture): array
+    {
+        return $this->createQueryBuilder('l')
+            ->andWhere('l.prefecture = :prefecture')
+            ->setParameter('prefecture', $prefecture)
             ->orderBy('l.romanizedName', 'ASC')
             ->getQuery()
             ->getResult()

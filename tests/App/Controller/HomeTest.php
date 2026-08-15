@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Tests\App\Controller;
 
+use App\Entity\City;
 use App\Entity\Goshuincho;
 use App\Entity\Location;
+use App\Entity\Prefecture;
 use App\Tests\AppTestCase;
+use App\Tests\Factory\CityFactory;
 use App\Tests\Factory\GoshuinFactory;
 use App\Tests\Factory\GoshuinchoFactory;
 use App\Tests\Factory\LocationFactory;
+use App\Tests\Factory\PrefectureFactory;
 use App\Tests\Factory\UserFactory;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Request;
@@ -78,7 +82,8 @@ class HomeTest extends AppTestCase
             'purchasedAt' => new \DateTimeImmutable('2025-03-12'),
             'boughtAt' => LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']),
         ]);
-        $this->fill($goshuincho, ['Fushimi Inari-taisha', 'Kiyomizu-dera'], '2025-03-14', 'Kyōto', 'Kyōto');
+        $kyoto = PrefectureFactory::createOne(['name' => 'Kyōto']);
+        $this->fill($goshuincho, ['Fushimi Inari-taisha', 'Kiyomizu-dera'], '2025-03-14', CityFactory::createOne(['name' => 'Kyōto', 'prefecture' => $kyoto]), $kyoto);
 
         $card = $this->client->request(Request::METHOD_GET, '/')->filter('main a[href="/goshuincho/'.$goshuincho->getSlug().'"]');
 
@@ -146,12 +151,12 @@ class HomeTest extends AppTestCase
     /**
      * @param list<string> $places
      */
-    private function fill(Goshuincho $goshuincho, array $places, string $day, ?string $city = null, ?string $prefecture = null): void
+    private function fill(Goshuincho $goshuincho, array $places, string $day, ?City $city = null, ?Prefecture $prefecture = null): void
     {
         foreach ($places as $spot => $name) {
             $this->collect(
                 $goshuincho,
-                LocationFactory::createOne(['romanizedName' => $name, 'locality' => $city, 'prefecture' => $prefecture]),
+                LocationFactory::createOne(['romanizedName' => $name, 'city' => $city, 'prefecture' => $prefecture]),
                 new \DateTimeImmutable($day)->modify('+'.$spot.' days')->format('Y-m-d'),
             );
         }
@@ -163,11 +168,20 @@ class HomeTest extends AppTestCase
         $this->client->loginUser($user);
         $kansai = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kansai']);
         $kanto = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kantō']);
-        $shared = LocationFactory::createOne(['romanizedName' => 'Twice over', 'locality' => 'Kyōto', 'prefecture' => 'Kyōto']);
+        $kyoto = PrefectureFactory::createOne(['name' => 'Kyōto']);
+        $shared = LocationFactory::createOne([
+            'romanizedName' => 'Twice over',
+            'city' => CityFactory::createOne(['name' => 'Kyōto', 'prefecture' => $kyoto]),
+            'prefecture' => $kyoto,
+        ]);
 
         $this->collect($kansai, $shared, '2025-03-14');
         $this->collect($kansai, $shared, '2025-03-15');
-        $this->collect($kanto, LocationFactory::createOne(['romanizedName' => 'Elsewhere', 'locality' => 'Kamakura', 'prefecture' => 'Kanagawa']), '2025-04-01');
+        $this->collect($kanto, LocationFactory::createOne([
+            'romanizedName' => 'Elsewhere',
+            'city' => CityFactory::createOne(['name' => 'Kamakura']),
+            'prefecture' => PrefectureFactory::createOne(['name' => 'Kanagawa']),
+        ]), '2025-04-01');
 
         $totals = $this->client->request(Request::METHOD_GET, '/')->filter('main .tile.flex');
 
@@ -181,41 +195,23 @@ class HomeTest extends AppTestCase
 
     }
 
-    public function test_the_recent_panel_lists_the_five_latest_and_says_where_each_belongs(): void
+    public function test_each_total_leads_to_the_list_it_counts(): void
     {
         $user = UserFactory::createOne();
         $this->client->loginUser($user);
-        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kansai, spring 2025']);
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kansai']);
+        $this->collect($goshuincho, LocationFactory::createOne([
+            'romanizedName' => 'Somewhere',
+            'city' => CityFactory::createOne(['name' => 'Kyōto']),
+            'prefecture' => PrefectureFactory::createOne(['name' => 'Kyōto']),
+        ]), '2025-03-14');
 
-        foreach (['2025-03-10', '2025-03-11', '2025-03-12', '2025-03-13', '2025-03-14', '2025-03-15'] as $spot => $day) {
-            $this->collect($goshuincho, LocationFactory::createOne(['romanizedName' => 'Place '.$spot]), $day);
-        }
+        $links = $this->client->request(Request::METHOD_GET, '/')
+            ->filter('main a.tile')
+            ->each(static fn (Crawler $tile): string => $tile->attr('href'))
+        ;
 
-        $panel = $this->client->request(Request::METHOD_GET, '/')->filter('main ol li a[style*="--hue"]');
-
-        $this->assertCount(5, $panel, 'The recent panel does not list five goshuin.');
-        $this->assertSame(
-            ['Place 5', 'Place 4', 'Place 3', 'Place 2', 'Place 1'],
-            $panel->each(static fn (Crawler $row): string => trim($row->filter('span span')->first()->text())),
-            'The recent panel is not ordered by the date received, most recent first.',
-        );
-        $this->assertStringContainsString('Kansai, spring 2025', $panel->first()->text(), 'A recent goshuin does not name the goshuincho it belongs to.');
-        $this->assertStringContainsString('March 15, 2025', $panel->first()->text(), 'A recent goshuin does not state its date.');
-
-    }
-
-    public function test_the_recent_panel_shows_what_exists_without_padding(): void
-    {
-        $user = UserFactory::createOne();
-        $this->client->loginUser($user);
-        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
-
-        $this->collect($goshuincho, LocationFactory::createOne(['romanizedName' => 'The only one']), '2025-03-14');
-
-        $panel = $this->client->request(Request::METHOD_GET, '/')->filter('main ol li a[style*="--hue"]');
-
-        $this->assertCount(1, $panel, 'The recent panel padded itself out to five.');
-
+        $this->assertSame(['/goshuincho', '/goshuin', '/cities', '/prefectures'], $links, 'The totals do not lead to the lists they count.');
     }
 
     private function collect(Goshuincho $goshuincho, Location $place, string $day): void

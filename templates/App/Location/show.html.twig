@@ -29,13 +29,21 @@
 
     <main class="page stack" data-controller="lightbox">
         {% set record = [
-            {label: 'label.name'|trans, value: location.japaneseName, jp: true},
             {label: 'label.romanized_name'|trans, value: location.romanizedName},
+            {label: 'label.japanese_name'|trans, value: location.japaneseName, jp: true},
             {label: 'label.location_type'|trans, value: location.type ? ('label.' ~ location.type.value)|trans : null},
             {label: 'label.deities'|trans, value: deities},
             {label: 'label.foundation'|trans, value: location.foundation},
-            {label: 'label.locality'|trans, value: location.locality},
-            {label: 'label.prefecture'|trans, value: location.prefecture},
+            {
+                label: 'label.city'|trans,
+                value: location.city ? location.city.name : null,
+                href: location.city ? path('app_city_show', {id: location.city.id}) : null,
+            },
+            {
+                label: 'label.prefecture'|trans,
+                value: location.prefecture ? location.prefecture.name : null,
+                href: location.prefecture ? path('app_prefecture_show', {id: location.prefecture.id}) : null,
+            },
             {label: 'label.address'|trans, value: location.address},
             {label: 'label.coordinates'|trans, value: coordinates},
         ]|filter(row => row.value is not empty) %}
@@ -46,7 +54,7 @@
                     <section class="tile stage">
                         <a href="{{ location.photograph|image }}" class="block" data-action="lightbox#open">
                             <img src="{{ location.photographFull|image }}" alt="{{ location.romanizedName }}"
-                                 class="h-[clamp(260px,28vw,440px)] w-auto max-w-full rounded-xl object-contain shadow-lift">
+                                 class="photograph">
                         </a>
                     </section>
                 {% endif %}

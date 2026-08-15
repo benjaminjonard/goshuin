@@ -11,9 +11,11 @@ use App\Repository\GoshuinRepository;
 use App\Repository\GoshuinchoRepository;
 use App\Tests\AppTestCase;
 use Symfony\Component\DomCrawler\Crawler;
+use App\Tests\Factory\CityFactory;
 use App\Tests\Factory\GoshuinFactory;
 use App\Tests\Factory\GoshuinchoFactory;
 use App\Tests\Factory\LocationFactory;
+use App\Tests\Factory\PrefectureFactory;
 use App\Tests\Factory\UserFactory;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -351,6 +353,40 @@ class GoshuinchoTest extends AppTestCase
         $this->assertStringContainsString('/uploads/ab/cd/front-1200.jpg', $crawler->filter('main figure img')->attr('src'), 'The cover is not served from its derivative.');
     }
 
+    public function test_the_cities_and_prefectures_visited_are_counted_once_and_lead_to_their_pages(): void
+    {
+        $user = UserFactory::createOne();
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
+        $this->client->loginUser($user);
+
+        $kanagawa = PrefectureFactory::createOne(['name' => 'Kanagawa']);
+        $kamakura = CityFactory::createOne(['name' => 'Kamakura', 'prefecture' => $kanagawa]);
+        $kyoto = PrefectureFactory::createOne(['name' => 'Kyōto']);
+        $kyotoCity = CityFactory::createOne(['name' => 'Kyōto', 'prefecture' => $kyoto]);
+
+        foreach ([1, 2] as $page) {
+            GoshuinFactory::new()->in($goshuincho, $page)->on('2025-03-1'.$page)->create([
+                'location' => LocationFactory::new(['romanizedName' => 'Hase-dera '.$page, 'city' => $kamakura, 'prefecture' => $kanagawa]),
+            ]);
+        }
+
+        GoshuinFactory::new()->in($goshuincho, 3)->on('2025-04-02')->create([
+            'location' => LocationFactory::new(['romanizedName' => 'Kiyomizu-dera', 'city' => $kyotoCity, 'prefecture' => $kyoto]),
+        ]);
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug());
+
+        $this->assertCount(1, $crawler->filter('main a[href="/city/'.$kamakura->getId().'"]'), 'A city visited twice is named twice, or does not lead to its page.');
+        $this->assertCount(1, $crawler->filter('main a[href="/city/'.$kyotoCity->getId().'"]'));
+        $this->assertCount(1, $crawler->filter('main a[href="/prefecture/'.$kanagawa->getId().'"]'), 'A prefecture visited twice is named twice, or does not lead to its page.');
+
+        $tiles = $crawler->filter('main .tile.flex')->each(static fn (Crawler $tile): string => preg_replace('/\s+/', ' ', trim($tile->text())));
+
+        $this->assertContains('2 cities', $tiles, 'The cities are not tallied once each.');
+        $this->assertContains('2 prefectures', $tiles, 'The prefectures are not tallied once each.');
+
+    }
+
     public function test_the_order_names_each_goshuin_by_its_place_and_its_day(): void
     {
         $user = UserFactory::createOne();
@@ -513,6 +549,45 @@ class GoshuinchoTest extends AppTestCase
         $markers = json_decode((string) $map->attr('data-map-markers-value'), true);
 
         $this->assertSame(210, $markers[0]['hue'], 'The pin does not carry the colour chosen for the goshuincho.');
+    }
+
+    public function test_the_index_lists_the_goshuincho_held_and_opens_each_one(): void
+    {
+        $user = UserFactory::createOne();
+        $this->client->loginUser($user);
+        GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kantō']);
+        $kansai = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kansai']);
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho');
+
+        $this->assertResponseIsSuccessful();
+        $cards = $crawler->filter('main ul li a');
+        $this->assertCount(2, $cards, 'The index does not list every goshuincho.');
+        $this->assertSame('/goshuincho/'.$kansai->getSlug(), $cards->first()->attr('href'), 'A goshuincho does not open its own page.');
+    }
+
+    public function test_the_index_holds_no_other_collectors_goshuincho(): void
+    {
+        $owner = UserFactory::createOne();
+        GoshuinchoFactory::createOne(['owner' => $owner, 'title' => 'Not yours']);
+        $this->client->loginUser(UserFactory::createOne());
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho');
+
+        $this->assertStringNotContainsString('Not yours', $crawler->filter('main')->text(), 'A foreign goshuincho reached the index.');
+    }
+
+    public function test_the_index_narrows_to_the_searched_title(): void
+    {
+        $user = UserFactory::createOne();
+        $this->client->loginUser($user);
+        GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kantō']);
+        GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kansai']);
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho?q=kans');
+
+        $this->assertCount(1, $crawler->filter('main ul li a'), 'The search does not narrow the index.');
+        $this->assertStringContainsString('Kansai', $crawler->filter('main ul li a')->text());
     }
 
     private function repository(): GoshuinchoRepository

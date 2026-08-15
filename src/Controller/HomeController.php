@@ -28,7 +28,6 @@ class HomeController extends AbstractController
             'pins' => $pins,
             'placed' => count($pins),
             'tally' => $this->goshuinchos->tally(),
-            'recent' => $this->goshuins->recent(),
         ]);
     }
 }

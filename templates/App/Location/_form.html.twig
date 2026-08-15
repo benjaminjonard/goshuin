@@ -30,7 +30,7 @@
                             data-live-action-param="usePlace"
                             data-live-place-name-param="{{ place.name }}"
                             data-live-japanese-name-param="{{ place.japaneseName }}"
-                            data-live-locality-param="{{ place.locality }}"
+                            data-live-city-param="{{ place.locality }}"
                             data-live-prefecture-param="{{ place.prefecture }}"
                             data-live-address-param="{{ place.address }}"
                             data-live-latitude-param="{{ place.latitude }}"
@@ -65,7 +65,7 @@
             </div>
 
             <div class="grid items-start gap-3.5 sm:grid-cols-2">
-                {{ form_row(form.locality) }}
+                {{ form_row(form.city) }}
                 {{ form_row(form.prefecture) }}
             </div>
 

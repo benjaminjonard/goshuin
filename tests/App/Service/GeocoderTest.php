@@ -131,7 +131,7 @@ class GeocoderTest extends TestCase
         $this->assertSame('Tubarão, Santa Catarina, Brazil', $places[0]['address']);
     }
 
-    public function test_a_locality_falling_back_to_the_prefecture_is_named_too(): void
+    public function test_an_answer_naming_no_city_is_left_without_a_locality(): void
     {
         $body = json_encode(['features' => [[
             'properties' => ['osm_type' => 'W', 'osm_id' => 11, 'name' => 'Shuri-jo', 'state' => '沖縄県', 'country' => 'Japan'],
@@ -142,8 +142,19 @@ class GeocoderTest extends TestCase
 
         $places = $geocoder->search('shuri-jo');
 
-        $this->assertSame('Okinawa', $places[0]['locality'], 'A locality falling back to the prefecture kept the kanji.');
+        $this->assertSame('', $places[0]['locality'], 'The prefecture stood in for a city Photon never named.');
+        $this->assertSame('Okinawa', $places[0]['prefecture'], 'The prefecture went missing with the locality.');
         $this->assertSame('Okinawa, Japan', $places[0]['address']);
+    }
+
+    public function test_a_city_that_is_only_a_prefecture_is_not_read_as_a_locality(): void
+    {
+        $geocoder = new Geocoder($this->clientReturning($this->bentendo(), $this->bentendo()), 'https://photon.example', new PrefectureNamer(), 0.0);
+
+        $places = $geocoder->search('bentendo');
+
+        $this->assertSame('', $places[0]['locality'], 'Tokyo was recorded as a city of the Tokyo prefecture.');
+        $this->assertSame('Tokyo', $places[0]['prefecture']);
     }
 
     public function test_a_japanese_answer_without_a_state_takes_its_prefecture_from_the_city(): void

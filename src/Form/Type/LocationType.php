@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Form\Type;
 
+use App\Entity\City;
 use App\Entity\Location;
+use App\Form\DataTransformer\CityName;
 use App\Form\DataTransformer\DeityNames;
+use App\Form\DataTransformer\PrefectureName;
 use App\Enum\LocationType as Kind;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
@@ -24,6 +27,8 @@ class LocationType extends AbstractType
 {
     public function __construct(
         private readonly DeityNames $names,
+        private readonly CityName $city,
+        private readonly PrefectureName $prefecture,
     ) {
     }
 
@@ -70,8 +75,8 @@ class LocationType extends AbstractType
         }
 
         $builder
-            ->add('locality', TextType::class, [
-                'label' => 'label.locality',
+            ->add('city', TextType::class, [
+                'label' => 'label.city',
                 'required' => false,
             ])
             ->add('prefecture', TextType::class, [
@@ -97,6 +102,23 @@ class LocationType extends AbstractType
                 'attr' => ['inputmode' => 'decimal'],
             ])
         ;
+
+        $builder->get('city')->addModelTransformer($this->city);
+        $builder->get('prefecture')->addModelTransformer($this->prefecture);
+
+        $builder->addEventListener(FormEvents::POST_SUBMIT, static function (FormEvent $event): void {
+            $location = $event->getData();
+
+            if (!$location instanceof Location) {
+                return;
+            }
+
+            $city = $location->getCity();
+
+            if ($city instanceof City && $city->getPrefecture() === null) {
+                $city->setPrefecture($location->getPrefecture());
+            }
+        });
 
         if ($options['editing']) {
             $builder

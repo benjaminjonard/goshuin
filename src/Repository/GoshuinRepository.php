@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\City;
 use App\Entity\Goshuin;
 use App\Entity\Goshuincho;
+use App\Entity\Prefecture;
 use App\Service\Pin;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -15,6 +18,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class GoshuinRepository extends ServiceEntityRepository
 {
+    private const int PER_PAGE = 24;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Goshuin::class);
@@ -23,21 +28,73 @@ class GoshuinRepository extends ServiceEntityRepository
     /**
      * @return list<Goshuin>
      */
-    public function recent(int $limit = 5): array
+    public function browse(?string $term = null, int $page = 1, Goshuincho|City|Prefecture|null $narrow = null): array
+    {
+        return $this->listing($term, $narrow)
+            ->addSelect('location', 'goshuincho')
+            ->addSelect('COALESCE(g.receivedOn, :epoch) AS HIDDEN ranked')
+            ->setParameter('epoch', new \DateTimeImmutable('@0'))
+            ->orderBy('ranked', 'DESC')
+            ->addOrderBy('g.position', 'ASC')
+            ->setFirstResult(($page - 1) * self::PER_PAGE)
+            ->setMaxResults(self::PER_PAGE)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    public function pages(?string $term = null, Goshuincho|City|Prefecture|null $narrow = null): int
+    {
+        $total = (int) $this->listing($term, $narrow)
+            ->select('COUNT(g.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return max(1, (int) ceil($total / self::PER_PAGE));
+    }
+
+    /**
+     * @return list<Goshuin>
+     */
+    public function from(City|Prefecture $place): array
     {
         return $this->createQueryBuilder('g')
             ->addSelect('location', 'goshuincho')
             ->addSelect('COALESCE(g.receivedOn, :epoch) AS HIDDEN ranked')
             ->innerJoin('g.location', 'location')
             ->innerJoin('g.goshuincho', 'goshuincho')
+            ->andWhere(sprintf('location.%s = :place', $place instanceof City ? 'city' : 'prefecture'))
+            ->setParameter('place', $place)
             ->setParameter('epoch', new \DateTimeImmutable('@0'))
             ->orderBy('ranked', 'DESC')
             ->addOrderBy('g.position', 'ASC')
-            ->addOrderBy('g.createdAt', 'ASC')
-            ->setMaxResults($limit)
             ->getQuery()
             ->getResult()
         ;
+    }
+
+    private function listing(?string $term, Goshuincho|City|Prefecture|null $narrow): QueryBuilder
+    {
+        $builder = $this->createQueryBuilder('g')
+            ->innerJoin('g.location', 'location')
+            ->innerJoin('g.goshuincho', 'goshuincho')
+        ;
+
+        if ($term !== null && $term !== '') {
+            $builder
+                ->andWhere('LOWER(location.romanizedName) LIKE :term OR LOWER(location.japaneseName) LIKE :term OR LOWER(goshuincho.title) LIKE :term')
+                ->setParameter('term', '%'.mb_strtolower($term).'%')
+            ;
+        }
+
+        if ($narrow instanceof Goshuincho) {
+            $builder
+                ->andWhere('g.goshuincho = :narrow')
+                ->setParameter('narrow', $narrow)
+            ;
+        }
+
+        return $builder;
     }
 
     /**

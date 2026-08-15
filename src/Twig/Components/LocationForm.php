@@ -69,7 +69,7 @@ class LocationForm
     public function usePlace(
         #[LiveArg] string $placeName,
         #[LiveArg] string $japaneseName,
-        #[LiveArg] string $locality,
+        #[LiveArg] string $city,
         #[LiveArg] string $prefecture,
         #[LiveArg] string $address,
         #[LiveArg] string $latitude,
@@ -77,7 +77,7 @@ class LocationForm
     ): void {
         $this->formValues['romanizedName'] = $placeName;
         $this->formValues['japaneseName'] = $japaneseName;
-        $this->formValues['locality'] = $locality;
+        $this->formValues['city'] = $city;
         $this->formValues['prefecture'] = $prefecture;
         $this->formValues['address'] = $address;
         $this->formValues['latitude'] = $latitude;

@@ -6,9 +6,12 @@ namespace App\Controller;
 
 use App\Entity\Location;
 use App\Form\Type\LocationType;
+use App\Repository\CityRepository;
 use App\Repository\LocationRepository;
+use App\Repository\PrefectureRepository;
 use App\Service\PhotoInstructions;
 use App\Service\PhotoSet;
+use App\Service\Scope;
 use App\Service\Uses;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,6 +23,8 @@ class LocationController extends AbstractController
 {
     public function __construct(
         private readonly LocationRepository $locations,
+        private readonly CityRepository $cities,
+        private readonly PrefectureRepository $prefectures,
         private readonly Uses $uses,
         private readonly PhotoSet $set,
         private readonly EntityManagerInterface $entityManager,
@@ -31,14 +36,16 @@ class LocationController extends AbstractController
     {
         $term = trim($request->query->getString('q'));
         $page = max(1, $request->query->getInt('page', 1));
-        $pages = $this->locations->pages($term);
+        $scope = $this->scope($request);
+        $pages = $this->locations->pages($term, $scope?->subject);
 
         if ($page > $pages) {
             throw $this->createNotFoundException();
         }
 
         return $this->render('App/Location/index.html.twig', [
-            'locations' => $this->locations->browse($term, $page),
+            'locations' => $this->locations->browse($term, $page, $scope?->subject),
+            'scope' => $scope,
             'term' => $term,
             'page' => $page,
             'pages' => $pages,
@@ -99,9 +106,40 @@ class LocationController extends AbstractController
         ]);
     }
 
+    private function scope(Request $request): ?Scope
+    {
+        foreach ([
+            ['key' => 'city', 'route' => 'app_city_show', 'repository' => $this->cities],
+            ['key' => 'prefecture', 'route' => 'app_prefecture_show', 'repository' => $this->prefectures],
+        ] as $narrowing) {
+            $id = trim($request->query->getString($narrowing['key']));
+
+            if ($id === '') {
+                continue;
+            }
+
+            $place = $narrowing['repository']->find($id);
+
+            if ($place === null) {
+                throw $this->createNotFoundException();
+            }
+
+            return new Scope(
+                key: $narrowing['key'],
+                value: $id,
+                icon: $narrowing['key'],
+                label: $place->getName(),
+                href: $this->generateUrl($narrowing['route'], ['id' => $id]),
+                subject: $place,
+            );
+        }
+
+        return null;
+    }
+
     private function photograph(Request $request, Location $location): void
     {
-        $this->set->applyToLocation($location, new PhotoInstructions(
+        $this->set->applyTo($location, new PhotoInstructions(
             order: array_values($request->request->all()['photo_order']['place'] ?? []),
             labels: $request->request->all()['photo_label']['place'] ?? [],
             removed: array_values($request->request->all()['photo_remove']['place'] ?? []),

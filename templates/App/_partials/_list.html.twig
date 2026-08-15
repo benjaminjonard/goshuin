@@ -1,0 +1,38 @@
+{% set held = scope|default(null) ? {(scope.key): scope.value} : {} %}
+
+<main class="page mx-auto grid w-full max-w-[1100px] gap-[clamp(12px,1.4vw,18px)]">
+    <form method="get" action="{{ path(route) }}" class="flex flex-wrap items-center gap-2.5">
+        {% if scope|default(null) %}<input type="hidden" name="{{ scope.key }}" value="{{ scope.value }}">{% endif %}
+        <input type="search" name="q" value="{{ term }}" autocomplete="off"
+               aria-label="{{ search|trans }}"
+               placeholder="{{ search|trans }}"
+               class="min-w-0 flex-auto rounded-xl border border-line-2 bg-tile px-3.5 py-2.5 text-[14.5px] text-fg placeholder:text-fg-3 focus-visible:border-accent">
+        {{ include('App/_partials/_button.html.twig', {label: 'label.search'|trans, variant: 'primary', type: 'submit'}) }}
+    </form>
+
+    {{ include('App/_partials/_scope.html.twig', {scope: scope|default(null), href: path(route), label: back|default('')|trans}) }}
+
+    {% if cards is empty %}
+        <p class="tile tile-pad text-center text-[14.5px] text-fg-2">
+            {% if term is not empty %}
+                {{ 'label.no_result'|trans }}
+                <a href="{{ path(route, held) }}" class="font-semibold text-accent-text">{{ noun|trans }}</a>
+            {% else %}
+                {{ nothing|trans }}
+            {% endif %}
+        </p>
+    {% else %}
+        <ul class="grid grid-cols-2 gap-[clamp(10px,1.2vw,14px)] min-[640px]:grid-cols-3 min-[1080px]:grid-cols-4">
+            {% for card in cards %}
+                <li>{{ include('App/_partials/_card.html.twig', card, false) }}</li>
+            {% endfor %}
+        </ul>
+
+        {{ include('App/_partials/_pager.html.twig', {
+            route: route,
+            parameters: (term is not empty ? {q: term} : {})|merge(held),
+            page: page,
+            pages: pages,
+        }) }}
+    {% endif %}
+</main>

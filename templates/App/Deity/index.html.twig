@@ -7,57 +7,17 @@
 {% endblock %}
 
 {% block body %}
-    <main class="page mx-auto grid w-full max-w-[1100px] gap-[clamp(12px,1.4vw,18px)]">
-        <form method="get" action="{{ path('app_deity_index') }}" class="flex flex-wrap items-center gap-2.5">
-            <input type="search" name="q" value="{{ term }}" autocomplete="off"
-                   aria-label="{{ 'label.deity_search'|trans }}"
-                   placeholder="{{ 'label.deity_search'|trans }}"
-                   class="min-w-0 flex-auto rounded-xl border border-line-2 bg-tile px-3.5 py-2.5 text-[14.5px] text-fg placeholder:text-fg-3 focus-visible:border-accent">
-            {{ include('App/_partials/_button.html.twig', {label: 'label.search'|trans, variant: 'primary', type: 'submit'}) }}
-        </form>
-
-        {% if deities is empty %}
-            <p class="tile tile-pad text-center text-[14.5px] text-fg-2">
-                {% if term is not empty %}
-                    {{ 'label.no_result'|trans }}
-                    <a href="{{ path('app_deity_index') }}" class="font-semibold text-accent-text">{{ 'label.deities'|trans }}</a>
-                {% else %}
-                    {{ 'label.no_deity_yet'|trans }}
-                {% endif %}
-            </p>
-        {% else %}
-            <ul class="grid grid-cols-2 gap-[clamp(10px,1.2vw,14px)] min-[640px]:grid-cols-3 min-[1080px]:grid-cols-4">
-                {% for deity in deities %}
-                    <li>
-                        <a href="{{ path('app_deity_show', {id: deity.id}) }}"
-                           class="group grid content-start gap-2.5 rounded-[14px] border border-transparent p-1.5 no-underline hover:border-accent-line hover:bg-tile">
-                            {% if deity.photographCard %}
-                                <img src="{{ deity.photographCard|image }}" alt=""
-                                     class="block aspect-[4/3] w-full rounded-[10px] bg-tile-2 object-cover shadow-lift">
-                            {% else %}
-                                <span class="grid aspect-[4/3] w-full place-items-center rounded-[10px] border border-line bg-tile-2 text-fg-3" aria-hidden="true">
-                                    {{ include('App/_partials/_icon.html.twig', {name: 'tag'}) }}
-                                </span>
-                            {% endif %}
-
-                            <h3 class="line-clamp-2 px-1 text-[14.5px] font-bold leading-[1.3] tracking-[-0.02em] text-fg group-hover:text-accent-text">
-                                {{- deity.name -}}
-                            </h3>
-
-                            {% if deity.additionalNames is not empty %}
-                                <span class="-mt-1.5 truncate px-1 pb-1 text-xs text-fg-3">{{ deity.additionalNames|join(' · ') }}</span>
-                            {% endif %}
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
-
-            {{ include('App/_partials/_pager.html.twig', {
-                route: 'app_deity_index',
-                parameters: term is not empty ? {q: term} : {},
-                page: page,
-                pages: pages,
-            }) }}
-        {% endif %}
-    </main>
+    {{ include('App/_partials/_list.html.twig', {
+        route: 'app_deity_index',
+        search: 'label.deity_search',
+        nothing: 'label.no_deity_yet',
+        noun: 'label.deities',
+        cards: deities|map(deity => {
+            href: path('app_deity_show', {id: deity.id}),
+            image: deity.photographCard,
+            icon: 'tag',
+            title: deity.name,
+            below: deity.additionalNames|join(' · '),
+        }),
+    }) }}
 {% endblock %}

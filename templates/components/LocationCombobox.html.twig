@@ -5,8 +5,9 @@
         <div class="flex items-center gap-2.5 rounded-xl border border-line-2 bg-tile-2 px-3.5 py-2.5">
             <span class="min-w-0 flex-auto">
                 <span class="block truncate text-[15px] text-fg">{{ this.chosen.romanizedName }}</span>
-                {% if this.chosen.japaneseName or this.chosen.locality %}
-                    <span class="block truncate text-xs text-fg-3"><span class="font-jp">{{ this.chosen.japaneseName }}</span>{{ this.chosen.japaneseName and this.chosen.locality ? ' · ' }}{{ this.chosen.locality }}</span>
+                {% set city = this.chosen.city ? this.chosen.city.name : null %}
+                {% if this.chosen.japaneseName or city %}
+                    <span class="block truncate text-xs text-fg-3"><span class="font-jp">{{ this.chosen.japaneseName }}</span>{{ this.chosen.japaneseName and city ? ' · ' }}{{ city }}</span>
                 {% endif %}
             </span>
             <button type="button" class="cursor-pointer rounded-lg px-2 py-1 text-xs font-semibold text-fg-2 hover:text-fg" data-action="live#action" data-live-action-param="clear">
@@ -36,8 +37,9 @@
                             data-action="live#action" data-live-action-param="choose" data-live-location-param="{{ location.id }}">
                         <span class="min-w-0 flex-auto">
                             <span class="block truncate text-sm font-semibold text-fg">{{ location.romanizedName }}</span>
-                            {% if location.japaneseName or location.locality %}
-                                <span class="block truncate text-xs text-fg-3"><span class="font-jp">{{ location.japaneseName }}</span>{{ location.japaneseName and location.locality ? ' · ' }}{{ location.locality }}</span>
+                            {% set city = location.city ? location.city.name : null %}
+                            {% if location.japaneseName or city %}
+                                <span class="block truncate text-xs text-fg-3"><span class="font-jp">{{ location.japaneseName }}</span>{{ location.japaneseName and city ? ' · ' }}{{ city }}</span>
                             {% endif %}
                         </span>
                     </button>

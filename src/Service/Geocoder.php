@@ -19,6 +19,8 @@ final readonly class Geocoder
 
     private const int SPREAD = 4;
 
+    private const string CITYLESS = 'Tokyo';
+
     public function __construct(
         private HttpClientInterface $client,
         #[Autowire('%app.photon_host_url%')] private string $host,
@@ -92,6 +94,16 @@ final readonly class Geocoder
         if ($remaining > 0) {
             usleep((int) round($remaining * 1_000_000));
         }
+    }
+
+    /**
+     * @param array<string, mixed> $properties
+     */
+    private function locality(array $properties): string
+    {
+        $city = trim((string) ($properties['city'] ?? ''));
+
+        return $this->namer->recognise($city) === self::CITYLESS ? '' : $city;
     }
 
     /**
@@ -173,7 +185,7 @@ final readonly class Geocoder
 
             $found[$properties['osm_type'].$properties['osm_id']] = [
                 'name' => (string) $properties['name'],
-                'locality' => (string) ($properties['city'] ?? $prefecture),
+                'locality' => $this->locality($properties),
                 'prefecture' => $prefecture,
                 'address' => $this->address($properties, $prefecture),
                 'latitude' => (float) $coordinates[1],

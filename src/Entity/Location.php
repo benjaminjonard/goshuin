@@ -18,7 +18,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: LocationRepository::class)]
 #[ORM\Table(name: 'gos_location')]
-class Location
+class Location implements Photographed
 {
     #[ORM\Id]
     #[ORM\Column(type: Types::STRING, length: 36, unique: true, options: ['fixed' => true])]
@@ -48,13 +48,13 @@ class Location
     #[Assert\Length(max: 255)]
     private ?string $foundation = null;
 
-    #[ORM\Column(type: Types::STRING, nullable: true)]
-    #[Assert\Length(max: 255)]
-    private ?string $locality = null;
+    #[ORM\ManyToOne(targetEntity: City::class, cascade: ['persist'])]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    private ?City $city = null;
 
-    #[ORM\Column(type: Types::STRING, nullable: true)]
-    #[Assert\Length(max: 255)]
-    private ?string $prefecture = null;
+    #[ORM\ManyToOne(targetEntity: Prefecture::class, cascade: ['persist'])]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    private ?Prefecture $prefecture = null;
 
     #[ORM\Column(type: Types::STRING, nullable: true)]
     #[Assert\Length(max: 255)]
@@ -102,7 +102,7 @@ class Location
     /**
      * @var DoctrineCollection<int, LocationPhoto>
      */
-    #[ORM\OneToMany(targetEntity: LocationPhoto::class, mappedBy: 'location', cascade: ['remove'], fetch: 'EXTRA_LAZY')]
+    #[ORM\OneToMany(targetEntity: LocationPhoto::class, mappedBy: 'subject', cascade: ['remove'], fetch: 'EXTRA_LAZY')]
     #[ORM\OrderBy(['position' => 'ASC'])]
     private DoctrineCollection $photos;
 
@@ -121,14 +121,22 @@ class Location
         $this->deities = new ArrayCollection();
     }
 
+    #[\Override]
+    public static function photoClass(): string
+    {
+        return LocationPhoto::class;
+    }
+
     /**
      * @return DoctrineCollection<int, LocationPhoto>
      */
+    #[\Override]
     public function getPhotos(): DoctrineCollection
     {
         return $this->photos;
     }
 
+    #[\Override]
     public function getId(): string
     {
         return $this->id;
@@ -206,24 +214,24 @@ class Location
         return $this;
     }
 
-    public function getLocality(): ?string
+    public function getCity(): ?City
     {
-        return $this->locality;
+        return $this->city;
     }
 
-    public function setLocality(?string $locality): Location
+    public function setCity(?City $city): Location
     {
-        $this->locality = $locality;
+        $this->city = $city;
 
         return $this;
     }
 
-    public function getPrefecture(): ?string
+    public function getPrefecture(): ?Prefecture
     {
         return $this->prefecture;
     }
 
-    public function setPrefecture(?string $prefecture): Location
+    public function setPrefecture(?Prefecture $prefecture): Location
     {
         $this->prefecture = $prefecture;
 

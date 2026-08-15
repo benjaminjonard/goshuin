@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Entity\City;
+use App\Entity\Prefecture;
+
 final readonly class Summary
 {
     /**
-     * @param list<string> $cities
-     * @param list<string> $prefectures
+     * @param list<City>       $cities
+     * @param list<Prefecture> $prefectures
      */
     public function __construct(
         public int $goshuin,

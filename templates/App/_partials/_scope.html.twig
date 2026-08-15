@@ -1,0 +1,9 @@
+{% if scope %}
+    <p class="flex flex-wrap items-center gap-2.5">
+        <span class="inline-flex items-center gap-1.5 rounded-full border border-accent-line bg-accent-soft px-3 py-[5px] text-[12.5px] font-semibold text-accent-text">
+            {{- include('App/_partials/_icon.html.twig', {name: scope.icon, small: true}) -}}
+            <a href="{{ scope.href }}" class="text-accent-text no-underline hover:underline">{{ scope.label }}</a>
+        </span>
+        <a href="{{ href }}" class="text-[13px] font-semibold text-accent-text">{{ label }}</a>
+    </p>
+{% endif %}

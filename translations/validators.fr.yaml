@@ -3,6 +3,10 @@ error:
         not_unique: 'Un compte utilise déjà cette adresse.'
     deity:
         not_unique: 'Une divinité porte déjà ce nom.'
+    city:
+        not_unique: 'Une ville porte déjà ce nom.'
+    prefecture:
+        not_unique: 'Une préfecture porte déjà ce nom.'
     location_required: 'Un lieu est requis.'
     image_required: 'Une photo est requise.'
     upload_format: 'Seules les images JPEG, PNG et WebP sont acceptées.'

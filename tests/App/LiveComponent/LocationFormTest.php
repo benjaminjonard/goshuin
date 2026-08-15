@@ -11,6 +11,7 @@ use App\Repository\LocationRepository;
 use App\Service\Geocoder;
 use App\Service\LocationTypeGuesser;
 use App\Service\PrefectureNamer;
+use App\Tests\Factory\CityFactory;
 use App\Tests\Factory\LocationFactory;
 use App\Tests\Factory\UserFactory;
 use App\Twig\Components\LocationForm;
@@ -36,7 +37,7 @@ class LocationFormTest extends KernelTestCase
     {
         $rendered = $this->form()->render()->toString();
 
-        foreach (['romanizedName', 'japaneseName', 'type', 'locality', 'prefecture', 'address', 'latitude', 'longitude'] as $field) {
+        foreach (['romanizedName', 'japaneseName', 'type', 'city', 'prefecture', 'address', 'latitude', 'longitude'] as $field) {
             $this->assertStringContainsString('location['.$field.']', $rendered, $field.' is missing from the creation form.');
         }
 
@@ -174,7 +175,7 @@ class LocationFormTest extends KernelTestCase
 
     public function test_editing_starts_from_what_is_stored(): void
     {
-        $location = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'japaneseName' => '清水寺', 'locality' => 'Kyōto']);
+        $location = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'japaneseName' => '清水寺', 'city' => CityFactory::createOne(['name' => 'Kyōto'])]);
 
         $rendered = $this->form(['location' => $location])->render()->toString();
 
@@ -188,7 +189,7 @@ class LocationFormTest extends KernelTestCase
         $component = $this->form()->call('usePlace', [
             'placeName' => 'Kiyomizu-dera',
             'japaneseName' => '清水寺',
-            'locality' => 'Kyoto',
+            'city' => 'Kyoto',
             'prefecture' => 'Kyoto',
             'address' => 'Kiyomizu Slope, Kyoto, Japan',
             'latitude' => '34.9943',
@@ -199,7 +200,7 @@ class LocationFormTest extends KernelTestCase
 
         $this->assertSame('Kiyomizu-dera', $values['romanizedName']);
         $this->assertSame('清水寺', $values['japaneseName']);
-        $this->assertSame('Kyoto', $values['locality']);
+        $this->assertSame('Kyoto', $values['city']);
         $this->assertSame('Kyoto', $values['prefecture']);
         $this->assertSame('Kiyomizu Slope, Kyoto, Japan', $values['address']);
         $this->assertSame('34.994300', $values['latitude'], 'The coordinate lost the scale the field declares.');
@@ -209,12 +210,12 @@ class LocationFormTest extends KernelTestCase
 
     public function test_a_chosen_place_overwrites_what_was_already_there(): void
     {
-        $location = LocationFactory::createOne(['romanizedName' => 'Typed by hand', 'locality' => 'Somewhere']);
+        $location = LocationFactory::createOne(['romanizedName' => 'Typed by hand', 'city' => CityFactory::createOne(['name' => 'Somewhere'])]);
 
         $values = $this->form(['location' => $location])->call('usePlace', [
             'placeName' => 'Kiyomizu-dera',
             'japaneseName' => '',
-            'locality' => 'Kyoto',
+            'city' => 'Kyoto',
             'prefecture' => 'Kyoto',
             'address' => '',
             'latitude' => '34.9943',
@@ -222,7 +223,7 @@ class LocationFormTest extends KernelTestCase
         ])->component()->formValues;
 
         $this->assertSame('Kiyomizu-dera', $values['romanizedName'], 'A hand-typed name survived a chosen result.');
-        $this->assertSame('Kyoto', $values['locality']);
+        $this->assertSame('Kyoto', $values['city']);
         $this->assertSame('', $values['japaneseName'], 'A value the geocoder does not know was left behind.');
     }
 
@@ -231,7 +232,7 @@ class LocationFormTest extends KernelTestCase
         $values = $this->form()->call('usePlace', [
             'placeName' => 'Some Place',
             'japaneseName' => '',
-            'locality' => '',
+            'city' => '',
             'prefecture' => '',
             'address' => '',
             'latitude' => '',
@@ -248,7 +249,7 @@ class LocationFormTest extends KernelTestCase
                 'romanizedName' => 'Kiyomizu-dera',
                 'japaneseName' => '清水寺',
                 'type' => 'temple',
-                'locality' => 'Kyōto',
+                'city' => 'Kyōto',
                 'prefecture' => 'Kyōto',
                 'address' => '',
                 'latitude' => '34.9949',

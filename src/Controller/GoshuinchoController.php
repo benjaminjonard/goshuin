@@ -27,6 +27,25 @@ class GoshuinchoController extends AbstractController
     ) {
     }
 
+    #[Route(path: '', name: 'app_goshuincho_index', methods: ['GET'])]
+    public function index(Request $request): Response
+    {
+        $term = trim($request->query->getString('q'));
+        $page = max(1, $request->query->getInt('page', 1));
+        $pages = $this->goshuinchos->pages($term);
+
+        if ($page > $pages) {
+            throw $this->createNotFoundException();
+        }
+
+        return $this->render('App/Goshuincho/index.html.twig', [
+            'goshuinchos' => $this->goshuinchos->browse($term, $page),
+            'term' => $term,
+            'page' => $page,
+            'pages' => $pages,
+        ]);
+    }
+
     #[Route(path: '/add', name: 'app_goshuincho_add', methods: ['GET', 'POST'])]
     public function add(Request $request): Response
     {

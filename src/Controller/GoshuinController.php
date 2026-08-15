@@ -9,21 +9,23 @@ use App\Entity\Goshuincho;
 use App\Enum\PhotoType;
 use App\Form\Type\GoshuinType;
 use App\Repository\GoshuinRepository;
+use App\Repository\GoshuinchoRepository;
 use App\Repository\PhotoRepository;
 use App\Service\PhotoInstructions;
 use App\Service\PhotoSet;
 use App\Service\Positioner;
+use App\Service\Scope;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route(path: '/goshuincho/{slug}/goshuin')]
 class GoshuinController extends AbstractController
 {
     public function __construct(
         private readonly GoshuinRepository $goshuins,
+        private readonly GoshuinchoRepository $goshuinchos,
         private readonly PhotoRepository $photos,
         private readonly Positioner $positioner,
         private readonly PhotoSet $set,
@@ -31,7 +33,28 @@ class GoshuinController extends AbstractController
     ) {
     }
 
-    #[Route(path: '/add', name: 'app_goshuin_add', methods: ['GET', 'POST'])]
+    #[Route(path: '/goshuin', name: 'app_goshuin_index', methods: ['GET'])]
+    public function index(Request $request): Response
+    {
+        $term = trim($request->query->getString('q'));
+        $page = max(1, $request->query->getInt('page', 1));
+        $scope = $this->scope($request);
+        $pages = $this->goshuins->pages($term, $scope?->subject);
+
+        if ($page > $pages) {
+            throw $this->createNotFoundException();
+        }
+
+        return $this->render('App/Goshuin/index.html.twig', [
+            'goshuins' => $this->goshuins->browse($term, $page, $scope?->subject),
+            'scope' => $scope,
+            'term' => $term,
+            'page' => $page,
+            'pages' => $pages,
+        ]);
+    }
+
+    #[Route(path: '/goshuincho/{slug}/goshuin/add', name: 'app_goshuin_add', methods: ['GET', 'POST'])]
     public function add(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Goshuincho $goshuincho): Response
     {
         $goshuin = new Goshuin();
@@ -58,7 +81,7 @@ class GoshuinController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/{position}', name: 'app_goshuin_show', requirements: ['position' => '\d+'], methods: ['GET'])]
+    #[Route(path: '/goshuincho/{slug}/goshuin/{position}', name: 'app_goshuin_show', requirements: ['position' => '\d+'], methods: ['GET'])]
     public function show(#[MapEntity(mapping: ['slug' => 'slug'])] Goshuincho $goshuincho, int $position): Response
     {
         $goshuin = $this->goshuins->atPosition($goshuincho, $position);
@@ -75,7 +98,7 @@ class GoshuinController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/{position}/edit', name: 'app_goshuin_edit', requirements: ['position' => '\d+'], methods: ['GET', 'POST'])]
+    #[Route(path: '/goshuincho/{slug}/goshuin/{position}/edit', name: 'app_goshuin_edit', requirements: ['position' => '\d+'], methods: ['GET', 'POST'])]
     public function edit(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Goshuincho $goshuincho, int $position): Response
     {
         $goshuin = $this->goshuins->atPosition($goshuincho, $position);
@@ -105,7 +128,7 @@ class GoshuinController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/{position}/delete', name: 'app_goshuin_delete', requirements: ['position' => '\d+'], methods: ['GET', 'POST'])]
+    #[Route(path: '/goshuincho/{slug}/goshuin/{position}/delete', name: 'app_goshuin_delete', requirements: ['position' => '\d+'], methods: ['GET', 'POST'])]
     public function delete(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Goshuincho $goshuincho, int $position): Response
     {
         $goshuin = $this->goshuins->atPosition($goshuincho, $position);
@@ -128,6 +151,30 @@ class GoshuinController extends AbstractController
             'goshuincho' => $goshuincho,
             'goshuin' => $goshuin,
         ]);
+    }
+
+    private function scope(Request $request): ?Scope
+    {
+        $slug = trim($request->query->getString('goshuincho'));
+
+        if ($slug !== '') {
+            $goshuincho = $this->goshuinchos->findOneBy(['slug' => $slug]);
+
+            if ($goshuincho === null) {
+                throw $this->createNotFoundException();
+            }
+
+            return new Scope(
+                key: 'goshuincho',
+                value: $slug,
+                icon: 'goshuincho',
+                label: $goshuincho->getTitle(),
+                href: $this->generateUrl('app_goshuincho_show', ['slug' => $slug]),
+                subject: $goshuincho,
+            );
+        }
+
+        return null;
     }
 
     /**

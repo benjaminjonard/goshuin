@@ -87,56 +87,12 @@
                 {% endembed %}
             {% endif %}
 
-            {% set totals = [
-                {icon: 'goshuincho', value: tally.goshuincho ?: null, label: 'label.stat_goshuincho'},
-                {icon: 'goshuin', value: tally.goshuin ?: null, label: 'label.stat_goshuin'},
-                {icon: 'pin', value: tally.cities ?: null, label: 'label.stat_cities'},
-                {icon: 'map', value: tally.prefectures ?: null, label: 'label.stat_prefectures'},
-            ]|filter(total => total.value) %}
-
-            {% if totals is not empty %}
-                <div class="grid grid-cols-2 gap-[clamp(10px,1.2vw,14px)] min-[560px]:grid-cols-4">
-                    {% for total in totals %}
-                        <div class="tile flex items-center gap-2.5 p-3.5">
-                            <span class="grid size-8 shrink-0 place-items-center rounded-[10px] bg-accent-soft text-accent-text" aria-hidden="true">
-                                {{ include('App/_partials/_icon.html.twig', {name: total.icon, small: true}) }}
-                            </span>
-                            <span>
-                                <span class="block text-[19px] font-bold tabular-nums leading-none">{{ total.value }}</span>
-                                <span class="block text-[11.5px] text-fg-3">{{ total.label|trans({'%count%': total.value}) }}</span>
-                            </span>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-
-            {% if recent is not empty %}
-                {% embed 'App/_partials/_section.html.twig' with {title: 'label.recent'|trans} %}
-                    {% block content %}
-                        <ol class="grid gap-0">
-                            {% for goshuin in recent %}
-                                <li class="not-first:border-t not-first:border-line">
-                                    <a href="{{ path('app_goshuin_show', {slug: goshuin.goshuincho.slug, position: goshuin.position}) }}"
-                                       class="flex items-center gap-3 rounded-xl px-2 py-2 no-underline hover:bg-tile-2"
-                                       style="--hue: {{ goshuin.goshuincho.hue }}">
-                                        <img src="{{ goshuin.imageMini|image }}" alt="" class="size-9 shrink-0 rounded-md object-cover">
-                                        <span class="min-w-0 flex-auto">
-                                            <span class="block truncate text-[13.5px] font-semibold text-fg">{{ goshuin.location.romanizedName }}</span>
-                                            <span class="flex items-center gap-[7px] text-xs text-fg-3">
-                                                <span class="size-2 shrink-0 rounded-full hue-fill" aria-hidden="true"></span>
-                                                <span class="truncate">{{ goshuin.goshuincho.title }}</span>
-                                            </span>
-                                        </span>
-                                        {% if goshuin.receivedOn %}
-                                            <span class="shrink-0 text-[12.5px] tabular-nums text-fg-2">{{ goshuin.receivedOn|format_date('long') }}</span>
-                                        {% endif %}
-                                    </a>
-                                </li>
-                            {% endfor %}
-                        </ol>
-                    {% endblock %}
-                {% endembed %}
-            {% endif %}
+            {{ include('App/_partials/_totals.html.twig', {totals: [
+                {icon: 'goshuincho', value: tally.goshuincho, label: 'label.stat_goshuincho', href: path('app_goshuincho_index')},
+                {icon: 'goshuin', value: tally.goshuin, label: 'label.stat_goshuin', href: path('app_goshuin_index')},
+                {icon: 'city', value: tally.cities, label: 'label.stat_cities', href: path('app_city_index')},
+                {icon: 'prefecture', value: tally.prefectures, label: 'label.stat_prefectures', href: path('app_prefecture_index')},
+            ]}) }}
         </main>
     {% endif %}
 {% endblock %}

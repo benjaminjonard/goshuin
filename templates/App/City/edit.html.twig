@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ city.name }} · Goshuin{% endblock %}
+
+{% block bar %}
+    {{ include('App/_partials/_bar.html.twig', {
+        kicker: [{label: 'label.cities'|trans, href: path('app_city_index')}],
+        title: city.name,
+    }) }}
+{% endblock %}
+
+{% block body %}
+    <main class="page mx-auto grid w-full max-w-[560px] gap-[clamp(12px,1.4vw,18px)]">
+        {{ form_start(form, {attr: {class: 'grid gap-[clamp(12px,1.4vw,18px)]', enctype: 'multipart/form-data'}}) }}
+            {{ include('App/City/_form.html.twig') }}
+
+            <div class="mt-1 flex justify-end gap-2.5">
+                {{ include('App/_partials/_button.html.twig', {label: 'label.cancel'|trans, href: path('app_city_show', {id: city.id})}) }}
+                {{ include('App/_partials/_button.html.twig', {label: 'label.save'|trans, variant: 'primary', type: 'submit', name: 'city_submit'}) }}
+            </div>
+        {{ form_end(form) }}
+    </main>
+{% endblock %}

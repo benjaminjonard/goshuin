@@ -14,6 +14,7 @@ use App\Repository\GoshuinRepository;
 use App\Repository\PhotoRepository;
 use App\Tests\AppTestCase;
 use App\Tests\Factory\DeityFactory;
+use App\Tests\Factory\CityFactory;
 use App\Tests\Factory\GoshuinFactory;
 use App\Tests\Factory\GoshuinchoFactory;
 use App\Tests\Factory\LocationFactory;
@@ -240,7 +241,7 @@ class GoshuinTest extends AppTestCase
         $goshuin = $this->collect($goshuincho, LocationFactory::createOne([
             'romanizedName' => 'Fushimi Inari-taisha',
             'japaneseName' => '伏見稲荷大社',
-            'locality' => 'Fushimi-ku, Kyōto',
+            'city' => CityFactory::createOne(['name' => 'Fushimi-ku, Kyōto']),
             'latitude' => 34.9671,
             'longitude' => 135.7727,
         ]));
@@ -263,7 +264,7 @@ class GoshuinTest extends AppTestCase
         $this->assertCount(1, $map, 'The location is not placed on a map.');
         $this->assertSame('numbered', $map->attr('data-map-mode-value'));
         $this->assertJsonStringEqualsJsonString(
-            '[{"latitude":34.9671,"longitude":135.7727,"number":1,"label":"Fushimi Inari-taisha"}]',
+            '[{"latitude":34.9671,"longitude":135.7727,"number":1,"hue":'.$goshuincho->getHue().',"label":"Fushimi Inari-taisha"}]',
             (string) $map->attr('data-map-markers-value'),
             'The pin is not placed where the location is, carrying the page it stands for.',
         );
@@ -888,6 +889,85 @@ class GoshuinTest extends AppTestCase
     private function page(Goshuincho $goshuincho, int $position): string
     {
         return '/goshuincho/'.$goshuincho->getSlug().'/goshuin/'.$position;
+    }
+
+    public function test_the_map_pin_takes_the_colour_of_the_goshuincho_holding_it(): void
+    {
+        $user = UserFactory::createOne();
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'hue' => 210]);
+        $this->client->loginUser($user);
+
+        GoshuinFactory::new()->in($goshuincho)->create([
+            'location' => LocationFactory::createOne([
+                'romanizedName' => 'Kiyomizu-dera',
+                'latitude' => 34.9949,
+                'longitude' => 135.7850,
+            ]),
+        ]);
+
+        $map = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/1')
+            ->filter('main [data-controller="map"]')
+        ;
+        $markers = json_decode((string) $map->attr('data-map-markers-value'), true);
+
+        $this->assertSame(210, $markers[0]['hue'], 'The pin does not carry the colour chosen for the goshuincho.');
+    }
+
+    public function test_the_index_lists_every_goshuin_held_and_opens_each_one(): void
+    {
+        $user = UserFactory::createOne();
+        $this->client->loginUser($user);
+        $kansai = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kansai']);
+        $kanto = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kantō']);
+        GoshuinFactory::new()->in($kansai)->on('2025-03-14')->create(['location' => LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera'])]);
+        GoshuinFactory::new()->in($kanto)->on('2025-05-02')->create(['location' => LocationFactory::createOne(['romanizedName' => 'Sensō-ji'])]);
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/goshuin');
+
+        $this->assertResponseIsSuccessful();
+        $cards = $crawler->filter('main ul li a');
+        $this->assertCount(2, $cards, 'The index does not list every goshuin.');
+        $this->assertSame('/goshuincho/'.$kanto->getSlug().'/goshuin/1', $cards->first()->attr('href'), 'The index is not led by the latest goshuin.');
+        $this->assertStringContainsString('Kantō', $cards->first()->text(), 'The index does not say which goshuincho holds the goshuin.');
+    }
+
+    public function test_the_index_narrows_to_one_goshuincho_and_offers_the_way_back(): void
+    {
+        $user = UserFactory::createOne();
+        $this->client->loginUser($user);
+        $kansai = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kansai']);
+        $kanto = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kantō']);
+        GoshuinFactory::new()->in($kansai)->create(['location' => LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera'])]);
+        GoshuinFactory::new()->in($kanto)->create(['location' => LocationFactory::createOne(['romanizedName' => 'Sensō-ji'])]);
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/goshuin?goshuincho='.$kansai->getSlug());
+
+        $this->assertResponseIsSuccessful();
+        $this->assertCount(1, $crawler->filter('main ul li a'), 'The list is not narrowed to the goshuincho asked for.');
+        $this->assertStringContainsString('Kiyomizu-dera', $crawler->filter('main ul li a')->text());
+        $this->assertCount(1, $crawler->filter('main a[href="/goshuin"]'), 'Nothing leads back to the whole list.');
+        $this->assertCount(1, $crawler->filter('main a[href="/goshuincho/'.$kansai->getSlug().'"]'), 'The narrowed list does not name the goshuincho it follows.');
+    }
+
+    public function test_the_index_holds_no_other_collectors_goshuin(): void
+    {
+        $owner = UserFactory::createOne();
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $owner, 'title' => 'Not yours']);
+        GoshuinFactory::new()->in($goshuincho)->create(['location' => LocationFactory::createOne(['romanizedName' => 'Hidden away'])]);
+        $this->client->loginUser(UserFactory::createOne());
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/goshuin');
+
+        $this->assertStringNotContainsString('Hidden away', $crawler->filter('main')->text(), 'A foreign goshuin reached the index.');
+    }
+
+    public function test_the_index_is_narrowed_by_an_unknown_goshuincho_to_nothing_at_all(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+
+        $this->client->request(Request::METHOD_GET, '/goshuin?goshuincho=never-bought');
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND, 'An unknown goshuincho was accepted as a filter.');
     }
 
     /**

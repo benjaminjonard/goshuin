@@ -1,0 +1,16 @@
+<div class="tile tile-pad grid gap-4">
+    {{ form_errors(form) }}
+    {{ form_row(form.name) }}
+    {{ form_row(form.prefecture) }}
+    {{ form_row(form.notes) }}
+
+    <div class="grid gap-1.5">
+        {{ form_row(form.photographFile, {attr: {'data-cover': form.vars.data.photographCard, 'data-untitled': true}}) }}
+        {{ form_errors(form.photographFile) }}
+        <div class="flex justify-end">{{ form_widget(form.removePhotograph) }}</div>
+    </div>
+
+    {{ include('App/_partials/_photos.html.twig', {scope: 'city', label: 'label.additional_photographs', photos: form.vars.data.photos}) }}
+
+    {{ form_rest(form) }}
+</div>

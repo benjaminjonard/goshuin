@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'label.prefectures'|trans }} · Goshuin{% endblock %}
+
+{% block bar %}
+    {{ include('App/_partials/_bar.html.twig', {title: 'label.prefectures'|trans}) }}
+{% endblock %}
+
+{% block body %}
+    {{ include('App/_partials/_list.html.twig', {
+        route: 'app_prefecture_index',
+        search: 'label.prefecture_search',
+        nothing: 'label.no_prefecture_yet',
+        noun: 'label.prefectures',
+        back: 'label.all_prefectures',
+        cards: prefectures|map(prefecture => {
+            href: path('app_prefecture_show', {id: prefecture.id}),
+            image: prefecture.photographCard,
+            icon: 'prefecture',
+            title: prefecture.name,
+        }),
+    }) }}
+{% endblock %}

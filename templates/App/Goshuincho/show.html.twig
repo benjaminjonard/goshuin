@@ -42,21 +42,22 @@
                         {{ include('App/_partials/_kvs.html.twig', {rows: [
                             {
                                 label: 'label.origin'|trans,
-                                value: origin ? [origin.japaneseName, origin.romanizedName]|filter(part => part)|join(' · ') : null,
+                                value: origin ? [origin.romanizedName, origin.japaneseName]|filter(part => part)|join(' · ') : null,
                                 href: origin ? path('app_location_show', {id: origin.id}) : null,
-                                jp: origin and origin.japaneseName is not empty,
                             },
                             {label: 'label.purchased_on'|trans, value: goshuincho.purchasedAt ? goshuincho.purchasedAt|format_date('long') : null},
                             {label: 'label.price_paid'|trans, value: goshuincho.price|money(goshuincho.currency)},
                         ]}) }}
 
                         {% for places in [
-                            {label: 'label.cities', held: summary.cities},
-                            {label: 'label.prefectures', held: summary.prefectures},
+                            {label: 'label.cities', held: summary.cities, route: 'app_city_show'},
+                            {label: 'label.prefectures', held: summary.prefectures, route: 'app_prefecture_show'},
                         ]|filter(places => places.held is not empty) %}
                             <div class="grid gap-1.5">
                                 <span class="text-[12.5px] font-semibold text-fg-2">{{ places.label|trans }}</span>
-                                {{ include('App/_partials/_pills.html.twig', {pills: places.held|map(place => {text: place})}) }}
+                                {{ include('App/_partials/_pills.html.twig', {
+                                    pills: places.held|map(place => {text: place.name, href: path(places.route, {id: place.id})}),
+                                }) }}
                             </div>
                         {% endfor %}
 
@@ -67,7 +68,7 @@
                 {% endblock %}
             {% endembed %}
 
-            {% embed 'App/_partials/_section.html.twig' with {title: 'label.goshuin'|trans, aux: 'label.in_order'|trans} %}
+            {% embed 'App/_partials/_section.html.twig' with {title: 'label.goshuin'|trans} %}
                 {% block content %}
                     {% if goshuincho.goshuins|length %}
                         <ol class="gallery">
@@ -76,9 +77,9 @@
                                     <a href="{{ path('app_goshuin_show', {slug: goshuincho.slug, position: goshuin.position}) }}" class="grid gap-1.5 no-underline">
                                         <img src="{{ goshuin.imageCard|image }}" alt="{{ goshuin.location.romanizedName }}" class="image-frame"
                                              {% if goshuin.imageWidth and goshuin.imageHeight %}width="{{ goshuin.imageWidth }}" height="{{ goshuin.imageHeight }}"{% endif %}>
-                                        <span class="block w-0 min-w-full text-[13px] font-semibold text-fg">{{ goshuin.location.romanizedName }}</span>
+                                        <span class="block w-0 min-w-full text-center text-[13px] font-semibold text-fg">{{ goshuin.location.romanizedName }}</span>
                                         {% if goshuin.receivedOn %}
-                                            <span class="block w-0 min-w-full text-xs tabular-nums text-fg-3">{{ goshuin.receivedOn|format_date('long') }}</span>
+                                            <span class="block w-0 min-w-full text-center text-xs tabular-nums text-fg-3">{{ goshuin.receivedOn|format_date('long') }}</span>
                                         {% endif %}
                                     </a>
                                 </li>
@@ -104,28 +105,12 @@
                 {% endblock %}
             {% endembed %}
 
-            {% set tiles = [
-                {icon: 'goshuin', value: summary.goshuin ?: null, label: 'label.stat_goshuin'},
-                {icon: 'pin', value: summary.cities|length ?: null, label: 'label.stat_cities'},
-                {icon: 'map', value: summary.prefectures|length ?: null, label: 'label.stat_prefectures'},
+            {{ include('App/_partials/_totals.html.twig', {totals: [
+                {icon: 'goshuin', value: summary.goshuin, label: 'label.stat_goshuin', href: path('app_goshuin_index', {goshuincho: goshuincho.slug})},
+                {icon: 'city', value: summary.cities|length, label: 'label.stat_cities', href: path('app_city_index', {goshuincho: goshuincho.slug})},
+                {icon: 'prefecture', value: summary.prefectures|length, label: 'label.stat_prefectures', href: path('app_prefecture_index', {goshuincho: goshuincho.slug})},
                 {icon: 'cal', value: summary.days, label: 'label.stat_days'},
-            ]|filter(tile => tile.value) %}
-
-            {% if tiles is not empty %}
-                <div class="grid grid-cols-2 gap-[clamp(10px,1.2vw,14px)] min-[560px]:grid-cols-4">
-                    {% for tile in tiles %}
-                        <div class="tile flex items-center gap-2.5 p-3.5">
-                            <span class="grid size-8 shrink-0 place-items-center rounded-[10px] bg-accent-soft text-accent-text" aria-hidden="true">
-                                {{ include('App/_partials/_icon.html.twig', {name: tile.icon, small: true}) }}
-                            </span>
-                            <span>
-                                <span class="block text-[19px] font-bold tabular-nums leading-none">{{ tile.value }}</span>
-                                <span class="block text-[11.5px] text-fg-3">{{ tile.label|trans({'%count%': tile.value}) }}</span>
-                            </span>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
+            ]}) }}
         </div>
 
         <div class="stack">
@@ -190,11 +175,11 @@
                                                     <span class="grid size-[26px] shrink-0 place-items-center rounded-full bg-tile-2 text-[12px] font-bold tabular-nums text-fg-2">{{ goshuin.position }}</span>
                                                     <span class="min-w-0 flex-auto">
                                                         <span class="block truncate text-[14.5px] font-semibold text-fg">
-                                                            {{- goshuin.location.japaneseName ?: goshuin.location.romanizedName -}}
+                                                            {{- goshuin.location.romanizedName -}}
                                                         </span>
                                                         {% set below = [
-                                                            goshuin.location.japaneseName ? goshuin.location.romanizedName : null,
-                                                            goshuin.location.locality,
+                                                            goshuin.location.japaneseName,
+                                                            goshuin.location.city ? goshuin.location.city.name : null,
                                                         ]|filter(part => part)|join(' · ') %}
                                                         {% if below is not empty %}
                                                             <span class="block truncate text-xs text-fg-3">{{ below }}</span>

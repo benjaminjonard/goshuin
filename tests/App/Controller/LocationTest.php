@@ -8,14 +8,18 @@ use App\Entity\Deity;
 use App\Entity\Goshuincho;
 use App\Entity\Location;
 use App\Entity\LocationPhoto;
+use App\Repository\CityRepository;
 use App\Repository\DeityRepository;
 use App\Repository\GoshuinRepository;
 use App\Repository\LocationPhotoRepository;
 use App\Repository\LocationRepository;
+use App\Repository\PrefectureRepository;
 use App\Tests\AppTestCase;
+use App\Tests\Factory\CityFactory;
 use App\Tests\Factory\DeityFactory;
 use App\Tests\Factory\GoshuinchoFactory;
 use App\Tests\Factory\LocationFactory;
+use App\Tests\Factory\PrefectureFactory;
 use App\Tests\Factory\UserFactory;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Request;
@@ -44,8 +48,8 @@ class LocationTest extends AppTestCase
         $kiyomizu = LocationFactory::createOne([
             'romanizedName' => 'Kiyomizu-dera',
             'japaneseName' => '清水寺',
-            'locality' => 'Kyōto',
-            'prefecture' => 'Kyōto',
+            'city' => CityFactory::createOne(['name' => 'Kyōto']),
+            'prefecture' => PrefectureFactory::createOne(['name' => 'Kyōto']),
         ]);
         LocationFactory::createOne(['romanizedName' => 'Sensō-ji', 'japaneseName' => null]);
 
@@ -109,8 +113,8 @@ class LocationTest extends AppTestCase
         $location = LocationFactory::createOne([
             'romanizedName' => 'Kiyomizu-dera',
             'japaneseName' => '清水寺',
-            'locality' => 'Kyōto',
-            'prefecture' => 'Kyōto',
+            'city' => CityFactory::createOne(['name' => 'Kyōto']),
+            'prefecture' => PrefectureFactory::createOne(['name' => 'Kyōto']),
             'address' => 'Higashiyama-ku, Kyōto',
             'latitude' => 34.9948,
             'longitude' => 135.7850,
@@ -124,7 +128,7 @@ class LocationTest extends AppTestCase
         $this->assertSame('Kiyomizu-dera 清水寺', preg_replace('/\s+/', ' ', trim($crawler->filter('h1')->text())), 'The page does not name the location in both scripts.');
 
         $text = $crawler->filter('main')->text();
-        $this->assertStringContainsString('Kyōto', $text, 'The page does not read its locality back.');
+        $this->assertStringContainsString('Kyōto', $text, 'The page does not read its city back.');
         $this->assertStringContainsString('Higashiyama-ku', $text, 'The page does not read its address back.');
         $this->assertStringContainsString('34.9948, 135.7850', $text, 'The page does not read its coordinates back.');
         $this->assertCount(1, $crawler->filter('main [data-controller="map"]'), 'A placed location is not put on a map.');
@@ -550,7 +554,7 @@ class LocationTest extends AppTestCase
         $location = LocationFactory::createOne([
             'romanizedName' => 'Kiyomizudera',
             'japaneseName' => null,
-            'locality' => null,
+            'city' => null,
             'prefecture' => null,
             'latitude' => null,
             'longitude' => null,
@@ -563,7 +567,7 @@ class LocationTest extends AppTestCase
             'location[romanizedName]' => 'Kiyomizu-dera',
             'location[japaneseName]' => '清水寺',
             'location[type]' => 'temple',
-            'location[locality]' => 'Kyōto',
+            'location[city]' => 'Kyōto',
             'location[prefecture]' => 'Kyōto',
             'location[latitude]' => '34.9948',
             'location[longitude]' => '135.7850',
@@ -575,7 +579,7 @@ class LocationTest extends AppTestCase
 
         $this->assertStringContainsString('清水寺', $this->client->getResponse()->getContent());
         $this->assertStringContainsString('Temple', $page, 'The corrected type does not read back.');
-        $this->assertStringContainsString('Kyōto', $page, 'The corrected locality does not read back.');
+        $this->assertStringContainsString('Kyōto', $page, 'The corrected city does not read back.');
         $this->assertStringContainsString('34.9948, 135.7850', $page, 'The coordinates given by hand do not read back.');
         $this->assertStringContainsString('Chawan-zaka', $page, 'The notes do not read back.');
 
@@ -583,6 +587,98 @@ class LocationTest extends AppTestCase
         $this->assertStringContainsString('Kiyomizu-dera', $goshuin->filter('main')->text(), 'The corrected name did not reach the goshuin that came from there.');
 
         $this->emptyUploads();
+    }
+
+    public function test_a_typed_city_and_prefecture_that_are_unknown_are_created_and_tied_together(): void
+    {
+        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $location = LocationFactory::createOne(['romanizedName' => 'Hase-dera', 'city' => null, 'prefecture' => null]);
+
+        $this->place($location, 'Kamakura', 'Kanagawa');
+
+        $stored = $this->reread($location);
+
+        $this->assertSame('Kamakura', $stored->getCity()->getName(), 'The typed city was not created.');
+        $this->assertSame('Kanagawa', $stored->getPrefecture()->getName(), 'The typed prefecture was not created.');
+        $this->assertSame('Kanagawa', $stored->getCity()->getPrefecture()->getName(), 'The new city was not tied to the prefecture typed beside it.');
+    }
+
+    public function test_a_typed_city_matches_what_is_stored_whatever_the_casing(): void
+    {
+        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $kamakura = CityFactory::createOne(['name' => 'Kamakura']);
+        $kanagawa = PrefectureFactory::createOne(['name' => 'Kanagawa']);
+        $location = LocationFactory::createOne(['romanizedName' => 'Hase-dera', 'city' => null, 'prefecture' => null]);
+
+        $this->place($location, '  kAmAkUrA  ', 'KANAGAWA');
+
+        $stored = $this->reread($location);
+
+        $this->assertSame($kamakura->getId(), $stored->getCity()->getId(), 'A second city was created for a name already stored.');
+        $this->assertSame($kanagawa->getId(), $stored->getPrefecture()->getId(), 'A second prefecture was created for a name already stored.');
+        $this->assertCount(1, static::getContainer()->get(CityRepository::class)->findAll(), 'The city table grew.');
+        $this->assertCount(1, static::getContainer()->get(PrefectureRepository::class)->findAll(), 'The prefecture table grew.');
+    }
+
+    public function test_a_city_already_tied_to_a_prefecture_keeps_it(): void
+    {
+        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $kanagawa = PrefectureFactory::createOne(['name' => 'Kanagawa']);
+        CityFactory::createOne(['name' => 'Fuchū', 'prefecture' => $kanagawa]);
+        PrefectureFactory::createOne(['name' => 'Tokyo']);
+        $location = LocationFactory::createOne(['romanizedName' => 'Ōkunitama Jinja', 'city' => null, 'prefecture' => null]);
+
+        $this->place($location, 'Fuchū', 'Tokyo');
+
+        $stored = $this->reread($location);
+
+        $this->assertSame('Tokyo', $stored->getPrefecture()->getName(), 'The prefecture typed on the location was not kept.');
+        $this->assertSame('Kanagawa', $stored->getCity()->getPrefecture()->getName(), 'A stored city was moved by a prefecture typed beside it.');
+    }
+
+    public function test_clearing_the_city_lets_go_of_it_without_removing_it(): void
+    {
+        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $kamakura = CityFactory::createOne(['name' => 'Kamakura']);
+        $location = LocationFactory::createOne(['romanizedName' => 'Hase-dera', 'city' => $kamakura, 'prefecture' => null]);
+
+        $this->place($location, '', '');
+
+        $this->assertNull($this->reread($location)->getCity(), 'The location still points at a city.');
+        $this->assertNotNull(static::getContainer()->get(CityRepository::class)->find($kamakura->getId()), 'Letting go of a city removed it.');
+    }
+
+    public function test_a_city_typed_as_whitespace_alone_creates_nothing(): void
+    {
+        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $location = LocationFactory::createOne(['romanizedName' => 'Hase-dera', 'city' => null, 'prefecture' => null]);
+
+        $this->place($location, '   ', '   ');
+
+        $stored = $this->reread($location);
+
+        $this->assertNull($stored->getCity(), 'A city was made out of whitespace.');
+        $this->assertNull($stored->getPrefecture(), 'A prefecture was made out of whitespace.');
+        $this->assertCount(0, static::getContainer()->get(CityRepository::class)->findAll(), 'A city row was written anyway.');
+        $this->assertCount(0, static::getContainer()->get(PrefectureRepository::class)->findAll(), 'A prefecture row was written anyway.');
+    }
+
+    private function place(Location $location, string $city, string $prefecture): void
+    {
+        $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
+        $this->client->submitForm('location_submit', [
+            'location[romanizedName]' => $location->getRomanizedName(),
+            'location[city]' => $city,
+            'location[prefecture]' => $prefecture,
+        ]);
+
+        $this->assertResponseRedirects();
+        $this->manager()->clear();
+    }
+
+    private function reread(Location $location): Location
+    {
+        return static::getContainer()->get(LocationRepository::class)->find($location->getId());
     }
 
     public function test_a_deity_named_in_the_notes_of_a_location_leads_to_its_page(): void
@@ -749,7 +845,7 @@ class LocationTest extends AppTestCase
     {
         $this->manager()->clear();
 
-        return static::getContainer()->get(LocationPhotoRepository::class)->ofLocation(
+        return static::getContainer()->get(LocationPhotoRepository::class)->ofSubject(
             static::getContainer()->get(LocationRepository::class)->find($location->getId()),
         );
     }

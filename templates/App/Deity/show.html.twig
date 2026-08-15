@@ -27,7 +27,7 @@
                     <section class="tile stage">
                         <a href="{{ deity.photograph|image }}" class="block" data-action="lightbox#open">
                             <img src="{{ deity.photographFull|image }}" alt="{{ deity.name }}"
-                                 class="h-[clamp(260px,28vw,440px)] w-auto max-w-full rounded-xl object-contain shadow-lift">
+                                 class="photograph">
                         </a>
                     </section>
                 {% endif %}
@@ -68,7 +68,7 @@
                                     </span>
                                     <span class="min-w-0 flex-auto">
                                         <span class="block truncate text-[13.5px] font-semibold text-fg">{{ location.romanizedName }}</span>
-                                        {% set below = [location.japaneseName, location.locality, location.prefecture]|filter(part => part is not empty)|join(' · ') %}
+                                        {% set below = [location.japaneseName, location.city ? location.city.name : null, location.prefecture ? location.prefecture.name : null]|filter(part => part is not empty)|join(' · ') %}
                                         {% if below is not empty %}
                                             <span class="block truncate text-xs text-fg-3">{{ below }}</span>
                                         {% endif %}

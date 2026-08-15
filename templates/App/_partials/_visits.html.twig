@@ -1,0 +1,53 @@
+{% if goshuinchos is not empty %}
+    {% embed 'App/_partials/_section.html.twig' with {
+        title: 'label.my_goshuincho'|trans,
+        aux: 'label.pill_goshuincho'|trans({'%count%': goshuinchos|length}),
+    } %}
+        {% block content %}
+            <ul class="gallery">
+                {% for goshuincho in goshuinchos %}
+                    <li class="card" style="--hue: {{ goshuincho.hue }}">
+                        <a href="{{ path('app_goshuincho_show', {slug: goshuincho.slug}) }}" class="grid gap-1.5 no-underline">
+                            {% if goshuincho.coverFrontCard %}
+                                <img src="{{ goshuincho.coverFrontCard|image }}" alt="{{ goshuincho.title }}" class="image-frame">
+                            {% else %}
+                                <span class="image-frame grid aspect-[3/4.2] place-items-center border border-line text-fg-3" aria-hidden="true">
+                                    {{ include('App/_partials/_icon.html.twig', {name: 'goshuincho'}) }}
+                                </span>
+                            {% endif %}
+                            <span class="flex w-0 min-w-full items-center justify-center gap-[7px] text-[13px] font-semibold text-fg">
+                                <span class="size-2 shrink-0 rounded-full hue-fill" aria-hidden="true"></span>
+                                <span class="truncate">{{ goshuincho.title }}</span>
+                            </span>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endblock %}
+    {% endembed %}
+{% endif %}
+
+{% if goshuins is not empty %}
+    {% embed 'App/_partials/_section.html.twig' with {
+        title: 'label.my_goshuin'|trans,
+        aux: 'label.pill_goshuin'|trans({'%count%': goshuins|length}),
+    } %}
+        {% block content %}
+            <ol class="gallery">
+                {% for goshuin in goshuins %}
+                    <li class="card" style="--hue: {{ goshuin.goshuincho.hue }}">
+                        <a href="{{ path('app_goshuin_show', {slug: goshuin.goshuincho.slug, position: goshuin.position}) }}" class="grid gap-1.5 no-underline">
+                            <img src="{{ goshuin.imageCard|image }}" alt="{{ goshuin.location.romanizedName }}" class="image-frame"
+                                 {% if goshuin.imageWidth and goshuin.imageHeight %}width="{{ goshuin.imageWidth }}" height="{{ goshuin.imageHeight }}"{% endif %}>
+                            <span class="block w-0 min-w-full text-center text-[13px] font-semibold text-fg">{{ goshuin.location.romanizedName }}</span>
+                            <span class="flex w-0 min-w-full items-center justify-center gap-[7px] text-xs text-fg-3">
+                                <span class="size-2 shrink-0 rounded-full hue-fill" aria-hidden="true"></span>
+                                <span class="truncate">{{ goshuin.goshuincho.title }}</span>
+                            </span>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ol>
+        {% endblock %}
+    {% endembed %}
+{% endif %}

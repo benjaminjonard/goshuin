@@ -1,0 +1,23 @@
+{% set kept = totals|filter(total => total.value) %}
+
+{% if kept is not empty %}
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-[clamp(10px,1.2vw,14px)]">
+        {% for total in kept %}
+            {% set inside %}
+                <span class="grid size-8 shrink-0 place-items-center rounded-[10px] bg-accent-soft text-accent-text" aria-hidden="true">
+                    {{ include('App/_partials/_icon.html.twig', {name: total.icon, small: true}) }}
+                </span>
+                <span>
+                    <span class="block text-[19px] font-bold tabular-nums leading-none">{{ total.value }}</span>
+                    <span class="block text-[11.5px] text-fg-3">{{ total.label|trans({'%count%': total.value}) }}</span>
+                </span>
+            {% endset %}
+
+            {% if total.href|default(null) %}
+                <a href="{{ total.href }}" class="tile flex items-center gap-2.5 p-3.5 text-fg no-underline hover:border-accent-line hover:bg-tile-2">{{ inside }}</a>
+            {% else %}
+                <div class="tile flex items-center gap-2.5 p-3.5">{{ inside }}</div>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}

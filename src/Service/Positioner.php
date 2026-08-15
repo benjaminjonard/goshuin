@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Entity\AttachedPhoto;
 use App\Entity\Goshuin;
 use App\Entity\Goshuincho;
-use App\Entity\Location;
-use App\Entity\LocationPhoto;
 use App\Entity\Photo;
+use App\Entity\Photographed;
 use App\Enum\PhotoType;
+use App\Repository\AttachedPhotoRepository;
 use App\Repository\GoshuinRepository;
-use App\Repository\LocationPhotoRepository;
 use App\Repository\PhotoRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
@@ -22,7 +22,6 @@ final readonly class Positioner
         private EntityManagerInterface $manager,
         private GoshuinRepository $repository,
         private PhotoRepository $photos,
-        private LocationPhotoRepository $locationPhotos,
     ) {
     }
 
@@ -98,13 +97,14 @@ final readonly class Positioner
         });
     }
 
-    public function addLocationPhoto(LocationPhoto $photo): void
+    public function addAttachedPhoto(AttachedPhoto $photo): void
     {
-        $location = $this->locationOf($photo);
+        $subject = $this->subjectOf($photo);
+        $album = $this->album($subject);
 
-        $this->manager->wrapInTransaction(function () use ($photo, $location): void {
-            $this->manager->lock($location, LockMode::PESSIMISTIC_WRITE);
-            $photo->setPosition($this->locationPhotos->lastPosition($location) + 1);
+        $this->manager->wrapInTransaction(function () use ($photo, $subject, $album): void {
+            $this->manager->lock($subject, LockMode::PESSIMISTIC_WRITE);
+            $photo->setPosition($album->lastPosition($subject) + 1);
             $this->manager->persist($photo);
             $this->manager->flush();
         });
@@ -113,28 +113,39 @@ final readonly class Positioner
     /**
      * @param list<string> $ids
      */
-    public function orderLocationPhotos(Location $location, array $ids): void
+    public function orderAttachedPhotos(Photographed $subject, array $ids): void
     {
-        $this->manager->wrapInTransaction(function () use ($location, $ids): void {
-            $this->manager->lock($location, LockMode::PESSIMISTIC_WRITE);
-            $this->renumber($this->locationPhotos->ofLocation($location), $ids);
+        $album = $this->album($subject);
+
+        $this->manager->wrapInTransaction(function () use ($subject, $album, $ids): void {
+            $this->manager->lock($subject, LockMode::PESSIMISTIC_WRITE);
+            $this->renumber($album->ofSubject($subject), $ids);
         });
     }
 
-    public function removeLocationPhoto(LocationPhoto $photo): void
+    public function removeAttachedPhoto(AttachedPhoto $photo): void
     {
-        $location = $this->locationOf($photo);
+        $subject = $this->subjectOf($photo);
+        $album = $this->album($subject);
 
-        $this->manager->wrapInTransaction(function () use ($photo, $location): void {
-            $this->manager->lock($location, LockMode::PESSIMISTIC_WRITE);
+        $this->manager->wrapInTransaction(function () use ($photo, $subject, $album): void {
+            $this->manager->lock($subject, LockMode::PESSIMISTIC_WRITE);
             $this->manager->remove($photo);
             $this->manager->flush();
-            $this->renumber($this->locationPhotos->ofLocation($location), []);
+            $this->renumber($album->ofSubject($subject), []);
         });
     }
 
     /**
-     * @param list<Goshuin|Photo|LocationPhoto> $items
+     * @return AttachedPhotoRepository<AttachedPhoto>
+     */
+    private function album(Photographed $subject): AttachedPhotoRepository
+    {
+        return $this->manager->getRepository($subject::photoClass());
+    }
+
+    /**
+     * @param list<Goshuin|Photo|AttachedPhoto> $items
      * @param list<string>                      $ids
      */
     private function renumber(array $items, array $ids): void
@@ -164,15 +175,15 @@ final readonly class Positioner
         $this->manager->flush();
     }
 
-    private function locationOf(LocationPhoto $photo): Location
+    private function subjectOf(AttachedPhoto $photo): Photographed
     {
-        $location = $photo->getLocation();
+        $subject = $photo->getSubject();
 
-        if (!$location instanceof Location) {
-            throw new \LogicException('A LocationPhoto is positioned within its Location.');
+        if (!$subject instanceof Photographed) {
+            throw new \LogicException('An AttachedPhoto is positioned within its subject.');
         }
 
-        return $location;
+        return $subject;
     }
 
     private function goshuinOf(Photo $photo): Goshuin
