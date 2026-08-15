@@ -29,10 +29,18 @@ class DeityController extends AbstractController
     public function index(Request $request): Response
     {
         $term = trim($request->query->getString('q'));
+        $page = max(1, $request->query->getInt('page', 1));
+        $pages = $this->deities->pages($term);
+
+        if ($page > $pages) {
+            throw $this->createNotFoundException();
+        }
 
         return $this->render('App/Deity/index.html.twig', [
-            'deities' => $this->deities->browse($term),
+            'deities' => $this->deities->browse($term, $page),
             'term' => $term,
+            'page' => $page,
+            'pages' => $pages,
         ]);
     }
 

@@ -14,6 +14,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class DeityRepository extends ServiceEntityRepository
 {
+    private const int PER_PAGE = 24;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Deity::class);
@@ -22,7 +24,7 @@ class DeityRepository extends ServiceEntityRepository
     /**
      * @return list<Deity>
      */
-    public function browse(?string $term = null): array
+    public function browse(?string $term = null, int $page = 1): array
     {
         $builder = $this->createQueryBuilder('d')->orderBy('d.name', 'ASC');
 
@@ -30,7 +32,25 @@ class DeityRepository extends ServiceEntityRepository
             $this->named($builder, $term);
         }
 
-        return $builder->getQuery()->getResult();
+        return $builder
+            ->setFirstResult(($page - 1) * self::PER_PAGE)
+            ->setMaxResults(self::PER_PAGE)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    public function pages(?string $term = null): int
+    {
+        $builder = $this->createQueryBuilder('d')->select('COUNT(d.id)');
+
+        if ($term !== null && $term !== '') {
+            $this->named($builder, $term);
+        }
+
+        $total = (int) $builder->getQuery()->getSingleScalarResult();
+
+        return max(1, (int) ceil($total / self::PER_PAGE));
     }
 
     /**

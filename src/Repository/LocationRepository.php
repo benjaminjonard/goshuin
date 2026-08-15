@@ -15,6 +15,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class LocationRepository extends ServiceEntityRepository
 {
+    private const int PER_PAGE = 24;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Location::class);
@@ -23,7 +25,7 @@ class LocationRepository extends ServiceEntityRepository
     /**
      * @return list<Location>
      */
-    public function browse(?string $term = null): array
+    public function browse(?string $term = null, int $page = 1): array
     {
         $builder = $this->createQueryBuilder('l')->orderBy('l.romanizedName', 'ASC');
 
@@ -31,7 +33,25 @@ class LocationRepository extends ServiceEntityRepository
             $this->named($builder, $term);
         }
 
-        return $builder->getQuery()->getResult();
+        return $builder
+            ->setFirstResult(($page - 1) * self::PER_PAGE)
+            ->setMaxResults(self::PER_PAGE)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    public function pages(?string $term = null): int
+    {
+        $builder = $this->createQueryBuilder('l')->select('COUNT(l.id)');
+
+        if ($term !== null && $term !== '') {
+            $this->named($builder, $term);
+        }
+
+        $total = (int) $builder->getQuery()->getSingleScalarResult();
+
+        return max(1, (int) ceil($total / self::PER_PAGE));
     }
 
     /**

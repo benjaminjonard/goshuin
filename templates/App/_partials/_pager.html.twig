@@ -1,0 +1,21 @@
+{% if pages > 1 %}
+    {% set step = 'grid size-[34px] place-items-center rounded-[10px] border border-line-2 bg-tile text-fg-2 no-underline hover:border-fg-3 hover:text-fg' %}
+
+    <nav class="flex items-center justify-center gap-1" aria-label="{{ 'label.page'|trans }}">
+        {% if page > 1 %}
+            <a href="{{ path(route, parameters|default({})|merge({page: page - 1})) }}" class="{{ step }}" aria-label="{{ 'label.previous_page'|trans }}">
+                {{- include('App/_partials/_icon.html.twig', {name: 'back', small: true}) -}}
+            </a>
+        {% endif %}
+
+        <span class="px-2 text-[13px] font-semibold tabular-nums text-fg-2">
+            {{- 'label.page_of'|trans({'%position%': '%02d'|format(page), '%total%': '%02d'|format(pages)}) -}}
+        </span>
+
+        {% if page < pages %}
+            <a href="{{ path(route, parameters|default({})|merge({page: page + 1})) }}" class="{{ step }}" aria-label="{{ 'label.next_page'|trans }}">
+                {{- include('App/_partials/_icon.html.twig', {name: 'right', small: true}) -}}
+            </a>
+        {% endif %}
+    </nav>
+{% endif %}

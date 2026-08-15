@@ -179,10 +179,73 @@ class LocationTest extends AppTestCase
 
         $names = $this->client->request(Request::METHOD_GET, '/locations')
             ->filter('main ul li a')
-            ->each(static fn (Crawler $row): string => trim($row->filter('span span')->first()->text()))
+            ->each(static fn (Crawler $row): string => trim($row->filter('h3')->text()))
         ;
 
         $this->assertSame(['Aaa-jinja', 'Mmm-ji', 'Zzz-dera'], $names, 'The index is not ordered by the romanized name.');
+    }
+
+    public function test_the_index_pages_through_the_locations(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+
+        foreach (range(1, 26) as $rank) {
+            LocationFactory::createOne(['romanizedName' => sprintf('Place %02d', $rank), 'japaneseName' => null]);
+        }
+
+        $first = $this->client->request(Request::METHOD_GET, '/locations');
+        $listed = $first->filter('main ul')->text();
+
+        $this->assertCount(24, $first->filter('main ul li a'), 'The index does not hold a full page of locations.');
+        $this->assertStringContainsString('Place 01', $listed);
+        $this->assertStringNotContainsString('Place 25', $listed, 'The first page reaches past its own end.');
+
+        $second = $this->client->click($first->filter('main nav a')->last()->link());
+
+        $this->assertResponseIsSuccessful();
+        $this->assertCount(2, $second->filter('main ul li a'), 'The last page does not hold what the first left.');
+        $this->assertStringContainsString('Place 26', $second->filter('main ul')->text());
+    }
+
+    public function test_a_single_page_of_locations_is_not_paged(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+        LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']);
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/locations');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertCount(0, $crawler->filter('main nav'), 'A single page still offered a way through.');
+    }
+
+    public function test_paging_the_locations_keeps_the_search(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+
+        foreach (range(1, 25) as $rank) {
+            LocationFactory::createOne(['romanizedName' => sprintf('Kyōto place %02d', $rank), 'japaneseName' => null]);
+        }
+
+        LocationFactory::createOne(['romanizedName' => 'Sensō-ji', 'japaneseName' => null]);
+
+        $first = $this->client->request(Request::METHOD_GET, '/locations?q='.urlencode('Kyōto'));
+        $this->assertCount(24, $first->filter('main ul li a'), 'The search does not fill a page.');
+
+        $second = $this->client->click($first->filter('main nav a')->last()->link());
+
+        $this->assertResponseIsSuccessful();
+        $this->assertCount(1, $second->filter('main ul li a'), 'Paging a search dropped it and listed everything again.');
+        $this->assertStringNotContainsString('Sensō-ji', $second->filter('main ul')->text(), 'Paging a search reached what it excluded.');
+    }
+
+    public function test_a_page_of_locations_beyond_the_last_is_not_found(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+        LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']);
+
+        $this->client->request(Request::METHOD_GET, '/locations?page=2');
+
+        $this->assertResponseStatusCodeSame(404);
     }
 
     public function test_a_goshuin_leads_to_the_location_it_came_from(): void

@@ -65,6 +65,69 @@ class DeityTest extends AppTestCase
         $this->assertSame(['Amaterasu', 'Inari', 'Zaō Gongen'], $names, 'The index is not ordered by the name.');
     }
 
+    public function test_the_index_pages_through_the_deities(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+
+        foreach (range(1, 26) as $rank) {
+            DeityFactory::createOne(['name' => sprintf('Kami %02d', $rank)]);
+        }
+
+        $first = $this->client->request(Request::METHOD_GET, '/deities');
+        $listed = $first->filter('main ul')->text();
+
+        $this->assertCount(24, $first->filter('main ul li a'), 'The index does not hold a full page of deities.');
+        $this->assertStringContainsString('Kami 01', $listed);
+        $this->assertStringNotContainsString('Kami 25', $listed, 'The first page reaches past its own end.');
+
+        $second = $this->client->click($first->filter('main nav a')->last()->link());
+
+        $this->assertResponseIsSuccessful();
+        $this->assertCount(2, $second->filter('main ul li a'), 'The last page does not hold what the first left.');
+        $this->assertStringContainsString('Kami 26', $second->filter('main ul')->text());
+    }
+
+    public function test_a_single_page_of_deities_is_not_paged(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+        DeityFactory::createOne(['name' => 'Inari']);
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/deities');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertCount(0, $crawler->filter('main nav'), 'A single page still offered a way through.');
+    }
+
+    public function test_paging_the_deities_keeps_the_search(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+
+        foreach (range(1, 25) as $rank) {
+            DeityFactory::createOne(['name' => sprintf('Kami %02d', $rank)]);
+        }
+
+        DeityFactory::createOne(['name' => 'Inari']);
+
+        $first = $this->client->request(Request::METHOD_GET, '/deities?q=kami');
+        $this->assertCount(24, $first->filter('main ul li a'), 'The search does not fill a page.');
+
+        $second = $this->client->click($first->filter('main nav a')->last()->link());
+
+        $this->assertResponseIsSuccessful();
+        $this->assertCount(1, $second->filter('main ul li a'), 'Paging a search dropped it and listed everything again.');
+        $this->assertStringNotContainsString('Inari', $second->filter('main ul')->text(), 'Paging a search reached what it excluded.');
+    }
+
+    public function test_a_page_of_deities_beyond_the_last_is_not_found(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+        DeityFactory::createOne(['name' => 'Inari']);
+
+        $this->client->request(Request::METHOD_GET, '/deities?page=2');
+
+        $this->assertResponseStatusCodeSame(404);
+    }
+
     public function test_the_index_states_that_no_deity_exists_yet(): void
     {
         $this->client->loginUser(UserFactory::createOne());
@@ -314,7 +377,7 @@ class DeityTest extends AppTestCase
 
         $row = $this->client->request(Request::METHOD_GET, '/deities')->filter('main ul li a img');
         $this->assertCount(1, $row, 'The index does not show the photograph of the deity.');
-        $this->assertSame('/uploads/'.$stored->getPhotographMini(), $row->attr('src'), 'The index does not serve the small photograph.');
+        $this->assertSame('/uploads/'.$stored->getPhotographCard(), $row->attr('src'), 'The index does not serve the card photograph.');
 
         $this->removeUploads($stored->getPhotograph(), $stored->getPhotographMini(), $stored->getPhotographCard(), $stored->getPhotographFull());
     }
