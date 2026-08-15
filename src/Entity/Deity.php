@@ -29,6 +29,11 @@ class Deity
     #[Assert\Length(max: 255)]
     private ?string $name = null;
 
+    /** @var list<string> */
+    #[ORM\Column(type: Types::JSON)]
+    #[Assert\All([new Assert\Length(max: 255)])]
+    private array $additionalNames = [];
+
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
@@ -82,6 +87,24 @@ class Deity
     public function setName(?string $name): Deity
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getAdditionalNames(): array
+    {
+        return $this->additionalNames;
+    }
+
+    /**
+     * @param list<string> $additionalNames
+     */
+    public function setAdditionalNames(array $additionalNames): Deity
+    {
+        $this->additionalNames = $additionalNames;
 
         return $this;
     }

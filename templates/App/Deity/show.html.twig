@@ -17,23 +17,33 @@
 {% endblock %}
 
 {% block body %}
-    {% set aside = deity.photographFull or deity.description is not empty %}
+    {% set aside = deity.photographFull or deity.additionalNames is not empty or deity.description is not empty %}
 
-    <main class="page stack">
+    <main class="page stack" data-controller="lightbox">
         <div class="grid gap-[clamp(12px,1.4vw,18px)]{{ aside ? ' grid-cols-2' }}">
         {% if aside %}
             <div class="grid content-start gap-[clamp(12px,1.4vw,18px)]">
                 {% if deity.photographFull %}
                     <section class="tile stage">
-                        <img src="{{ deity.photographFull|image }}" alt="{{ deity.name }}"
-                             class="h-[clamp(260px,28vw,440px)] w-auto max-w-full rounded-xl object-contain shadow-lift">
+                        <a href="{{ deity.photograph|image }}" class="block" data-action="lightbox#open">
+                            <img src="{{ deity.photographFull|image }}" alt="{{ deity.name }}"
+                                 class="h-[clamp(260px,28vw,440px)] w-auto max-w-full rounded-xl object-contain shadow-lift">
+                        </a>
                     </section>
+                {% endif %}
+
+                {% if deity.additionalNames is not empty %}
+                    {% embed 'App/_partials/_section.html.twig' with {title: 'label.additional_names'|trans} %}
+                        {% block content %}
+                            {{ include('App/_partials/_pills.html.twig', {pills: deity.additionalNames|map(name => {text: name})}) }}
+                        {% endblock %}
+                    {% endembed %}
                 {% endif %}
 
                 {% if deity.description is not empty %}
                     {% embed 'App/_partials/_section.html.twig' with {title: 'label.description'|trans} %}
                         {% block content %}
-                            <div class="text-[14.5px] leading-[1.75] text-fg-2">{{ deity.description|nl2br }}</div>
+                            <div class="text-[14.5px] leading-[1.75] text-fg-2">{{ deity.description|deities(deity) }}</div>
                         {% endblock %}
                     {% endembed %}
                 {% endif %}
@@ -74,5 +84,9 @@
             {% endblock %}
         {% endembed %}
         </div>
+
+        {% if deity.photographFull %}
+            {{ include('App/_partials/_lightbox.html.twig') }}
+        {% endif %}
     </main>
 {% endblock %}

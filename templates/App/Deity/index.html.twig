@@ -40,8 +40,13 @@
                                 </span>
                             {% endif %}
 
-                            <span class="min-w-0 flex-auto truncate text-[14.5px] font-semibold text-fg group-hover:text-accent-text">
-                                {{- deity.name -}}
+                            <span class="min-w-0 flex-auto">
+                                <span class="block truncate text-[14.5px] font-semibold text-fg group-hover:text-accent-text">
+                                    {{- deity.name -}}
+                                </span>
+                                {% if deity.additionalNames is not empty %}
+                                    <span class="block truncate text-xs text-fg-3">{{ deity.additionalNames|join(' · ') }}</span>
+                                {% endif %}
                             </span>
 
                             <span class="shrink-0 text-fg-3 group-hover:text-accent-text" aria-hidden="true">

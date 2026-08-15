@@ -13,6 +13,7 @@ use App\Enum\PhotoType;
 use App\Repository\GoshuinRepository;
 use App\Repository\PhotoRepository;
 use App\Tests\AppTestCase;
+use App\Tests\Factory\DeityFactory;
 use App\Tests\Factory\GoshuinFactory;
 use App\Tests\Factory\GoshuinchoFactory;
 use App\Tests\Factory\LocationFactory;
@@ -284,6 +285,21 @@ class GoshuinTest extends AppTestCase
         $this->assertCount(1, $main->filter('br'), 'The notes lost their line break on the way out.');
 
         $this->discard($created);
+    }
+
+    public function test_a_deity_named_in_the_notes_leads_to_its_page(): void
+    {
+        $user = UserFactory::createOne();
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
+        $inari = DeityFactory::createOne(['name' => 'Inari', 'additionalNames' => ['稲荷大明神']]);
+        GoshuinFactory::new()->in($goshuincho)->create(['notes' => 'Given at the 稲荷大明神 hall, below Inari itself.']);
+
+        $this->client->loginUser($user);
+        $notes = $this->client->request(Request::METHOD_GET, $this->page($goshuincho, 1))->filter('main a[href="/deity/'.$inari->getId().'"]');
+
+        $this->assertCount(2, $notes, 'The names in the notes do not lead to the deity.');
+        $this->assertSame('稲荷大明神', $notes->first()->text(), 'The additional name was not read as the deity.');
+        $this->assertSame('Inari', $notes->last()->text());
     }
 
     public function test_photographs_land_in_their_set_with_their_labels(): void

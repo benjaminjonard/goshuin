@@ -9,6 +9,8 @@ label:
     location_search: 'Chercher un lieu'
     japanese_name: 'Nom japonais'
     romanized_name: 'Nom romanisé'
+    additional_names: 'Noms additionnels'
+    add_name: 'Ajouter un nom'
     address: 'Adresse'
     address_search: 'Trouver le lieu'
     searching: 'Recherche en cours'

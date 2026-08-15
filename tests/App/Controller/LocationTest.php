@@ -13,6 +13,7 @@ use App\Repository\GoshuinRepository;
 use App\Repository\LocationPhotoRepository;
 use App\Repository\LocationRepository;
 use App\Tests\AppTestCase;
+use App\Tests\Factory\DeityFactory;
 use App\Tests\Factory\GoshuinchoFactory;
 use App\Tests\Factory\LocationFactory;
 use App\Tests\Factory\UserFactory;
@@ -521,6 +522,20 @@ class LocationTest extends AppTestCase
         $this->emptyUploads();
     }
 
+    public function test_a_deity_named_in_the_notes_of_a_location_leads_to_its_page(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+        $inari = DeityFactory::createOne(['name' => 'Inari', 'additionalNames' => ['Oinari-san']]);
+        $location = LocationFactory::createOne(['notes' => 'Oinari-san watches the slope. Inarite is a word, not a deity.']);
+
+        $notes = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId())
+            ->filter('main a[href="/deity/'.$inari->getId().'"]')
+        ;
+
+        $this->assertCount(1, $notes, 'The name in the notes does not lead to the deity.');
+        $this->assertSame('Oinari-san', $notes->text(), 'A name was read inside a longer word.');
+    }
+
     public function test_a_location_carries_a_photograph_of_the_place(): void
     {
         $this->client->loginUser(UserFactory::new()->admin()->create());
@@ -537,8 +552,9 @@ class LocationTest extends AppTestCase
 
         $stored = static::getContainer()->get(LocationRepository::class)->find($location->getId());
         $this->assertNotNull($stored->getPhotographFull(), 'The photograph was not stored.');
-        $this->assertCount(1, $crawler->filter('main img'), 'The page does not show the photograph of the place.');
-        $this->assertSame('/uploads/'.$stored->getPhotographFull(), $crawler->filter('main img')->attr('src'), 'The page does not serve the photograph at size.');
+        $this->assertCount(1, $crawler->filter('main .stage img'), 'The page does not show the photograph of the place.');
+        $this->assertSame('/uploads/'.$stored->getPhotographFull(), $crawler->filter('main .stage img')->attr('src'), 'The page does not serve the photograph at size.');
+        $this->assertSame('/uploads/'.$stored->getPhotograph(), $crawler->filter('main .stage a')->attr('href'), 'The photograph does not open at full size.');
 
         $this->removeUploads($stored->getPhotograph(), $stored->getPhotographMini(), $stored->getPhotographCard(), $stored->getPhotographFull());
     }

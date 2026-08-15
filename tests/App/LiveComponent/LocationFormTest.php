@@ -92,6 +92,16 @@ class LocationFormTest extends KernelTestCase
         $this->assertStringNotContainsString('天照大神', $rendered, 'A deity nobody was looking for was offered.');
     }
 
+    public function test_typing_another_name_a_deity_answers_to_offers_that_deity(): void
+    {
+        $this->store('稲荷神')->setAdditionalNames(['稲荷大明神', 'Oinari-san']);
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $component = $this->form(['location' => LocationFactory::createOne()])->set('location', ['deities' => ['Oinari']]);
+
+        $this->assertSame([0 => ['稲荷神']], $component->component()->getDeitySuggestions(), 'The deity was not reached through its other name.');
+    }
+
     public function test_a_name_that_matches_nothing_says_so(): void
     {
         $this->store('八幡神');

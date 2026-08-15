@@ -11,21 +11,13 @@
 
 {% block body %}
     <main class="page mx-auto grid w-full max-w-[560px] gap-[clamp(12px,1.4vw,18px)]">
-        {{ form_start(form, {attr: {class: 'tile tile-pad grid gap-4'}}) }}
-            {{ form_errors(form) }}
-            {{ form_row(form.name) }}
-            {{ form_row(form.description) }}
-
-            <div class="grid gap-1.5">
-                {{ form_row(form.photographFile, {attr: {'data-cover': form.vars.data.photographCard, 'data-untitled': true}}) }}
-                {{ form_errors(form.photographFile) }}
-                <div class="flex justify-end">{{ form_widget(form.removePhotograph) }}</div>
-            </div>
+        <form method="post" enctype="multipart/form-data" class="grid gap-[clamp(12px,1.4vw,18px)]">
+            {{ component('DeityForm', {form: form, deity: deity}) }}
 
             <div class="mt-1 flex justify-end gap-2.5">
                 {{ include('App/_partials/_button.html.twig', {label: 'label.cancel'|trans, href: path('app_deity_show', {id: deity.id})}) }}
                 {{ include('App/_partials/_button.html.twig', {label: 'label.save'|trans, variant: 'primary', type: 'submit', name: 'deity_submit'}) }}
             </div>
-        {{ form_end(form) }}
+        </form>
     </main>
 {% endblock %}

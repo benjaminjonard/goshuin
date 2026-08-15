@@ -1,0 +1,39 @@
+<div class="tile tile-pad grid gap-4">
+    {{ form_errors(form) }}
+    {{ form_row(form.name) }}
+
+    {% set control = 'grid size-9 shrink-0 cursor-pointer place-items-center rounded-xl border border-line-2 bg-tile text-fg-2' %}
+    <div class="grid gap-1.5">
+        {{ form_label(form.additionalNames) }}
+
+        <div class="grid gap-2.5">
+            {% for entry in form.additionalNames %}
+                <div class="flex items-center gap-2">
+                    <span class="min-w-0 flex-auto">{{ form_widget(entry, {attr: {autocomplete: 'off'}}) }}</span>
+                    <button type="button" class="{{ control }} hover:border-accent-line hover:text-accent-text"
+                            aria-label="{{ entry.vars.button_delete.vars.label|trans }}"
+                            {% for key, value in entry.vars.button_delete.vars.attr %}{{ key }}="{{ value }}" {% endfor %}>
+                        {{- include('App/_partials/_icon.html.twig', {name: 'minus', small: true}) -}}
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+
+        {% do form.additionalNames.setRendered %}
+        <button type="button" class="{{ control }} justify-self-start hover:border-fg-3 hover:text-fg"
+                aria-label="{{ form.additionalNames.vars.button_add.vars.label|trans }}"
+                {% for key, value in form.additionalNames.vars.button_add.vars.attr %}{{ key }}="{{ value }}" {% endfor %}>
+            {{- include('App/_partials/_icon.html.twig', {name: 'plus', small: true}) -}}
+        </button>
+    </div>
+
+    {{ form_row(form.description) }}
+
+    <div class="grid gap-1.5" data-live-ignore>
+        {{ form_row(form.photographFile, {attr: {'data-cover': form.vars.data.photographCard, 'data-untitled': true}}) }}
+        {{ form_errors(form.photographFile) }}
+        <div class="flex justify-end">{{ form_widget(form.removePhotograph) }}</div>
+    </div>
+
+    {{ form_rest(form) }}
+</div>

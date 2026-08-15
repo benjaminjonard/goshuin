@@ -92,6 +92,31 @@ class DeityTest extends AppTestCase
         }
     }
 
+    public function test_the_search_reaches_the_additional_names_too(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+        DeityFactory::createOne(['name' => '八幡神']);
+        DeityFactory::createOne(['name' => 'Inari', 'additionalNames' => ['稲荷大明神', 'Oinari-san']]);
+
+        foreach (['稲荷' => 'Inari', 'OINARI' => 'Inari', 'nari-sa' => 'Inari'] as $term => $expected) {
+            $rows = $this->client->request(Request::METHOD_GET, '/deities?q='.urlencode((string) $term))->filter('main ul li a');
+
+            $this->assertCount(1, $rows, sprintf('Searching "%s" does not reach the deity through its other names.', $term));
+            $this->assertStringContainsString($expected, $rows->text(), sprintf('Searching "%s" matched the wrong deity.', $term));
+        }
+    }
+
+    public function test_the_index_reads_the_additional_names_back(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+        DeityFactory::createOne(['name' => 'Inari', 'additionalNames' => ['稲荷大明神', 'Oinari-san']]);
+
+        $row = $this->client->request(Request::METHOD_GET, '/deities')->filter('main ul li a')->text();
+
+        $this->assertStringContainsString('稲荷大明神', $row, 'The index does not say what else the deity is called.');
+        $this->assertStringContainsString('Oinari-san', $row);
+    }
+
     public function test_a_search_matching_nothing_says_so_and_leads_back(): void
     {
         $this->client->loginUser(UserFactory::createOne());
@@ -195,6 +220,74 @@ class DeityTest extends AppTestCase
         $this->assertSame('Inari', $this->stored($inari->getId()), 'The colliding name was stored anyway.');
     }
 
+    public function test_a_deity_records_the_other_names_it_is_known_by(): void
+    {
+        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $deity = DeityFactory::createOne(['name' => 'Inari']);
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/deity/'.$deity->getId().'/edit');
+        $form = $crawler->selectButton('deity_submit')->form();
+        $values = $form->getPhpValues();
+        $values['deity']['additionalNames'] = ['稲荷大明神', 'Oinari-san'];
+
+        $this->client->request(Request::METHOD_POST, $form->getUri(), $values);
+        $this->assertResponseRedirects('/deity/'.$deity->getId());
+
+        $this->manager()->clear();
+        $stored = static::getContainer()->get(DeityRepository::class)->find($deity->getId());
+
+        $this->assertSame(['稲荷大明神', 'Oinari-san'], $stored->getAdditionalNames(), 'The additional names were not all kept.');
+
+        $text = $this->client->followRedirect()->filter('main')->text();
+
+        $this->assertStringContainsString('稲荷大明神', $text, 'The page does not read the additional names back.');
+        $this->assertStringContainsString('Oinari-san', $text);
+    }
+
+    public function test_a_blank_or_repeated_additional_name_is_dropped(): void
+    {
+        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $deity = DeityFactory::createOne(['name' => 'Inari']);
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/deity/'.$deity->getId().'/edit');
+        $form = $crawler->selectButton('deity_submit')->form();
+        $values = $form->getPhpValues();
+        $values['deity']['additionalNames'] = ['  稲荷大明神  ', '', 'oinari-san', 'Oinari-San', '   '];
+
+        $this->client->request(Request::METHOD_POST, $form->getUri(), $values);
+        $this->assertResponseRedirects();
+
+        $this->manager()->clear();
+        $stored = static::getContainer()->get(DeityRepository::class)->find($deity->getId());
+
+        $this->assertSame(['稲荷大明神', 'oinari-san'], $stored->getAdditionalNames(), 'Blank and repeated names were written away.');
+    }
+
+    public function test_a_deity_known_by_one_name_alone_says_nothing_more(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+        $deity = DeityFactory::createOne(['name' => 'Inari']);
+
+        $text = $this->client->request(Request::METHOD_GET, '/deity/'.$deity->getId())->filter('main')->text();
+
+        $this->assertStringNotContainsString('Additional names', $text, 'An empty section was held open.');
+    }
+
+    public function test_a_deity_named_in_a_description_leads_to_its_page_but_never_to_itself(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+        $hachiman = DeityFactory::createOne(['name' => '八幡神']);
+        $inari = DeityFactory::createOne([
+            'name' => 'Inari',
+            'description' => 'Inari is often enshrined beside 八幡神.',
+        ]);
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/deity/'.$inari->getId());
+
+        $this->assertCount(1, $crawler->filter('main a[href="/deity/'.$hachiman->getId().'"]'), 'The deity named in the description does not lead to its page.');
+        $this->assertCount(0, $crawler->filter('main a[href="/deity/'.$inari->getId().'"]'), 'The deity was linked to the page it is already on.');
+    }
+
     public function test_a_deity_carries_a_description_and_a_photograph(): void
     {
         $this->client->loginUser(UserFactory::new()->admin()->create());
@@ -217,6 +310,7 @@ class DeityTest extends AppTestCase
         $this->assertNotNull($stored->getPhotographFull(), 'The photograph was not stored.');
         $this->assertStringContainsString('Kami of rice', $crawler->filter('main')->text(), 'The page does not read the description back.');
         $this->assertSame('/uploads/'.$stored->getPhotographFull(), $crawler->filter('main img')->first()->attr('src'), 'The page does not serve the photograph at size.');
+        $this->assertSame('/uploads/'.$stored->getPhotograph(), $crawler->filter('main .stage a')->attr('href'), 'The photograph does not open at full size.');
 
         $row = $this->client->request(Request::METHOD_GET, '/deities')->filter('main ul li a img');
         $this->assertCount(1, $row, 'The index does not show the photograph of the deity.');

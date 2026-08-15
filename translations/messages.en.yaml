@@ -9,6 +9,8 @@ label:
     location_search: 'Search a location'
     japanese_name: 'Japanese name'
     romanized_name: 'Romanized name'
+    additional_names: 'Additional names'
+    add_name: 'Add a name'
     address: 'Address'
     address_search: 'Find the place'
     searching: 'Searching'

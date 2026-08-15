@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Entity\Deity;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -26,10 +27,7 @@ class DeityRepository extends ServiceEntityRepository
         $builder = $this->createQueryBuilder('d')->orderBy('d.name', 'ASC');
 
         if ($term !== null && $term !== '') {
-            $builder
-                ->andWhere('LOWER(d.name) LIKE :term')
-                ->setParameter('term', '%'.mb_strtolower($term).'%')
-            ;
+            $this->named($builder, $term);
         }
 
         return $builder->getQuery()->getResult();
@@ -40,9 +38,7 @@ class DeityRepository extends ServiceEntityRepository
      */
     public function search(string $term, int $limit = 6): array
     {
-        return $this->createQueryBuilder('d')
-            ->andWhere('LOWER(d.name) LIKE :term')
-            ->setParameter('term', '%'.mb_strtolower($term).'%')
+        return $this->named($this->createQueryBuilder('d'), $term)
             ->orderBy('d.name', 'ASC')
             ->setMaxResults($limit)
             ->getQuery()
@@ -58,6 +54,14 @@ class DeityRepository extends ServiceEntityRepository
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult()
+        ;
+    }
+
+    private function named(QueryBuilder $builder, string $term): QueryBuilder
+    {
+        return $builder
+            ->andWhere('LOWER(d.name) LIKE :term OR LOWER(JSON_TEXT(d.additionalNames)) LIKE :term')
+            ->setParameter('term', '%'.mb_strtolower($term).'%')
         ;
     }
 }

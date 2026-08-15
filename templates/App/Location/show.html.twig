@@ -27,7 +27,7 @@
         {%- endfor -%}
     {% endset %}
 
-    <main class="page stack">
+    <main class="page stack" data-controller="lightbox">
         {% set record = [
             {label: 'label.name'|trans, value: location.japaneseName, jp: true},
             {label: 'label.romanized_name'|trans, value: location.romanizedName},
@@ -44,8 +44,10 @@
             <div class="grid gap-[clamp(12px,1.4vw,18px)]{{ location.photographFull and record is not empty ? ' grid-cols-[auto_minmax(0,1fr)]' }}">
                 {% if location.photographFull %}
                     <section class="tile stage">
-                        <img src="{{ location.photographFull|image }}" alt="{{ location.romanizedName }}"
-                             class="h-[clamp(260px,28vw,440px)] w-auto max-w-full rounded-xl object-contain shadow-lift">
+                        <a href="{{ location.photograph|image }}" class="block" data-action="lightbox#open">
+                            <img src="{{ location.photographFull|image }}" alt="{{ location.romanizedName }}"
+                                 class="h-[clamp(260px,28vw,440px)] w-auto max-w-full rounded-xl object-contain shadow-lift">
+                        </a>
                     </section>
                 {% endif %}
 
@@ -83,26 +85,15 @@
         {% if location.notes is not empty %}
             {% embed 'App/_partials/_section.html.twig' with {title: 'label.notes'|trans} %}
                 {% block content %}
-                    <div class="text-[14.5px] leading-[1.75] text-fg-2">{{ location.notes|nl2br }}</div>
+                    <div class="text-[14.5px] leading-[1.75] text-fg-2">{{ location.notes|deities }}</div>
                 {% endblock %}
             {% endembed %}
         {% endif %}
 
-        {% if location.photos is not empty %}
-            <div data-controller="lightbox">
-                {{ include('App/_partials/_gallery.html.twig', {photos: location.photos, title: 'label.photographs'|trans}) }}
+        {{ include('App/_partials/_gallery.html.twig', {photos: location.photos, title: 'label.photographs'|trans}) }}
 
-                <dialog class="lightbox" data-lightbox-target="frame"
-                        data-action="click->lightbox#dismiss close->lightbox#cleared">
-                    <img data-lightbox-target="image" alt=""
-                         class="block max-h-[94vh] max-w-full rounded-xl shadow-lift">
-                    <button type="button" aria-label="{{ 'label.close'|trans }}"
-                            class="absolute right-2.5 top-2.5 grid size-9 cursor-pointer place-items-center rounded-full border border-line-2 bg-tile text-fg-2 shadow-card hover:border-fg-3 hover:text-fg"
-                            data-action="lightbox#close">
-                        {{- include('App/_partials/_icon.html.twig', {name: 'close', small: true}) -}}
-                    </button>
-                </dialog>
-            </div>
+        {% if location.photographFull or location.photos is not empty %}
+            {{ include('App/_partials/_lightbox.html.twig') }}
         {% endif %}
     </main>
 {% endblock %}
