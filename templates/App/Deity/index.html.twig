@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'label.deities'|trans }} · Goshuin{% endblock %}
+
+{% block bar %}
+    {{ include('App/_partials/_bar.html.twig', {title: 'label.deities'|trans, back: path('app_homepage')}) }}
+{% endblock %}
+
+{% block body %}
+    <main class="page mx-auto grid w-full max-w-[860px] gap-[clamp(12px,1.4vw,18px)]">
+        <form method="get" action="{{ path('app_deity_index') }}" class="flex flex-wrap items-center gap-2.5">
+            <input type="search" name="q" value="{{ term }}" autocomplete="off"
+                   aria-label="{{ 'label.deity_search'|trans }}"
+                   placeholder="{{ 'label.deity_search'|trans }}"
+                   class="min-w-0 flex-auto rounded-xl border border-line-2 bg-tile px-3.5 py-2.5 text-[14.5px] text-fg placeholder:text-fg-3 focus-visible:border-accent">
+            {{ include('App/_partials/_button.html.twig', {label: 'label.search'|trans, variant: 'primary', type: 'submit'}) }}
+        </form>
+
+        {% if deities is empty %}
+            <p class="tile tile-pad text-center text-[14.5px] text-fg-2">
+                {% if term is not empty %}
+                    {{ 'label.no_result'|trans }}
+                    <a href="{{ path('app_deity_index') }}" class="font-semibold text-accent-text">{{ 'label.deities'|trans }}</a>
+                {% else %}
+                    {{ 'label.no_deity_yet'|trans }}
+                {% endif %}
+            </p>
+        {% else %}
+            <ul class="grid gap-2.5">
+                {% for deity in deities %}
+                    <li>
+                        <a href="{{ path('app_deity_show', {id: deity.id}) }}"
+                           class="tile group flex flex-wrap items-center gap-x-4 gap-y-2 px-[clamp(14px,1.6vw,20px)] py-3.5 no-underline hover:border-accent-line">
+                            {% if deity.photographMini %}
+                                <img src="{{ deity.photographMini|image }}" alt=""
+                                     class="size-[38px] shrink-0 rounded-[12px] bg-tile-2 object-cover">
+                            {% else %}
+                                <span class="grid size-[38px] shrink-0 place-items-center rounded-[12px] bg-accent-soft text-accent-text" aria-hidden="true">
+                                    {{ include('App/_partials/_icon.html.twig', {name: 'tag', small: true}) }}
+                                </span>
+                            {% endif %}
+
+                            <span class="min-w-0 flex-auto truncate text-[14.5px] font-semibold text-fg group-hover:text-accent-text">
+                                {{- deity.name -}}
+                            </span>
+
+                            <span class="shrink-0 text-fg-3 group-hover:text-accent-text" aria-hidden="true">
+                                {{- include('App/_partials/_icon.html.twig', {name: 'right', small: true}) -}}
+                            </span>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </main>
+{% endblock %}

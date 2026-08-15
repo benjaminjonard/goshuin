@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ deity.name }} · Goshuin{% endblock %}
+
+{% block bar %}
+    {% embed 'App/_partials/_bar.html.twig' with {
+        title: deity.name,
+        kicker: 'label.deities'|trans,
+        back: path('app_deity_index'),
+    } %}
+        {% block tools %}
+            {% if is_granted('ROLE_ADMIN') %}
+                {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_deity_edit', {id: deity.id}), aria: 'label.edit'|trans}) }}
+                {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_deity_delete', {id: deity.id}), aria: 'label.delete'|trans}) }}
+            {% endif %}
+        {% endblock %}
+    {% endembed %}
+{% endblock %}
+
+{% block body %}
+    {% set aside = deity.photographFull or deity.description is not empty %}
+
+    <main class="page stack">
+        <div class="grid gap-[clamp(12px,1.4vw,18px)]{{ aside ? ' grid-cols-2' }}">
+        {% if aside %}
+            <div class="grid content-start gap-[clamp(12px,1.4vw,18px)]">
+                {% if deity.photographFull %}
+                    <section class="tile stage">
+                        <img src="{{ deity.photographFull|image }}" alt="{{ deity.name }}"
+                             class="h-[clamp(260px,28vw,440px)] w-auto max-w-full rounded-xl object-contain shadow-lift">
+                    </section>
+                {% endif %}
+
+                {% if deity.description is not empty %}
+                    {% embed 'App/_partials/_section.html.twig' with {title: 'label.description'|trans} %}
+                        {% block content %}
+                            <div class="text-[14.5px] leading-[1.75] text-fg-2">{{ deity.description|nl2br }}</div>
+                        {% endblock %}
+                    {% endembed %}
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {% embed 'App/_partials/_section.html.twig' with {
+            title: 'label.locations'|trans,
+            aux: locations is not empty ? 'label.places'|trans({'%count%': locations|length}) : null,
+        } %}
+            {% block content %}
+                {% if locations is empty %}
+                    <p class="text-[14.5px] text-fg-2">{{ 'label.no_location_yet'|trans }}</p>
+                {% else %}
+                    <ul class="grid gap-0">
+                        {% for location in locations %}
+                            <li class="not-first:border-t not-first:border-line">
+                                <a href="{{ path('app_location_show', {id: location.id}) }}"
+                                   class="flex items-center gap-3 rounded-xl px-2 py-2.5 no-underline hover:bg-tile-2">
+                                    <span class="grid size-8 shrink-0 place-items-center rounded-[10px] bg-accent-soft text-accent-text" aria-hidden="true">
+                                        {{ include('App/_partials/_icon.html.twig', {name: 'pin', small: true}) }}
+                                    </span>
+                                    <span class="min-w-0 flex-auto">
+                                        <span class="block truncate text-[13.5px] font-semibold text-fg">{{ location.romanizedName }}</span>
+                                        {% set below = [location.japaneseName, location.locality, location.prefecture]|filter(part => part is not empty)|join(' · ') %}
+                                        {% if below is not empty %}
+                                            <span class="block truncate text-xs text-fg-3">{{ below }}</span>
+                                        {% endif %}
+                                    </span>
+                                    <span class="shrink-0 text-fg-3" aria-hidden="true">
+                                        {{- include('App/_partials/_icon.html.twig', {name: 'right', small: true}) -}}
+                                    </span>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endblock %}
+        {% endembed %}
+        </div>
+    </main>
+{% endblock %}

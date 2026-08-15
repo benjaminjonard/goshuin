@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\Deity;
 use App\Entity\Location;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
@@ -31,6 +32,21 @@ class LocationRepository extends ServiceEntityRepository
         }
 
         return $builder->getQuery()->getResult();
+    }
+
+    /**
+     * @return list<Location>
+     */
+    public function enshrining(Deity $deity): array
+    {
+        return $this->createQueryBuilder('l')
+            ->innerJoin('l.deities', 'd')
+            ->andWhere('d = :deity')
+            ->setParameter('deity', $deity)
+            ->orderBy('l.romanizedName', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
     }
 
     /**

@@ -21,6 +21,23 @@ class DeityRepository extends ServiceEntityRepository
     /**
      * @return list<Deity>
      */
+    public function browse(?string $term = null): array
+    {
+        $builder = $this->createQueryBuilder('d')->orderBy('d.name', 'ASC');
+
+        if ($term !== null && $term !== '') {
+            $builder
+                ->andWhere('LOWER(d.name) LIKE :term')
+                ->setParameter('term', '%'.mb_strtolower($term).'%')
+            ;
+        }
+
+        return $builder->getQuery()->getResult();
+    }
+
+    /**
+     * @return list<Deity>
+     */
     public function search(string $term, int $limit = 6): array
     {
         return $this->createQueryBuilder('d')

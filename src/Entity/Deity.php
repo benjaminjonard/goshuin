@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Attribute\Upload;
 use App\Repository\DeityRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: DeityRepository::class)]
 #[ORM\Table(name: 'gos_deity')]
 #[ORM\UniqueConstraint(name: 'un_deity_name', columns: ['name'])]
+#[UniqueEntity(fields: ['name'], message: 'error.deity.not_unique')]
 class Deity
 {
     #[ORM\Id]
@@ -24,6 +28,37 @@ class Deity
     #[Assert\NotBlank]
     #[Assert\Length(max: 255)]
     private ?string $name = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $description = null;
+
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $photograph = null;
+
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $photographMini = null;
+
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $photographCard = null;
+
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $photographFull = null;
+
+    #[Upload(
+        pathProperty: 'photograph',
+        miniProperty: 'photographMini',
+        cardProperty: 'photographCard',
+        fullProperty: 'photographFull',
+        deleteProperty: 'removePhotograph',
+    )]
+    #[Assert\Image(
+        mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+        mimeTypesMessage: 'error.upload_format',
+        uploadIniSizeErrorMessage: 'error.upload_too_large',
+    )]
+    private ?File $photographFile = null;
+
+    private bool $removePhotograph = false;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Gedmo\Timestampable(on: 'create')]
@@ -47,6 +82,90 @@ class Deity
     public function setName(?string $name): Deity
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): Deity
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getPhotograph(): ?string
+    {
+        return $this->photograph;
+    }
+
+    public function setPhotograph(?string $photograph): Deity
+    {
+        $this->photograph = $photograph;
+
+        return $this;
+    }
+
+    public function getPhotographMini(): ?string
+    {
+        return $this->photographMini;
+    }
+
+    public function setPhotographMini(?string $photographMini): Deity
+    {
+        $this->photographMini = $photographMini;
+
+        return $this;
+    }
+
+    public function getPhotographCard(): ?string
+    {
+        return $this->photographCard;
+    }
+
+    public function setPhotographCard(?string $photographCard): Deity
+    {
+        $this->photographCard = $photographCard;
+
+        return $this;
+    }
+
+    public function getPhotographFull(): ?string
+    {
+        return $this->photographFull;
+    }
+
+    public function setPhotographFull(?string $photographFull): Deity
+    {
+        $this->photographFull = $photographFull;
+
+        return $this;
+    }
+
+    public function getPhotographFile(): ?File
+    {
+        return $this->photographFile;
+    }
+
+    public function setPhotographFile(?File $photographFile): Deity
+    {
+        $this->photographFile = $photographFile;
+
+        return $this;
+    }
+
+    public function isRemovePhotograph(): bool
+    {
+        return $this->removePhotograph;
+    }
+
+    public function setRemovePhotograph(bool $removePhotograph): Deity
+    {
+        $this->removePhotograph = $removePhotograph;
 
         return $this;
     }

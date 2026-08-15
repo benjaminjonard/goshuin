@@ -6,6 +6,7 @@
     {% embed 'App/_partials/_bar.html.twig' with {kicker: app.user.name, title: 'label.home'|trans} %}
         {% block tools %}
             {{ include('App/_partials/_button.html.twig', {label: 'label.locations'|trans, icon: 'pin', href: path('app_location_index')}) }}
+            {{ include('App/_partials/_button.html.twig', {label: 'label.deities'|trans, icon: 'tag', href: path('app_deity_index')}) }}
             {{ include('App/_partials/_button.html.twig', {label: 'label.add_goshuincho'|trans, icon: 'plus', variant: 'primary', href: path('app_goshuincho_add')}) }}
         {% endblock %}
     {% endembed %}

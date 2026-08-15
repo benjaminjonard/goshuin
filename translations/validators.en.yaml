@@ -1,6 +1,8 @@
 error:
     email:
         not_unique: 'An account already uses that address.'
+    deity:
+        not_unique: 'A deity already bears that name.'
     location_required: 'A place is required.'
     image_required: 'A photograph is required.'
     upload_format: 'Only JPEG, PNG and WebP images are accepted.'
