@@ -6,11 +6,11 @@ namespace App\Twig\Components;
 
 use App\Entity\Deity;
 use App\Entity\Location;
+use App\Exception\GeocoderFailed;
 use App\Form\Type\LocationType;
 use App\Repository\DeityRepository;
 use App\Repository\LocationRepository;
 use App\Service\Geocoder;
-use App\Service\GeocoderFailed;
 use App\Service\LocationTypeGuesser;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormFactoryInterface;

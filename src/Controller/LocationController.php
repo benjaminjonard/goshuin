@@ -9,11 +9,8 @@ use App\Form\Type\LocationType;
 use App\Repository\CityRepository;
 use App\Repository\LocationRepository;
 use App\Repository\PrefectureRepository;
-use App\Service\PhotoInstructions;
 use App\Service\PhotoSet;
-use App\Service\Scope;
 use App\Service\Uses;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -28,16 +25,17 @@ class LocationController extends AbstractController
         private readonly PrefectureRepository $prefectures,
         private readonly Uses $uses,
         private readonly PhotoSet $set,
-        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
     #[Route(path: '/locations', name: 'app_location_index', methods: ['GET'])]
     public function index(Request $request): Response
     {
-        $term = trim($request->query->getString('q'));
-        $page = max(1, $request->query->getInt('page', 1));
-        $scope = $this->scope($request);
+        [$term, $page] = $this->browsing($request);
+        $scope = $this->scopeOf($request, [
+            'city' => ['route' => 'app_city_show', 'repository' => $this->cities],
+            'prefecture' => ['route' => 'app_prefecture_show', 'repository' => $this->prefectures],
+        ]);
         $pages = $this->locations->pages($term, $scope?->subject);
 
         if ($page > $pages) {
@@ -70,7 +68,7 @@ class LocationController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->entityManager->flush();
-            $this->photograph($request, $location);
+            $this->set->applyFrom($request, $location, 'place');
 
             return $this->redirectToRoute('app_location_show', ['slug' => $location->getSlug()]);
         }
@@ -85,67 +83,6 @@ class LocationController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function delete(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Location $location): Response
     {
-        $held = $this->uses->of($location);
-        $form = $this->createDeleteForm('app_location_delete', ['slug' => $location->getSlug()]);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            if ($held > 0) {
-                return $this->redirectToRoute('app_location_show', ['slug' => $location->getSlug()]);
-            }
-
-            $this->entityManager->remove($location);
-            $this->entityManager->flush();
-
-            return $this->redirectToRoute('app_location_index');
-        }
-
-        return $this->render('App/Location/delete.html.twig', [
-            'location' => $location,
-            'held' => $held,
-            'form' => $form,
-        ]);
-    }
-
-    private function scope(Request $request): ?Scope
-    {
-        foreach ([
-            ['key' => 'city', 'route' => 'app_city_show', 'repository' => $this->cities],
-            ['key' => 'prefecture', 'route' => 'app_prefecture_show', 'repository' => $this->prefectures],
-        ] as $narrowing) {
-            $slug = trim($request->query->getString($narrowing['key']));
-
-            if ($slug === '') {
-                continue;
-            }
-
-            $place = $narrowing['repository']->findOneBy(['slug' => $slug]);
-
-            if ($place === null) {
-                throw $this->createNotFoundException();
-            }
-
-            return new Scope(
-                key: $narrowing['key'],
-                value: $slug,
-                icon: $narrowing['key'],
-                label: $place->getName(),
-                href: $this->generateUrl($narrowing['route'], ['slug' => $slug]),
-                subject: $place,
-            );
-        }
-
-        return null;
-    }
-
-    private function photograph(Request $request, Location $location): void
-    {
-        $this->set->applyTo($location, new PhotoInstructions(
-            order: array_values($request->request->all()['photo_order']['place'] ?? []),
-            labels: $request->request->all()['photo_label']['place'] ?? [],
-            removed: array_values($request->request->all()['photo_remove']['place'] ?? []),
-            added: array_values(array_filter($request->files->all()['photo_add']['place'] ?? [])),
-            addedLabels: array_values($request->request->all()['photo_add_label']['place'] ?? []),
-        ));
+        return $this->deleteSluggable($request, $location, 'location', $this->uses->of($location));
     }
 }

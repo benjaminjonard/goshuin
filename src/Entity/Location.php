@@ -19,7 +19,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: LocationRepository::class)]
 #[ORM\Table(name: 'gos_location')]
 #[ORM\UniqueConstraint(name: 'un_location_slug', columns: ['slug'])]
-class Location implements Photographed
+class Location implements Photographed, Sluggable
 {
     #[ORM\Id]
     #[ORM\Column(type: Types::STRING, length: 36, unique: true, options: ['fixed' => true])]

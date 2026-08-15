@@ -10,7 +10,6 @@ use App\Form\Type\GoshuinchoType;
 use App\Repository\GoshuinchoRepository;
 use App\Service\Positioner;
 use App\Service\Trip;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,15 +22,13 @@ class GoshuinchoController extends AbstractController
         private readonly GoshuinchoRepository $goshuinchos,
         private readonly Positioner $positioner,
         private readonly Trip $trip,
-        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
     #[Route(path: '', name: 'app_goshuincho_index', methods: ['GET'])]
     public function index(Request $request): Response
     {
-        $term = trim($request->query->getString('q'));
-        $page = max(1, $request->query->getInt('page', 1));
+        [$term, $page] = $this->browsing($request);
         $pages = $this->goshuinchos->pages($term);
 
         if ($page > $pages) {
@@ -72,7 +69,6 @@ class GoshuinchoController extends AbstractController
         if ($goshuincho === null) {
             throw $this->createNotFoundException();
         }
-
 
         return $this->render('App/Goshuincho/show.html.twig', [
             'goshuincho' => $goshuincho,

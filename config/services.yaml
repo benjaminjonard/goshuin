@@ -17,6 +17,7 @@ services:
         exclude:
             - '../src/Entity/'
             - '../src/Kernel.php'
+            - '../src/Model/'
 
 when@test:
     services:

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\App\Service;
+namespace App\Tests\App\Model;
 
-use App\Service\Summary;
+use App\Model\Summary;
 use PHPUnit\Framework\TestCase;
 
 class SummaryTest extends TestCase

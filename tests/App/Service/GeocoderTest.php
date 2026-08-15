@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\App\Service;
 
+use App\Exception\GeocoderFailed;
 use App\Service\Geocoder;
-use App\Service\GeocoderFailed;
 use App\Service\PrefectureNamer;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\MockHttpClient;

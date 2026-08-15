@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Service;
+namespace App\Model;
 
 use App\Entity\City;
 use App\Entity\Prefecture;

@@ -11,11 +11,8 @@ use App\Repository\GoshuinRepository;
 use App\Repository\GoshuinchoRepository;
 use App\Repository\LocationRepository;
 use App\Repository\PrefectureRepository;
-use App\Service\PhotoInstructions;
 use App\Service\PhotoSet;
-use App\Service\Scope;
 use App\Service\Uses;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -32,16 +29,16 @@ class CityController extends AbstractController
         private readonly PrefectureRepository $prefectures,
         private readonly Uses $uses,
         private readonly PhotoSet $set,
-        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
     #[Route(path: '/cities', name: 'app_city_index', methods: ['GET'])]
     public function index(Request $request): Response
     {
-        $term = trim($request->query->getString('q'));
-        $page = max(1, $request->query->getInt('page', 1));
-        $scope = $this->scope($request);
+        [$term, $page] = $this->browsing($request);
+        $scope = $this->scopeOf($request, [
+            'prefecture' => ['route' => 'app_prefecture_show', 'repository' => $this->prefectures],
+        ]);
         $pages = $this->cities->pages($term, $scope?->subject);
 
         if ($page > $pages) {
@@ -77,7 +74,7 @@ class CityController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->entityManager->flush();
-            $this->photograph($request, $city);
+            $this->set->applyFrom($request, $city, 'city');
 
             return $this->redirectToRoute('app_city_show', ['slug' => $city->getSlug()]);
         }
@@ -92,60 +89,6 @@ class CityController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function delete(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] City $city): Response
     {
-        $held = $this->uses->of($city);
-        $form = $this->createDeleteForm('app_city_delete', ['slug' => $city->getSlug()]);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            if ($held > 0) {
-                return $this->redirectToRoute('app_city_show', ['slug' => $city->getSlug()]);
-            }
-
-            $this->entityManager->remove($city);
-            $this->entityManager->flush();
-
-            return $this->redirectToRoute('app_city_index');
-        }
-
-        return $this->render('App/City/delete.html.twig', [
-            'city' => $city,
-            'held' => $held,
-            'form' => $form,
-        ]);
-    }
-
-    private function scope(Request $request): ?Scope
-    {
-        $name = trim($request->query->getString('prefecture'));
-
-        if ($name !== '') {
-            $prefecture = $this->prefectures->findOneBy(['slug' => $name]);
-
-            if ($prefecture === null) {
-                throw $this->createNotFoundException();
-            }
-
-            return new Scope(
-                key: 'prefecture',
-                value: $name,
-                icon: 'prefecture',
-                label: $prefecture->getName(),
-                href: $this->generateUrl('app_prefecture_show', ['slug' => $name]),
-                subject: $prefecture,
-            );
-        }
-
-        return null;
-    }
-
-    private function photograph(Request $request, City $city): void
-    {
-        $this->set->applyTo($city, new PhotoInstructions(
-            order: array_values($request->request->all()['photo_order']['city'] ?? []),
-            labels: $request->request->all()['photo_label']['city'] ?? [],
-            removed: array_values($request->request->all()['photo_remove']['city'] ?? []),
-            added: array_values(array_filter($request->files->all()['photo_add']['city'] ?? [])),
-            addedLabels: array_values($request->request->all()['photo_add_label']['city'] ?? []),
-        ));
+        return $this->deleteSluggable($request, $city, 'city', $this->uses->of($city));
     }
 }

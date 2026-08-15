@@ -8,7 +8,7 @@ use App\Entity\City;
 use App\Entity\Goshuin;
 use App\Entity\Goshuincho;
 use App\Entity\Prefecture;
-use App\Service\Pin;
+use App\Model\Pin;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;

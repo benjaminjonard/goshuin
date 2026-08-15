@@ -9,11 +9,11 @@ use App\Entity\Goshuin;
 use App\Entity\Goshuincho;
 use App\Entity\Location;
 use App\Entity\Prefecture;
-use App\Service\Tally;
-use App\Service\Summary;
+use App\Model\Summary;
+use App\Model\Tally;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**

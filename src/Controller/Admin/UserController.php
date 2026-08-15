@@ -9,7 +9,6 @@ use App\Form\Type\PasswordSetType;
 use App\Form\Type\UserType;
 use App\Repository\UserRepository;
 use App\Service\Purge;
-use Doctrine\ORM\EntityManagerInterface;
 use App\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
@@ -25,7 +24,6 @@ class UserController extends AbstractController
 {
     public function __construct(
         private readonly UserRepository $users,
-        private readonly EntityManagerInterface $entityManager,
         private readonly Purge $purge,
         private readonly TranslatorInterface $translator,
     ) {

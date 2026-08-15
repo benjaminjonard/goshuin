@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\App\Service;
 
 use App\Entity\Goshuin;
-use App\Service\Day;
+use App\Model\Day;
 use App\Service\Trip;
 use PHPUnit\Framework\TestCase;
 

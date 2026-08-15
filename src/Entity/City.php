@@ -21,7 +21,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\UniqueConstraint(name: 'un_city_name', columns: ['name'])]
 #[ORM\UniqueConstraint(name: 'un_city_slug', columns: ['slug'])]
 #[UniqueEntity(fields: ['name'], message: 'error.city.not_unique')]
-class City implements Photographed
+class City implements Photographed, Sluggable
 {
     #[ORM\Id]
     #[ORM\Column(type: Types::STRING, length: 36, unique: true, options: ['fixed' => true])]

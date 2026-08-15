@@ -6,7 +6,6 @@ namespace App\Twig\Components;
 
 use App\Entity\Location;
 use App\Repository\LocationRepository;
-use App\Service\LocationTypeGuesser;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveArg;
@@ -39,7 +38,6 @@ class LocationCombobox
 
     public function __construct(
         private readonly LocationRepository $locations,
-        private readonly LocationTypeGuesser $guesser,
     ) {
     }
 
@@ -66,12 +64,6 @@ class LocationCombobox
         $this->creating = true;
     }
 
-    #[LiveAction]
-    public function cancelCreating(): void
-    {
-        $this->stopCreating();
-    }
-
     #[LiveListener('location:created')]
     public function useCreated(#[LiveArg] string $location): void
     {
@@ -84,11 +76,6 @@ class LocationCombobox
     public function abandonCreating(): void
     {
         $this->stopCreating();
-    }
-
-    public function getGuessedType(): ?string
-    {
-        return $this->guesser->guess($this->named)?->value;
     }
 
     /**

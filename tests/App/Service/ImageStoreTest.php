@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\App\Service;
 
-use App\Service\ImageRefused;
+use App\Exception\ImageRefused;
+use App\Model\StoredImage;
 use App\Service\ImageStore;
-use App\Service\StoredImage;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\File\File;
 

@@ -94,34 +94,6 @@ class LocationRepository extends ServiceEntityRepository
     /**
      * @return list<Location>
      */
-    public function inCity(City $city): array
-    {
-        return $this->createQueryBuilder('l')
-            ->andWhere('l.city = :city')
-            ->setParameter('city', $city)
-            ->orderBy('l.romanizedName', 'ASC')
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-
-    /**
-     * @return list<Location>
-     */
-    public function inPrefecture(Prefecture $prefecture): array
-    {
-        return $this->createQueryBuilder('l')
-            ->andWhere('l.prefecture = :prefecture')
-            ->setParameter('prefecture', $prefecture)
-            ->orderBy('l.romanizedName', 'ASC')
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-
-    /**
-     * @return list<Location>
-     */
     public function search(string $term, int $limit = 8): array
     {
         return $this->named($this->createQueryBuilder('l'), $term)

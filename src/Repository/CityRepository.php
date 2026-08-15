@@ -46,20 +46,6 @@ class CityRepository extends ServiceEntityRepository
         return max(1, (int) ceil($total / self::PER_PAGE));
     }
 
-    /**
-     * @return list<City>
-     */
-    public function ofPrefecture(Prefecture $prefecture): array
-    {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.prefecture = :prefecture')
-            ->setParameter('prefecture', $prefecture)
-            ->orderBy('c.name', 'ASC')
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-
     public function namedExactly(string $name): ?City
     {
         return $this->createQueryBuilder('c')
@@ -98,7 +84,6 @@ class CityRepository extends ServiceEntityRepository
                 ->setParameter('narrow', $narrow)
             ;
         }
-
 
         return $builder;
     }

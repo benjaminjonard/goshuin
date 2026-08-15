@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Goshuin;
+use App\Model\Day;
 
 final readonly class Trip
 {

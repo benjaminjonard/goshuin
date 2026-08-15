@@ -11,10 +11,8 @@ use App\Repository\GoshuinRepository;
 use App\Repository\GoshuinchoRepository;
 use App\Repository\LocationRepository;
 use App\Repository\PrefectureRepository;
-use App\Service\PhotoInstructions;
 use App\Service\PhotoSet;
 use App\Service\Uses;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,15 +29,13 @@ class PrefectureController extends AbstractController
         private readonly GoshuinchoRepository $goshuinchos,
         private readonly Uses $uses,
         private readonly PhotoSet $set,
-        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
     #[Route(path: '/prefectures', name: 'app_prefecture_index', methods: ['GET'])]
     public function index(Request $request): Response
     {
-        $term = trim($request->query->getString('q'));
-        $page = max(1, $request->query->getInt('page', 1));
+        [$term, $page] = $this->browsing($request);
         $pages = $this->prefectures->pages($term);
 
         if ($page > $pages) {
@@ -75,7 +71,7 @@ class PrefectureController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->entityManager->flush();
-            $this->photograph($request, $prefecture);
+            $this->set->applyFrom($request, $prefecture, 'prefecture');
 
             return $this->redirectToRoute('app_prefecture_show', ['slug' => $prefecture->getSlug()]);
         }
@@ -90,37 +86,6 @@ class PrefectureController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function delete(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Prefecture $prefecture): Response
     {
-        $held = $this->uses->of($prefecture);
-        $form = $this->createDeleteForm('app_prefecture_delete', ['slug' => $prefecture->getSlug()]);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            if ($held > 0) {
-                return $this->redirectToRoute('app_prefecture_show', ['slug' => $prefecture->getSlug()]);
-            }
-
-            $this->entityManager->remove($prefecture);
-            $this->entityManager->flush();
-
-            return $this->redirectToRoute('app_prefecture_index');
-        }
-
-        return $this->render('App/Prefecture/delete.html.twig', [
-            'prefecture' => $prefecture,
-            'held' => $held,
-            'form' => $form,
-        ]);
-    }
-
-
-    private function photograph(Request $request, Prefecture $prefecture): void
-    {
-        $this->set->applyTo($prefecture, new PhotoInstructions(
-            order: array_values($request->request->all()['photo_order']['prefecture'] ?? []),
-            labels: $request->request->all()['photo_label']['prefecture'] ?? [],
-            removed: array_values($request->request->all()['photo_remove']['prefecture'] ?? []),
-            added: array_values(array_filter($request->files->all()['photo_add']['prefecture'] ?? [])),
-            addedLabels: array_values($request->request->all()['photo_add_label']['prefecture'] ?? []),
-        ));
+        return $this->deleteSluggable($request, $prefecture, 'prefecture', $this->uses->of($prefecture));
     }
 }

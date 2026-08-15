@@ -25,6 +25,13 @@
         </main>
     {% else %}
         <main class="page grid gap-[clamp(12px,1.4vw,18px)]">
+            {{ include('App/_partials/_totals.html.twig', {totals: [
+                {icon: 'goshuincho', value: tally.goshuincho, label: 'label.stat_goshuincho', href: path('app_goshuincho_index')},
+                {icon: 'goshuin', value: tally.goshuin, label: 'label.stat_goshuin', href: path('app_goshuin_index')},
+                {icon: 'city', value: tally.cities, label: 'label.stat_cities', href: path('app_city_index')},
+                {icon: 'prefecture', value: tally.prefectures, label: 'label.stat_prefectures', href: path('app_prefecture_index')},
+            ]}) }}
+
             <div class="min-w-0" data-controller="carousel">
                 {% embed 'App/_partials/_section.html.twig' with {title: 'label.goshuincho'|trans} %}
                     {% block aux %}
@@ -86,13 +93,6 @@
                     {% endblock %}
                 {% endembed %}
             {% endif %}
-
-            {{ include('App/_partials/_totals.html.twig', {totals: [
-                {icon: 'goshuincho', value: tally.goshuincho, label: 'label.stat_goshuincho', href: path('app_goshuincho_index')},
-                {icon: 'goshuin', value: tally.goshuin, label: 'label.stat_goshuin', href: path('app_goshuin_index')},
-                {icon: 'city', value: tally.cities, label: 'label.stat_cities', href: path('app_city_index')},
-                {icon: 'prefecture', value: tally.prefectures, label: 'label.stat_prefectures', href: path('app_prefecture_index')},
-            ]}) }}
         </main>
     {% endif %}
 {% endblock %}

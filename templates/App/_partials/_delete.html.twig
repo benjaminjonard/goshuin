@@ -1,0 +1,18 @@
+<main class="page mx-auto grid w-full max-w-[560px] gap-[clamp(12px,1.4vw,18px)]">
+    <div class="tile tile-pad grid gap-4">
+        {% if held %}
+            <h2 class="text-[15px] font-bold tracking-[-0.015em]">{{ referenced|trans }}</h2>
+
+            <div class="flex justify-end gap-2.5">
+                {{ include('App/_partials/_button.html.twig', {label: 'label.back'|trans, href: back}) }}
+            </div>
+        {% else %}
+            <h2 class="text-[15px] font-bold tracking-[-0.015em]">{{ confirm|trans({'%name%': subject}) }}</h2>
+
+            {{ form_start(form, {attr: {class: 'flex justify-end gap-2.5'}}) }}
+                {{ include('App/_partials/_button.html.twig', {label: 'label.cancel'|trans, href: back}) }}
+                {{ include('App/_partials/_button.html.twig', {label: 'label.delete'|trans, icon: 'trash', variant: 'primary', type: 'submit', name: 'delete_submit'}) }}
+            {{ form_end(form) }}
+        {% endif %}
+    </div>
+</main>

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\App\Controller;
 
-use App\Entity\Goshuin;
 use App\Entity\Goshuincho;
 use App\Entity\User;
 use App\Repository\GoshuinRepository;

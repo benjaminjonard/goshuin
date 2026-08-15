@@ -19,7 +19,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\UniqueConstraint(name: 'un_deity_name', columns: ['name'])]
 #[ORM\UniqueConstraint(name: 'un_deity_slug', columns: ['slug'])]
 #[UniqueEntity(fields: ['name'], message: 'error.deity.not_unique')]
-class Deity
+class Deity implements Sluggable
 {
     #[ORM\Id]
     #[ORM\Column(type: Types::STRING, length: 36, unique: true, options: ['fixed' => true])]

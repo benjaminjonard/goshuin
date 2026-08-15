@@ -141,7 +141,7 @@ class LocationComboboxTest extends KernelTestCase
         $component = $this->combobox()
             ->set('term', '清水寺')
             ->call('startCreating')
-            ->call('cancelCreating')
+            ->emit('location:cancelled')
         ;
 
         $this->assertCount(0, $this->locations()->findAll(), 'Cancelling still created a location.');

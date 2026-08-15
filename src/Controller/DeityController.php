@@ -9,7 +9,6 @@ use App\Form\Type\DeityType;
 use App\Repository\DeityRepository;
 use App\Repository\LocationRepository;
 use App\Service\Uses;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,15 +21,13 @@ class DeityController extends AbstractController
         private readonly DeityRepository $deities,
         private readonly LocationRepository $locations,
         private readonly Uses $uses,
-        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
     #[Route(path: '/deities', name: 'app_deity_index', methods: ['GET'])]
     public function index(Request $request): Response
     {
-        $term = trim($request->query->getString('q'));
-        $page = max(1, $request->query->getInt('page', 1));
+        [$term, $page] = $this->browsing($request);
         $pages = $this->deities->pages($term);
 
         if ($page > $pages) {
@@ -77,25 +74,6 @@ class DeityController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function delete(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Deity $deity): Response
     {
-        $held = $this->uses->of($deity);
-        $form = $this->createDeleteForm('app_deity_delete', ['slug' => $deity->getSlug()]);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            if ($held > 0) {
-                return $this->redirectToRoute('app_deity_show', ['slug' => $deity->getSlug()]);
-            }
-
-            $this->entityManager->remove($deity);
-            $this->entityManager->flush();
-
-            return $this->redirectToRoute('app_deity_index');
-        }
-
-        return $this->render('App/Deity/delete.html.twig', [
-            'deity' => $deity,
-            'held' => $held,
-            'form' => $form,
-        ]);
+        return $this->deleteSluggable($request, $deity, 'deity', $this->uses->of($deity));
     }
 }

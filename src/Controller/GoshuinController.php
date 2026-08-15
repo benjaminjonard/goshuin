@@ -8,12 +8,11 @@ use App\Entity\Goshuin;
 use App\Entity\Goshuincho;
 use App\Enum\PhotoType;
 use App\Form\Type\GoshuinType;
+use App\Model\PhotoInstructions;
 use App\Repository\GoshuinRepository;
 use App\Repository\PhotoRepository;
-use App\Service\PhotoInstructions;
 use App\Service\PhotoSet;
 use App\Service\Positioner;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,15 +25,13 @@ class GoshuinController extends AbstractController
         private readonly PhotoRepository $photos,
         private readonly Positioner $positioner,
         private readonly PhotoSet $set,
-        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
     #[Route(path: '/goshuin', name: 'app_goshuin_index', methods: ['GET'])]
     public function index(Request $request): Response
     {
-        $term = trim($request->query->getString('q'));
-        $page = max(1, $request->query->getInt('page', 1));
+        [$term, $page] = $this->browsing($request);
         $pages = $this->goshuins->pages($term);
 
         if ($page > $pages) {

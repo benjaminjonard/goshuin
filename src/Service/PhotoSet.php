@@ -15,10 +15,12 @@ use App\Entity\Photographed;
 use App\Entity\Prefecture;
 use App\Entity\PrefecturePhoto;
 use App\Enum\PhotoType;
+use App\Model\PhotoInstructions;
 use App\Repository\AttachedPhotoRepository;
 use App\Repository\PhotoRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final readonly class PhotoSet
@@ -61,6 +63,19 @@ final readonly class PhotoSet
                 ->setImageFile($file),
             fn (AttachedPhoto $photo): null => $this->positioner->addAttachedPhoto($photo),
         );
+    }
+
+    public function applyFrom(Request $request, Photographed $subject, string $key): int
+    {
+        $posted = $request->request->all();
+
+        return $this->applyTo($subject, new PhotoInstructions(
+            order: array_values($posted['photo_order'][$key] ?? []),
+            labels: $posted['photo_label'][$key] ?? [],
+            removed: array_values($posted['photo_remove'][$key] ?? []),
+            added: array_values(array_filter($request->files->all()['photo_add'][$key] ?? [])),
+            addedLabels: array_values($posted['photo_add_label'][$key] ?? []),
+        ));
     }
 
     /**
