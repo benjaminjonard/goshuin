@@ -79,6 +79,7 @@ class GoshuinchoTest extends AppTestCase
 
         $crawler = $this->client->followRedirect();
         $this->assertStringContainsString('Kiyomizu-dera', $crawler->filter('main dl')->text(), 'The place of purchase is not shown.');
+        $this->assertCount(1, $crawler->filter('main dl a[href="/location/'.$locationId.'"]'), 'The place of purchase does not lead to its page.');
     }
 
     public function test_the_place_of_purchase_stays_optional(): void

@@ -10,7 +10,12 @@
 {% endblock %}
 
 {% block location_widget %}
-    {{ component('LocationCombobox', {name: full_name, id: id, selected: value}) }}
+    <div class="grid gap-1.5"{% if required %} data-guard-target="field"{% endif %}>
+        {{ component('LocationCombobox', {name: full_name, id: id, selected: value}) }}
+        {% if required %}
+            <p class="hidden text-xs font-semibold text-accent-text" data-guard-message role="alert">{{ 'error.location_required'|trans({}, 'validators') }}</p>
+        {% endif %}
+    </div>
 {% endblock %}
 
 {% block image_widget %}

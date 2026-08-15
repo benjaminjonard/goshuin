@@ -1,7 +1,12 @@
 {% set goshuin = form.vars.data %}
 
 <main class="page mx-auto grid w-full max-w-[720px] gap-[clamp(12px,1.4vw,18px)]">
-    {{ form_start(form, {attr: {class: 'grid gap-[clamp(12px,1.4vw,18px)]', enctype: 'multipart/form-data'}}) }}
+    {{ form_start(form, {attr: {
+        class: 'grid gap-[clamp(12px,1.4vw,18px)]',
+        enctype: 'multipart/form-data',
+        'data-controller': 'guard',
+        'data-action': 'submit->guard#check pointerdown->guard#release',
+    }}) }}
         {{ form_errors(form) }}
 
         {% embed 'App/_partials/_section.html.twig' with {title: 'label.essential'|trans} %}

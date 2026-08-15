@@ -43,6 +43,7 @@
                             {
                                 label: 'label.origin'|trans,
                                 value: origin ? [origin.japaneseName, origin.romanizedName]|filter(part => part)|join(' · ') : null,
+                                href: origin ? path('app_location_show', {id: origin.id}) : null,
                                 jp: origin and origin.japaneseName is not empty,
                             },
                             {label: 'label.purchased_on'|trans, value: goshuincho.purchasedAt ? goshuincho.purchasedAt|format_date('long') : null},

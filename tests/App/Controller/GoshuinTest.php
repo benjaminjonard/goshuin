@@ -107,6 +107,22 @@ class GoshuinTest extends AppTestCase
         $this->assertSame(0, $this->repository()->count([]), 'A goshuin without an image reached the table.');
     }
 
+    public function test_a_goshuin_without_a_place_is_refused(): void
+    {
+        $user = UserFactory::createOne();
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
+        $this->client->loginUser($user);
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+
+        $crawler = $this->client->submitForm('goshuin_submit', [
+            'goshuin[imageFile]' => $this->image(),
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY, 'A goshuin was accepted with no place.');
+        $this->assertStringContainsString('A place is required.', $crawler->filter('main')->text(), 'The refusal did not say what was missing.');
+        $this->assertSame(0, $this->repository()->count([]), 'A goshuin without a place reached the table.');
+    }
+
     public function test_a_date_in_the_future_is_kept_as_it_was_entered(): void
     {
         $user = UserFactory::createOne();
