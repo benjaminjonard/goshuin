@@ -12,7 +12,6 @@
         search: 'label.prefecture_search',
         nothing: 'label.no_prefecture_yet',
         noun: 'label.prefectures',
-        back: 'label.all_prefectures',
         cards: prefectures|map(prefecture => {
             href: path('app_prefecture_show', {slug: prefecture.slug}),
             image: prefecture.photographCard,

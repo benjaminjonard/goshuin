@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\Goshuincho;
 use App\Entity\Prefecture;
 use App\Form\Type\PrefectureType;
 use App\Repository\CityRepository;
@@ -14,7 +13,6 @@ use App\Repository\LocationRepository;
 use App\Repository\PrefectureRepository;
 use App\Service\PhotoInstructions;
 use App\Service\PhotoSet;
-use App\Service\Scope;
 use App\Service\Uses;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
@@ -42,16 +40,14 @@ class PrefectureController extends AbstractController
     {
         $term = trim($request->query->getString('q'));
         $page = max(1, $request->query->getInt('page', 1));
-        $scope = $this->scope($request);
-        $pages = $this->prefectures->pages($term, $scope?->subject);
+        $pages = $this->prefectures->pages($term);
 
         if ($page > $pages) {
             throw $this->createNotFoundException();
         }
 
         return $this->render('App/Prefecture/index.html.twig', [
-            'prefectures' => $this->prefectures->browse($term, $page, $scope?->subject),
-            'scope' => $scope,
+            'prefectures' => $this->prefectures->browse($term, $page),
             'term' => $term,
             'page' => $page,
             'pages' => $pages,
@@ -116,29 +112,6 @@ class PrefectureController extends AbstractController
         ]);
     }
 
-    private function scope(Request $request): ?Scope
-    {
-        $slug = trim($request->query->getString('goshuincho'));
-
-        if ($slug !== '') {
-            $goshuincho = $this->goshuinchos->findOneBy(['slug' => $slug]);
-
-            if ($goshuincho === null) {
-                throw $this->createNotFoundException();
-            }
-
-            return new Scope(
-                key: 'goshuincho',
-                value: $slug,
-                icon: 'goshuincho',
-                label: $goshuincho->getTitle(),
-                href: $this->generateUrl('app_goshuincho_show', ['slug' => $slug]),
-                subject: $goshuincho,
-            );
-        }
-
-        return null;
-    }
 
     private function photograph(Request $request, Prefecture $prefecture): void
     {

@@ -6,7 +6,6 @@ namespace App\Repository;
 
 use App\Entity\City;
 use App\Entity\Deity;
-use App\Entity\Goshuincho;
 use App\Entity\Location;
 use App\Entity\Prefecture;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -28,7 +27,7 @@ class LocationRepository extends ServiceEntityRepository
     /**
      * @return list<Location>
      */
-    public function browse(?string $term = null, int $page = 1, Goshuincho|City|Prefecture|null $narrow = null): array
+    public function browse(?string $term = null, int $page = 1, City|Prefecture|null $narrow = null): array
     {
         return $this->listing($term, $narrow)
             ->orderBy('l.romanizedName', 'ASC')
@@ -39,7 +38,7 @@ class LocationRepository extends ServiceEntityRepository
         ;
     }
 
-    public function pages(?string $term = null, Goshuincho|City|Prefecture|null $narrow = null): int
+    public function pages(?string $term = null, City|Prefecture|null $narrow = null): int
     {
         $total = (int) $this->listing($term, $narrow)
             ->select('COUNT(l.id)')
@@ -59,7 +58,7 @@ class LocationRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
-    private function listing(?string $term, Goshuincho|City|Prefecture|null $narrow): QueryBuilder
+    private function listing(?string $term, City|Prefecture|null $narrow): QueryBuilder
     {
         $builder = $this->createQueryBuilder('l');
 
@@ -67,7 +66,7 @@ class LocationRepository extends ServiceEntityRepository
             $this->named($builder, $term);
         }
 
-        if ($narrow instanceof City || $narrow instanceof Prefecture) {
+        if ($narrow !== null) {
             $builder
                 ->andWhere(sprintf('l.%s = :narrow', $narrow instanceof City ? 'city' : 'prefecture'))
                 ->setParameter('narrow', $narrow)

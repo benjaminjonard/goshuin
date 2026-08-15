@@ -28,9 +28,9 @@ class GoshuinRepository extends ServiceEntityRepository
     /**
      * @return list<Goshuin>
      */
-    public function browse(?string $term = null, int $page = 1, Goshuincho|City|Prefecture|null $narrow = null): array
+    public function browse(?string $term = null, int $page = 1): array
     {
-        return $this->listing($term, $narrow)
+        return $this->listing($term)
             ->addSelect('location', 'goshuincho')
             ->addSelect('COALESCE(g.receivedOn, :epoch) AS HIDDEN ranked')
             ->setParameter('epoch', new \DateTimeImmutable('@0'))
@@ -43,9 +43,9 @@ class GoshuinRepository extends ServiceEntityRepository
         ;
     }
 
-    public function pages(?string $term = null, Goshuincho|City|Prefecture|null $narrow = null): int
+    public function pages(?string $term = null): int
     {
-        $total = (int) $this->listing($term, $narrow)
+        $total = (int) $this->listing($term)
             ->select('COUNT(g.id)')
             ->getQuery()
             ->getSingleScalarResult();
@@ -73,7 +73,7 @@ class GoshuinRepository extends ServiceEntityRepository
         ;
     }
 
-    private function listing(?string $term, Goshuincho|City|Prefecture|null $narrow): QueryBuilder
+    private function listing(?string $term): QueryBuilder
     {
         $builder = $this->createQueryBuilder('g')
             ->innerJoin('g.location', 'location')
@@ -84,13 +84,6 @@ class GoshuinRepository extends ServiceEntityRepository
             $builder
                 ->andWhere('LOWER(location.romanizedName) LIKE :term OR LOWER(location.japaneseName) LIKE :term OR LOWER(goshuincho.title) LIKE :term')
                 ->setParameter('term', '%'.mb_strtolower($term).'%')
-            ;
-        }
-
-        if ($narrow instanceof Goshuincho) {
-            $builder
-                ->andWhere('g.goshuincho = :narrow')
-                ->setParameter('narrow', $narrow)
             ;
         }
 

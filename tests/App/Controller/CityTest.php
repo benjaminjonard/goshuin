@@ -381,33 +381,6 @@ class CityTest extends AppTestCase
         $this->manager()->clear();
     }
 
-    public function test_the_index_narrows_to_the_cities_one_goshuincho_names(): void
-    {
-        $user = UserFactory::createOne();
-        $this->client->loginUser($user);
-        $kyoto = CityFactory::createOne(['name' => 'Kyōto']);
-        CityFactory::createOne(['name' => 'Kamakura']);
-        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kansai']);
-        GoshuinFactory::new()->in($goshuincho)->create(['location' => LocationFactory::createOne(['city' => $kyoto])]);
-
-        $crawler = $this->client->request(Request::METHOD_GET, '/cities?goshuincho='.$goshuincho->getSlug());
-
-        $this->assertResponseIsSuccessful();
-        $this->assertCount(1, $crawler->filter('main ul li a'), 'The list is not narrowed to the cities the goshuincho names.');
-        $this->assertStringContainsString('Kyōto', $crawler->filter('main ul li a')->text());
-        $this->assertCount(1, $crawler->filter('main a[href="/cities"]'), 'Nothing leads back to the whole list.');
-        $this->assertCount(1, $crawler->filter('main a[href="/goshuincho/'.$goshuincho->getSlug().'"]'), 'The narrowed list does not name the goshuincho it follows.');
-    }
-
-    public function test_the_index_refuses_a_goshuincho_it_does_not_hold(): void
-    {
-        $this->client->loginUser(UserFactory::createOne());
-
-        $this->client->request(Request::METHOD_GET, '/cities?goshuincho=never-bought');
-
-        $this->assertResponseStatusCodeSame(404, 'An unknown goshuincho was accepted as a filter.');
-    }
-
     public function test_the_page_shows_the_goshuincho_and_the_goshuin_that_come_from_the_city(): void
     {
         $user = UserFactory::createOne();

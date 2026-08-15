@@ -931,24 +931,6 @@ class GoshuinTest extends AppTestCase
         $this->assertStringContainsString('Kantō', $cards->first()->text(), 'The index does not say which goshuincho holds the goshuin.');
     }
 
-    public function test_the_index_narrows_to_one_goshuincho_and_offers_the_way_back(): void
-    {
-        $user = UserFactory::createOne();
-        $this->client->loginUser($user);
-        $kansai = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kansai']);
-        $kanto = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kantō']);
-        GoshuinFactory::new()->in($kansai)->create(['location' => LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera'])]);
-        GoshuinFactory::new()->in($kanto)->create(['location' => LocationFactory::createOne(['romanizedName' => 'Sensō-ji'])]);
-
-        $crawler = $this->client->request(Request::METHOD_GET, '/goshuin?goshuincho='.$kansai->getSlug());
-
-        $this->assertResponseIsSuccessful();
-        $this->assertCount(1, $crawler->filter('main ul li a'), 'The list is not narrowed to the goshuincho asked for.');
-        $this->assertStringContainsString('Kiyomizu-dera', $crawler->filter('main ul li a')->text());
-        $this->assertCount(1, $crawler->filter('main a[href="/goshuin"]'), 'Nothing leads back to the whole list.');
-        $this->assertCount(1, $crawler->filter('main a[href="/goshuincho/'.$kansai->getSlug().'"]'), 'The narrowed list does not name the goshuincho it follows.');
-    }
-
     public function test_the_index_holds_no_other_collectors_goshuin(): void
     {
         $owner = UserFactory::createOne();
@@ -959,15 +941,6 @@ class GoshuinTest extends AppTestCase
         $crawler = $this->client->request(Request::METHOD_GET, '/goshuin');
 
         $this->assertStringNotContainsString('Hidden away', $crawler->filter('main')->text(), 'A foreign goshuin reached the index.');
-    }
-
-    public function test_the_index_is_narrowed_by_an_unknown_goshuincho_to_nothing_at_all(): void
-    {
-        $this->client->loginUser(UserFactory::createOne());
-
-        $this->client->request(Request::METHOD_GET, '/goshuin?goshuincho=never-bought');
-
-        $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND, 'An unknown goshuincho was accepted as a filter.');
     }
 
     /**

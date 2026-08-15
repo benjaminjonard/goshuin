@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\City;
-use App\Entity\Goshuin;
-use App\Entity\Goshuincho;
 use App\Entity\Prefecture;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
@@ -27,7 +25,7 @@ class CityRepository extends ServiceEntityRepository
     /**
      * @return list<City>
      */
-    public function browse(?string $term = null, int $page = 1, Goshuincho|City|Prefecture|null $narrow = null): array
+    public function browse(?string $term = null, int $page = 1, ?Prefecture $narrow = null): array
     {
         return $this->listing($term, $narrow)
             ->orderBy('c.name', 'ASC')
@@ -38,7 +36,7 @@ class CityRepository extends ServiceEntityRepository
         ;
     }
 
-    public function pages(?string $term = null, Goshuincho|City|Prefecture|null $narrow = null): int
+    public function pages(?string $term = null, ?Prefecture $narrow = null): int
     {
         $total = (int) $this->listing($term, $narrow)
             ->select('COUNT(c.id)')
@@ -83,7 +81,7 @@ class CityRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
-    private function listing(?string $term, Goshuincho|City|Prefecture|null $narrow): QueryBuilder
+    private function listing(?string $term, ?Prefecture $narrow): QueryBuilder
     {
         $builder = $this->createQueryBuilder('c');
 
@@ -94,26 +92,13 @@ class CityRepository extends ServiceEntityRepository
             ;
         }
 
-        if ($narrow instanceof Prefecture) {
+        if ($narrow !== null) {
             $builder
                 ->andWhere('c.prefecture = :narrow')
                 ->setParameter('narrow', $narrow)
             ;
         }
 
-        if ($narrow instanceof Goshuincho) {
-            $visited = $this->getEntityManager()->createQueryBuilder()
-                ->select('IDENTITY(location.city)')
-                ->from(Goshuin::class, 'goshuin')
-                ->innerJoin('goshuin.location', 'location')
-                ->andWhere('goshuin.goshuincho = :narrow')
-            ;
-
-            $builder
-                ->andWhere($builder->expr()->in('c.id', $visited->getDQL()))
-                ->setParameter('narrow', $narrow)
-            ;
-        }
 
         return $builder;
     }

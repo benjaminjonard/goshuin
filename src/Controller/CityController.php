@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\City;
-use App\Entity\Goshuincho;
 use App\Form\Type\CityType;
 use App\Repository\CityRepository;
 use App\Repository\GoshuinRepository;
@@ -117,25 +116,6 @@ class CityController extends AbstractController
 
     private function scope(Request $request): ?Scope
     {
-        $slug = trim($request->query->getString('goshuincho'));
-
-        if ($slug !== '') {
-            $goshuincho = $this->goshuinchos->findOneBy(['slug' => $slug]);
-
-            if ($goshuincho === null) {
-                throw $this->createNotFoundException();
-            }
-
-            return new Scope(
-                key: 'goshuincho',
-                value: $slug,
-                icon: 'goshuincho',
-                label: $goshuincho->getTitle(),
-                href: $this->generateUrl('app_goshuincho_show', ['slug' => $slug]),
-                subject: $goshuincho,
-            );
-        }
-
         $name = trim($request->query->getString('prefecture'));
 
         if ($name !== '') {

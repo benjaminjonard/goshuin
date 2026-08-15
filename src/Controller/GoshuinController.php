@@ -9,12 +9,10 @@ use App\Entity\Goshuincho;
 use App\Enum\PhotoType;
 use App\Form\Type\GoshuinType;
 use App\Repository\GoshuinRepository;
-use App\Repository\GoshuinchoRepository;
 use App\Repository\PhotoRepository;
 use App\Service\PhotoInstructions;
 use App\Service\PhotoSet;
 use App\Service\Positioner;
-use App\Service\Scope;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,7 +23,6 @@ class GoshuinController extends AbstractController
 {
     public function __construct(
         private readonly GoshuinRepository $goshuins,
-        private readonly GoshuinchoRepository $goshuinchos,
         private readonly PhotoRepository $photos,
         private readonly Positioner $positioner,
         private readonly PhotoSet $set,
@@ -38,16 +35,14 @@ class GoshuinController extends AbstractController
     {
         $term = trim($request->query->getString('q'));
         $page = max(1, $request->query->getInt('page', 1));
-        $scope = $this->scope($request);
-        $pages = $this->goshuins->pages($term, $scope?->subject);
+        $pages = $this->goshuins->pages($term);
 
         if ($page > $pages) {
             throw $this->createNotFoundException();
         }
 
         return $this->render('App/Goshuin/index.html.twig', [
-            'goshuins' => $this->goshuins->browse($term, $page, $scope?->subject),
-            'scope' => $scope,
+            'goshuins' => $this->goshuins->browse($term, $page),
             'term' => $term,
             'page' => $page,
             'pages' => $pages,
@@ -153,29 +148,6 @@ class GoshuinController extends AbstractController
         ]);
     }
 
-    private function scope(Request $request): ?Scope
-    {
-        $slug = trim($request->query->getString('goshuincho'));
-
-        if ($slug !== '') {
-            $goshuincho = $this->goshuinchos->findOneBy(['slug' => $slug]);
-
-            if ($goshuincho === null) {
-                throw $this->createNotFoundException();
-            }
-
-            return new Scope(
-                key: 'goshuincho',
-                value: $slug,
-                icon: 'goshuincho',
-                label: $goshuincho->getTitle(),
-                href: $this->generateUrl('app_goshuincho_show', ['slug' => $slug]),
-                subject: $goshuincho,
-            );
-        }
-
-        return null;
-    }
 
     /**
      * @return array<string, list<\App\Entity\Photo>>
