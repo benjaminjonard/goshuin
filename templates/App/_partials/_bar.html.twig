@@ -7,20 +7,21 @@
         <span class="text-base font-bold tracking-[-0.02em] group-hover:text-accent-text">Goshuin</span>
     </a>
 
-    {% if title is defined or back is defined %}
-        <span class="mx-0.5 h-[26px] w-px bg-line-2" aria-hidden="true"></span>
-    {% endif %}
-
-    {% if back is defined %}
-        <a href="{{ back }}" class="grid size-[38px] place-items-center rounded-full text-fg-2 hover:bg-tile-2 hover:text-fg" aria-label="{{ 'label.back'|trans }}">
-            {{ include('App/_partials/_icon.html.twig', {name: 'back'}) }}
-        </a>
-    {% endif %}
-
     {% if title is defined %}
+        <span class="mx-0.5 h-[26px] w-px bg-line-2" aria-hidden="true"></span>
+
         <div class="min-w-0 flex-auto">
             {% if kicker is defined and kicker is not empty %}
-                <p class="text-xs font-semibold tracking-[0.02em] text-accent-text">{{ kicker }}</p>
+                <p class="text-xs font-semibold tracking-[0.02em] text-accent-text">
+                    {%- for crumb in kicker -%}
+                        {%- if not loop.first %} · {% endif -%}
+                        {%- if crumb.href is defined -%}
+                            <a href="{{ crumb.href }}" class="no-underline hover:underline">{{ crumb.label }}</a>
+                        {%- else -%}
+                            {{ crumb.label }}
+                        {%- endif -%}
+                    {%- endfor -%}
+                </p>
             {% endif %}
             <h1 class="flex flex-wrap items-baseline gap-2.5 text-[clamp(18px,2.2vw,22px)] font-bold leading-tight tracking-[-0.02em]">
                 {{ title }}
@@ -33,16 +34,6 @@
 
     <div class="flex items-center gap-2 {{ title is defined ? '' : 'ml-auto' }}">
         {% block tools %}{% endblock %}
-        <button type="button"
-                class="inline-flex cursor-pointer items-center gap-2 rounded-[11px] border border-line-2 bg-tile px-[9px] py-[9px] text-fg transition-colors hover:border-fg-3"
-                data-controller="theme"
-                data-action="theme#toggle"
-                data-theme-url-value="{{ path('app_theme') }}"
-                data-theme-token-value="{{ csrf_token('submit') }}">
-            <span class="sr" data-theme-target="label" data-dark="{{ 'label.theme_to_dark'|trans }}" data-light="{{ 'label.theme_to_light'|trans }}">{{ 'label.theme_to_dark'|trans }}</span>
-            {{ include('App/_partials/_icon.html.twig', {name: 'moon', class: 'block dark:hidden'}) }}
-            {{ include('App/_partials/_icon.html.twig', {name: 'sun', class: 'hidden dark:block'}) }}
-        </button>
 
         {% if app.user %}
             <div class="relative" data-controller="menu">
@@ -59,7 +50,15 @@
                         <span class="block truncate text-[13.5px] font-semibold text-fg">{{ app.user.name }}</span>
                         <span class="block truncate text-xs text-fg-3">{{ app.user.email }}</span>
                     </p>
-                    <a href="{{ path('app_settings') }}" class="flex items-center gap-2.5 px-4 py-3 text-[13.5px] font-semibold text-fg no-underline hover:bg-tile-2">
+                    <a href="{{ path('app_location_index') }}" class="flex items-center gap-2.5 px-4 py-3 text-[13.5px] font-semibold text-fg no-underline hover:bg-tile-2">
+                        {{ include('App/_partials/_icon.html.twig', {name: 'pin', small: true, class: 'text-fg-2'}) }}
+                        {{ 'label.locations'|trans }}
+                    </a>
+                    <a href="{{ path('app_deity_index') }}" class="flex items-center gap-2.5 px-4 py-3 text-[13.5px] font-semibold text-fg no-underline hover:bg-tile-2">
+                        {{ include('App/_partials/_icon.html.twig', {name: 'tag', small: true, class: 'text-fg-2'}) }}
+                        {{ 'label.deities'|trans }}
+                    </a>
+                    <a href="{{ path('app_settings') }}" class="flex items-center gap-2.5 border-t border-line px-4 py-3 text-[13.5px] font-semibold text-fg no-underline hover:bg-tile-2">
                         {{ include('App/_partials/_icon.html.twig', {name: 'edit', small: true, class: 'text-fg-2'}) }}
                         {{ 'label.settings'|trans }}
                     </a>

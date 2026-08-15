@@ -3,7 +3,7 @@
 {% block title %}{{ goshuincho.title }} · Goshuin{% endblock %}
 
 {% block bar %}
-    {% embed 'App/_partials/_bar.html.twig' with {kicker: 'label.goshuincho'|trans, title: goshuincho.title, back: path('app_homepage')} %}
+    {% embed 'App/_partials/_bar.html.twig' with {kicker: [{label: 'label.goshuincho'|trans, href: path('app_homepage')}], title: goshuincho.title} %}
         {% block tools %}
             {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_goshuincho_edit', {slug: goshuincho.slug}), aria: 'label.edit'|trans}) }}
             {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_goshuincho_delete', {slug: goshuincho.slug}), aria: 'label.delete'|trans}) }}

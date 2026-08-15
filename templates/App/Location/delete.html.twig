@@ -4,9 +4,8 @@
 
 {% block bar %}
     {{ include('App/_partials/_bar.html.twig', {
-        kicker: 'label.locations'|trans,
+        kicker: [{label: 'label.locations'|trans, href: path('app_location_index')}],
         title: location.romanizedName,
-        back: path('app_location_show', {id: location.id}),
     }) }}
 {% endblock %}
 

@@ -2,8 +2,6 @@ label:
     brand: 'Goshuin, home'
     back: 'Back'
     close: 'Close'
-    theme_to_dark: 'Switch to the dark theme'
-    theme_to_light: 'Switch to the light theme'
     language: 'Language'
     goshuincho: 'Goshuincho'
     goshuin: 'Goshuin'

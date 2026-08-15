@@ -10,7 +10,7 @@
 ] %}
 
 {% block bar %}
-    {% embed 'App/_partials/_bar.html.twig' with {kicker: 'Stories 1.3 and 1.4', title: 'The shell', back: '/_design'} %}
+    {% embed 'App/_partials/_bar.html.twig' with {kicker: [{label: 'Stories 1.3 and 1.4'}], title: 'The shell'} %}
         {% block tools %}
             {{ include('App/_partials/_button.html.twig', {label: 'Share', icon: 'share'}) }}
             {{ include('App/_partials/_button.html.twig', {label: 'Add a goshuin', icon: 'plus', variant: 'primary'}) }}

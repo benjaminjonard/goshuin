@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Enum\Theme;
 use App\Form\Type\AccountType;
 use App\Form\Type\PasswordChangeType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -14,7 +13,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
-use Symfony\Component\Security\Http\Attribute\IsCsrfTokenValid;
 
 class SettingsController extends AbstractController
 {
@@ -46,24 +44,5 @@ class SettingsController extends AbstractController
             'account' => $account,
             'password' => $password,
         ]);
-    }
-
-    #[Route(path: '/settings/theme', name: 'app_theme', methods: ['POST'])]
-    #[IsCsrfTokenValid('submit', tokenKey: '_token')]
-    public function theme(
-        Request $request,
-        EntityManagerInterface $entityManager,
-        #[CurrentUser] User $user,
-    ): Response {
-        $theme = Theme::tryFrom((string) $request->request->get('theme'));
-
-        if ($theme === null) {
-            throw $this->createNotFoundException();
-        }
-
-        $user->setTheme($theme);
-        $entityManager->flush();
-
-        return new Response(status: Response::HTTP_NO_CONTENT);
     }
 }

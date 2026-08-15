@@ -47,6 +47,16 @@ class HomeTest extends AppTestCase
         $this->assertCount(1, $crawler->filter('main h2'), 'Home did not state that nothing is held yet.');
     }
 
+    public function test_the_account_menu_leads_to_the_locations_and_the_deities(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+
+        $panel = $this->client->request(Request::METHOD_GET, '/')->filter('header [data-menu-target="panel"]');
+
+        $this->assertCount(1, $panel->filter('a[href="/locations"]'), 'The account menu does not lead to the locations.');
+        $this->assertCount(1, $panel->filter('a[href="/deities"]'), 'The account menu does not lead to the deities.');
+    }
+
     public function test_an_authenticated_page_is_never_cached(): void
     {
         $this->client->loginUser(UserFactory::createOne());

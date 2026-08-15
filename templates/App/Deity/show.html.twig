@@ -5,8 +5,7 @@
 {% block bar %}
     {% embed 'App/_partials/_bar.html.twig' with {
         title: deity.name,
-        kicker: 'label.deities'|trans,
-        back: path('app_deity_index'),
+        kicker: [{label: 'label.deities'|trans, href: path('app_deity_index')}],
     } %}
         {% block tools %}
             {% if is_granted('ROLE_ADMIN') %}

@@ -290,6 +290,7 @@
 
 @utility minimap {
     position: relative;
+    isolation: isolate;
     overflow: hidden;
     border: 1px solid var(--color-line);
     border-radius: 14px;

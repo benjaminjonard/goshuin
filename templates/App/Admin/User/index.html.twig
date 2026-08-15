@@ -3,7 +3,7 @@
 {% block title %}{{ 'label.users'|trans }} · Goshuin{% endblock %}
 
 {% block bar %}
-    {% embed 'App/_partials/_bar.html.twig' with {title: 'label.users'|trans, back: path('app_homepage')} %}
+    {% embed 'App/_partials/_bar.html.twig' with {title: 'label.users'|trans} %}
         {% block tools %}
             {{ include('App/_partials/_button.html.twig', {label: 'label.add_user'|trans, icon: 'plus', variant: 'primary', href: path('app_admin_user_add')}) }}
         {% endblock %}

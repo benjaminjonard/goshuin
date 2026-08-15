@@ -6,8 +6,7 @@
     {% embed 'App/_partials/_bar.html.twig' with {
         title: location.romanizedName,
         jp: location.japaneseName,
-        kicker: 'label.locations'|trans,
-        back: path('app_location_index'),
+        kicker: [{label: 'label.locations'|trans, href: path('app_location_index')}],
     } %}
         {% block tools %}
             {% if is_granted('ROLE_ADMIN') %}

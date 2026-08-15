@@ -84,20 +84,6 @@ class SettingsTest extends AppTestCase
         $this->assertNull($crawler->filter('html')->attr('data-theme'), 'System put an attribute on the document.');
     }
 
-    public function test_the_bar_toggle_persists_the_theme(): void
-    {
-        $user = UserFactory::createOne(['theme' => Theme::System]);
-        $this->client->loginUser($user);
-        $crawler = $this->client->request(Request::METHOD_GET, '/settings');
-        $token = $crawler->filter('[data-theme-token-value]')->attr('data-theme-token-value');
-
-        $this->client->request(Request::METHOD_POST, '/settings/theme', ['theme' => 'dark', '_token' => $token]);
-
-        $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
-        $stored = $this->users()->find($user->getId());
-        $this->assertSame(Theme::Dark, $stored->getTheme());
-    }
-
     public function test_a_password_change_needs_the_current_one(): void
     {
         $user = UserFactory::createOne();

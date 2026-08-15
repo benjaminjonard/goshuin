@@ -3,7 +3,7 @@
 {% block title %}{{ user.name }} · Goshuin{% endblock %}
 
 {% block bar %}
-    {{ include('App/_partials/_bar.html.twig', {kicker: 'label.users'|trans, title: user.name, back: path('app_admin_user_index')}) }}
+    {{ include('App/_partials/_bar.html.twig', {kicker: [{label: 'label.users'|trans, href: path('app_admin_user_index')}], title: user.name}) }}
 {% endblock %}
 
 {% block body %}

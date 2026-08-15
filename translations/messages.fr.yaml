@@ -2,8 +2,6 @@ label:
     brand: 'Goshuin, accueil'
     back: 'Retour'
     close: 'Fermer'
-    theme_to_dark: 'Passer au thème sombre'
-    theme_to_light: 'Passer au thème clair'
     language: 'Langue'
     goshuincho: 'Goshuincho'
     goshuin: 'Goshuin'

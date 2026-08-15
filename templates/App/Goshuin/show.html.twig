@@ -4,10 +4,12 @@
 
 {% block bar %}
     {% embed 'App/_partials/_bar.html.twig' with {
-        kicker: goshuincho.title,
+        kicker: [
+            {label: 'label.goshuincho'|trans, href: path('app_homepage')},
+            {label: goshuincho.title, href: path('app_goshuincho_show', {slug: goshuincho.slug})},
+        ],
         title: goshuin.location.romanizedName,
         jp: goshuin.location.japaneseName,
-        back: path('app_goshuincho_show', {slug: goshuincho.slug}),
     } %}
         {% block tools %}
             {{ include('App/Goshuin/_pager.html.twig', {slug: goshuincho.slug, position: goshuin.position, total: pages}) }}

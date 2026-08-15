@@ -4,9 +4,8 @@
 
 {% block bar %}
     {{ include('App/_partials/_bar.html.twig', {
-        kicker: 'label.deities'|trans,
+        kicker: [{label: 'label.deities'|trans, href: path('app_deity_index')}],
         title: deity.name,
-        back: path('app_deity_show', {id: deity.id}),
     }) }}
 {% endblock %}
 

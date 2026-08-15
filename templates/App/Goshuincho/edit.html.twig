@@ -3,7 +3,7 @@
 {% block title %}{{ goshuincho.title }} · Goshuin{% endblock %}
 
 {% block bar %}
-    {{ include('App/_partials/_bar.html.twig', {kicker: 'label.goshuincho'|trans, title: goshuincho.title, back: path('app_goshuincho_show', {slug: goshuincho.slug})}) }}
+    {{ include('App/_partials/_bar.html.twig', {kicker: [{label: 'label.goshuincho'|trans, href: path('app_homepage')}], title: goshuincho.title}) }}
 {% endblock %}
 
 {% block body %}
