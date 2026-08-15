@@ -58,6 +58,34 @@ class PrefectureNamerTest extends TestCase
         $this->assertSame($expected, (new PrefectureNamer())->name($expected.' Prefecture'));
     }
 
+    #[DataProvider('prefectures')]
+    public function test_every_prefecture_is_recognised_from_its_kanji(string $kanji, string $expected): void
+    {
+        $this->assertSame($expected, (new PrefectureNamer())->recognise($kanji));
+    }
+
+    #[DataProvider('places')]
+    public function test_it_recognises_only_a_prefecture(?string $place, string $expected): void
+    {
+        $this->assertSame($expected, (new PrefectureNamer())->recognise($place));
+    }
+
+    public static function places(): iterable
+    {
+        yield 'a canonical name' => ['Tokyo', 'Tokyo'];
+        yield 'a long form' => ['Kyoto Prefecture', 'Kyoto'];
+        yield 'a macron' => ['Ōsaka', 'Osaka'];
+
+        yield 'a city that is not a prefecture' => ['Kamakura', ''];
+        yield 'a ward' => ['Taito', ''];
+        yield 'a place outside Japan' => ['Santa Catarina', ''];
+
+        yield 'nothing at all' => [null, ''];
+        yield 'an empty place' => ['', ''];
+        yield 'whitespace only' => ['   ', ''];
+        yield 'surrounding whitespace' => ['  Tokyo  ', 'Tokyo'];
+    }
+
     public static function prefectures(): iterable
     {
         yield ['北海道', 'Hokkaido'];

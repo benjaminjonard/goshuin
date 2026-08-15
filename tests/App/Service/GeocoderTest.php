@@ -146,6 +146,40 @@ class GeocoderTest extends TestCase
         $this->assertSame('Okinawa, Japan', $places[0]['address']);
     }
 
+    public function test_a_japanese_answer_without_a_state_takes_its_prefecture_from_the_city(): void
+    {
+        $geocoder = new Geocoder($this->clientReturning($this->bentendo(), $this->bentendo()), 'https://photon.example', new PrefectureNamer(), 0.0);
+
+        $places = $geocoder->search('bentendo');
+
+        $this->assertSame('Tokyo', $places[0]['prefecture'], 'Photon named no state and the prefecture was left empty.');
+        $this->assertSame('Benten Bridge, Taito, Tokyo, 110-0007, Japan', $places[0]['address'], 'The prefecture was written twice.');
+    }
+
+    public function test_a_japanese_city_that_names_no_prefecture_invents_none(): void
+    {
+        $body = json_encode(['features' => [[
+            'properties' => ['osm_type' => 'W', 'osm_id' => 13, 'name' => 'Tsurugaoka Hachiman-gu', 'city' => 'Kamakura', 'countrycode' => 'JP', 'country' => 'Japan'],
+            'geometry' => ['coordinates' => [139.5, 35.3]],
+        ]]], \JSON_THROW_ON_ERROR);
+
+        $geocoder = new Geocoder($this->clientReturning(new MockResponse($body), new MockResponse($body)), 'https://photon.example', new PrefectureNamer(), 0.0);
+
+        $this->assertSame('', $geocoder->search('hachiman-gu')[0]['prefecture'], 'A prefecture was invented from an ordinary city.');
+    }
+
+    public function test_a_city_outside_japan_never_stands_in_for_a_prefecture(): void
+    {
+        $body = json_encode(['features' => [[
+            'properties' => ['osm_type' => 'W', 'osm_id' => 15, 'name' => 'Nara Park', 'city' => 'Nara', 'countrycode' => 'BR', 'country' => 'Brazil'],
+            'geometry' => ['coordinates' => [-48.9, -28.4]],
+        ]]], \JSON_THROW_ON_ERROR);
+
+        $geocoder = new Geocoder($this->clientReturning(new MockResponse($body), new MockResponse($body)), 'https://photon.example', new PrefectureNamer(), 0.0);
+
+        $this->assertSame('', $geocoder->search('nara park')[0]['prefecture'], 'A city outside Japan was read as a prefecture.');
+    }
+
     public function test_a_state_that_is_not_text_does_not_break_the_search(): void
     {
         $body = json_encode(['features' => [[
@@ -357,6 +391,25 @@ class GeocoderTest extends TestCase
                 'country' => 'Japan',
             ],
             'geometry' => ['coordinates' => [139.7677388, 35.7019403]],
+        ]]], \JSON_THROW_ON_ERROR));
+    }
+
+    private function bentendo(): MockResponse
+    {
+        return new MockResponse(json_encode(['features' => [[
+            'properties' => [
+                'osm_type' => 'W',
+                'osm_id' => 91725747,
+                'name' => 'Shinobazu no ike Bentendo',
+                'street' => 'Benten Bridge',
+                'locality' => 'Ueno Park',
+                'district' => 'Taito',
+                'city' => 'Tokyo',
+                'postcode' => '110-0007',
+                'countrycode' => 'JP',
+                'country' => 'Japan',
+            ],
+            'geometry' => ['coordinates' => [139.7711539, 35.7121395]],
         ]]], \JSON_THROW_ON_ERROR));
     }
 

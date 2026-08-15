@@ -1,8 +1,10 @@
-# Enable stateless CSRF protection for forms and logins/logouts
+# Stateless CSRF protection, checked on the request origin alone: live components resubmit
+# their form by fetch, which no double-submit script can reach.
 framework:
     form:
         csrf_protection:
             token_id: submit
+            field_attr: []
 
     csrf_protection:
         stateless_token_ids:

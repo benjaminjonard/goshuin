@@ -73,21 +73,20 @@ final readonly class PrefectureNamer
     {
         $state = trim((string) $state);
 
-        if ($state === '') {
-            return '';
-        }
+        return $this->canonical($state) ?? $state;
+    }
 
-        $canonical = $this->canonical($state);
-
-        if ($canonical === null && str_ends_with($state, self::SUFFIX)) {
-            $canonical = $this->canonical(substr($state, 0, -\strlen(self::SUFFIX)));
-        }
-
-        return $canonical ?? $state;
+    public function recognise(?string $place): string
+    {
+        return $this->canonical(trim((string) $place)) ?? '';
     }
 
     private function canonical(string $state): ?string
     {
+        if ($state === '') {
+            return null;
+        }
+
         if (isset(self::KANJI[$state])) {
             return self::KANJI[$state];
         }
@@ -96,6 +95,10 @@ final readonly class PrefectureNamer
             return self::VARIANTS[$state];
         }
 
-        return \in_array($state, self::KANJI, true) ? $state : null;
+        if (\in_array($state, self::KANJI, true)) {
+            return $state;
+        }
+
+        return str_ends_with($state, self::SUFFIX) ? $this->canonical(substr($state, 0, -\strlen(self::SUFFIX))) : null;
     }
 }

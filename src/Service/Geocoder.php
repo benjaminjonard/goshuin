@@ -167,6 +167,10 @@ final readonly class Geocoder
 
             $prefecture = $this->namer->name((string) ($properties['state'] ?? ''));
 
+            if ($prefecture === '' && ($properties['countrycode'] ?? '') === 'JP') {
+                $prefecture = $this->namer->recognise((string) ($properties['city'] ?? ''));
+            }
+
             $found[$properties['osm_type'].$properties['osm_id']] = [
                 'name' => (string) $properties['name'],
                 'locality' => (string) ($properties['city'] ?? $prefecture),

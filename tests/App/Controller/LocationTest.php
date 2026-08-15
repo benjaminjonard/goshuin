@@ -621,6 +621,20 @@ class LocationTest extends AppTestCase
         );
     }
 
+    public function test_the_form_token_asks_the_browser_for_nothing(): void
+    {
+        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $location = LocationFactory::createOne();
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
+
+        $this->assertCount(
+            0,
+            $crawler->filter('[data-controller="csrf-protection"]'),
+            'The token expects a double-submit the live component cannot perform, which poisons every later submission.',
+        );
+    }
+
     private function collect(Goshuincho $goshuincho, Location $location, string $day): void
     {
         $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
