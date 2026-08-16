@@ -104,7 +104,13 @@ final readonly class Geocoder
     {
         $city = trim((string) ($properties['city'] ?? ''));
 
-        return $this->namer->recognise($city) === self::CITYLESS ? '' : $city;
+        if ($this->namer->recognise($city) !== self::CITYLESS) {
+            return $city;
+        }
+
+        $ward = trim((string) ($properties['district'] ?? ''));
+
+        return $this->namer->recognise($ward) === self::CITYLESS ? '' : $ward;
     }
 
     /**

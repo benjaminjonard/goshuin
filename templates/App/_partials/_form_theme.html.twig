@@ -20,7 +20,7 @@
 
 {% block image_widget %}
     {% set stored = attr['data-image'] ?? null %}
-    <div class="grid gap-2" data-controller="upload">
+    <div class="grid" data-controller="upload">
         <label class="grid cursor-pointer place-items-center gap-2 rounded-2xl border-[1.5px] border-line-2 bg-tile-2 p-2.5 text-center hover:border-fg-3 {{ stored ? 'border-solid' : 'border-dashed' }}"
                data-upload-target="zone">
             <img{% if stored %} src="{{ stored|image }}"{% endif %} alt="{{ label|trans }}"
@@ -35,16 +35,13 @@
             <input type="file" id="{{ id }}" name="{{ full_name }}" accept="image/jpeg,image/png,image/webp" class="sr"
                    data-upload-target="input" data-action="upload#chosen">
         </label>
-        <span class="hidden h-1 overflow-hidden rounded-full bg-line-2" data-upload-target="track">
-            <span class="block h-full w-0 bg-accent transition-[width]" data-upload-target="bar"></span>
-        </span>
     </div>
 {% endblock %}
 
 {% block cover_widget %}
     {% set stored = attr['data-cover'] ?? null %}
     {% set portrait = attr['data-round'] is defined %}
-    <div class="grid gap-2" data-controller="upload">
+    <div class="grid" data-controller="upload">
         <label class="grid cursor-pointer place-items-center gap-1 rounded-2xl border border-line-2 bg-tile-2 px-4 py-6 text-center hover:border-fg-3 {{ stored ? 'border-solid' : 'border-dashed' }}"
                data-upload-target="zone">
             <img{% if stored %} src="{{ stored|image }}"{% endif %} alt="{{ attr['data-untitled'] is defined ? '' : label|trans }}"
@@ -60,9 +57,6 @@
             <input type="file" id="{{ id }}" name="{{ full_name }}" accept="image/jpeg,image/png,image/webp" class="sr"
                    data-upload-target="input" data-action="upload#chosen">
         </label>
-        <span class="hidden h-1 overflow-hidden rounded-full bg-line-2" data-upload-target="track">
-            <span class="block h-full w-0 bg-accent transition-[width]" data-upload-target="bar"></span>
-        </span>
     </div>
 {% endblock %}
 

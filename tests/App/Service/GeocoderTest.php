@@ -147,14 +147,41 @@ class GeocoderTest extends TestCase
         $this->assertSame('Okinawa, Japan', $places[0]['address']);
     }
 
-    public function test_a_city_that_is_only_a_prefecture_is_not_read_as_a_locality(): void
+    public function test_a_city_that_is_only_a_prefecture_gives_way_to_the_ward(): void
     {
         $geocoder = new Geocoder($this->clientReturning($this->bentendo(), $this->bentendo()), 'https://photon.example', new PrefectureNamer(), 0.0);
 
         $places = $geocoder->search('bentendo');
 
-        $this->assertSame('', $places[0]['locality'], 'Tokyo was recorded as a city of the Tokyo prefecture.');
+        $this->assertSame('Taito', $places[0]['locality'], 'Tokyo was recorded as a city of the Tokyo prefecture.');
         $this->assertSame('Tokyo', $places[0]['prefecture']);
+    }
+
+    public function test_a_city_that_is_only_a_prefecture_and_names_no_ward_is_left_without_a_locality(): void
+    {
+        $body = json_encode(['features' => [[
+            'properties' => ['osm_type' => 'W', 'osm_id' => 17, 'name' => 'Meiji-jingu', 'city' => 'Tokyo', 'state' => '東京都', 'country' => 'Japan'],
+            'geometry' => ['coordinates' => [139.6, 35.6]],
+        ]]], \JSON_THROW_ON_ERROR);
+
+        $geocoder = new Geocoder($this->clientReturning(new MockResponse($body), new MockResponse($body)), 'https://photon.example', new PrefectureNamer(), 0.0);
+
+        $places = $geocoder->search('meiji-jingu');
+
+        $this->assertSame('', $places[0]['locality'], 'Tokyo stood in for a ward Photon never named.');
+        $this->assertSame('Tokyo', $places[0]['prefecture']);
+    }
+
+    public function test_a_ward_that_is_only_the_prefecture_is_no_better_than_the_city(): void
+    {
+        $body = json_encode(['features' => [[
+            'properties' => ['osm_type' => 'W', 'osm_id' => 19, 'name' => 'Somewhere', 'city' => 'Tokyo', 'district' => 'Tokyo', 'state' => '東京都', 'country' => 'Japan'],
+            'geometry' => ['coordinates' => [139.6, 35.6]],
+        ]]], \JSON_THROW_ON_ERROR);
+
+        $geocoder = new Geocoder($this->clientReturning(new MockResponse($body), new MockResponse($body)), 'https://photon.example', new PrefectureNamer(), 0.0);
+
+        $this->assertSame('', $geocoder->search('somewhere')[0]['locality'], 'Tokyo came back as a city through the ward.');
     }
 
     public function test_a_japanese_answer_without_a_state_takes_its_prefecture_from_the_city(): void
