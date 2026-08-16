@@ -6,29 +6,29 @@ namespace App\Tests\App\LiveComponent;
 
 use App\Entity\User;
 use App\Repository\LocationRepository;
+use App\Tests\AppTestCase;
 use App\Tests\Factory\CityFactory;
 use App\Tests\Factory\LocationFactory;
 use App\Tests\Factory\UserFactory;
-use App\Tests\SignsIn;
 use App\Twig\Components\LocationCombobox;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\UX\LiveComponent\Test\InteractsWithLiveComponents;
 use Symfony\UX\LiveComponent\Test\TestLiveComponent;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
-class LocationComboboxTest extends KernelTestCase
+class LocationComboboxTest extends AppTestCase
 {
     use Factories;
     use InteractsWithLiveComponents;
     use ResetDatabase;
-    use SignsIn;
 
     private User $collector;
 
     #[\Override]
     protected function setUp(): void
     {
+        parent::setUp();
+
         $this->collector = UserFactory::createOne();
         $this->signIn($this->collector);
     }

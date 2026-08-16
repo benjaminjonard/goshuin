@@ -12,13 +12,12 @@ use App\Repository\LocationRepository;
 use App\Service\Geocoder;
 use App\Service\LocationTypeGuesser;
 use App\Service\PrefectureNamer;
+use App\Tests\AppTestCase;
 use App\Tests\Factory\CityFactory;
 use App\Tests\Factory\LocationFactory;
 use App\Tests\Factory\UserFactory;
-use App\Tests\SignsIn;
 use App\Twig\Components\LocationForm;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
@@ -27,12 +26,11 @@ use Symfony\UX\LiveComponent\Test\TestLiveComponent;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
-class LocationFormTest extends KernelTestCase
+class LocationFormTest extends AppTestCase
 {
     use Factories;
     use InteractsWithLiveComponents;
     use ResetDatabase;
-    use SignsIn;
 
     private const array EDITION_ONLY = ['deities', 'foundation', 'notes', 'photographFile', 'removePhotograph'];
 
@@ -41,6 +39,8 @@ class LocationFormTest extends KernelTestCase
     #[\Override]
     protected function setUp(): void
     {
+        parent::setUp();
+
         $this->collector = UserFactory::createOne();
         $this->signIn($this->collector);
     }

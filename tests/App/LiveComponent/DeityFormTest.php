@@ -5,28 +5,28 @@ declare(strict_types=1);
 namespace App\Tests\App\LiveComponent;
 
 use App\Entity\User;
+use App\Tests\AppTestCase;
 use App\Tests\Factory\DeityFactory;
 use App\Tests\Factory\UserFactory;
-use App\Tests\SignsIn;
 use App\Twig\Components\DeityForm;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\UX\LiveComponent\Test\InteractsWithLiveComponents;
 use Symfony\UX\LiveComponent\Test\TestLiveComponent;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
-class DeityFormTest extends KernelTestCase
+class DeityFormTest extends AppTestCase
 {
     use Factories;
     use InteractsWithLiveComponents;
     use ResetDatabase;
-    use SignsIn;
 
     private User $collector;
 
     #[\Override]
     protected function setUp(): void
     {
+        parent::setUp();
+
         $this->collector = UserFactory::createOne();
         $this->signIn($this->collector);
     }
