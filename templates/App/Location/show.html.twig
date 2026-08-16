@@ -9,10 +9,8 @@
         kicker: [{label: 'label.locations'|trans, href: path('app_location_index')}],
     } %}
         {% block tools %}
-            {% if is_granted('ROLE_ADMIN') %}
-                {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_location_edit', {slug: location.slug}), aria: 'label.edit'|trans}) }}
-                {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_location_delete', {slug: location.slug}), aria: 'label.delete'|trans}) }}
-            {% endif %}
+            {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_location_edit', {slug: location.slug}), aria: 'label.edit'|trans}) }}
+            {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_location_delete', {slug: location.slug}), aria: 'label.delete'|trans}) }}
         {% endblock %}
     {% endembed %}
 {% endblock %}

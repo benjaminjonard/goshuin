@@ -18,7 +18,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: LocationRepository::class)]
 #[ORM\Table(name: 'gos_location')]
-#[ORM\UniqueConstraint(name: 'un_location_slug', columns: ['slug'])]
+#[ORM\UniqueConstraint(name: 'un_location_slug', columns: ['owner_id', 'slug'])]
 class Location implements Photographed, Sluggable
 {
     #[ORM\Id]
@@ -31,8 +31,12 @@ class Location implements Photographed, Sluggable
     private ?string $romanizedName = null;
 
     #[ORM\Column(type: Types::STRING, length: 255)]
-    #[Gedmo\Slug(fields: ['romanizedName'], unique: true)]
+    #[Gedmo\Slug(fields: ['romanizedName'], unique: true, unique_base: 'owner')]
     private ?string $slug = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    private ?User $owner = null;
 
     #[ORM\Column(type: Types::STRING, nullable: true)]
     #[Assert\Length(max: 255)]
@@ -157,6 +161,18 @@ class Location implements Photographed, Sluggable
     public function getId(): string
     {
         return $this->id;
+    }
+
+    public function getOwner(): ?User
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(?User $owner): Location
+    {
+        $this->owner = $owner;
+
+        return $this;
     }
 
     public function getRomanizedName(): ?string

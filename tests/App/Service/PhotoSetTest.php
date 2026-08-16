@@ -12,7 +12,9 @@ use App\Repository\PhotoRepository;
 use App\Service\PhotoSet;
 use App\Tests\AppTestCase;
 use App\Tests\Factory\GoshuinFactory;
+use App\Tests\Factory\GoshuinchoFactory;
 use App\Tests\Factory\PhotoFactory;
+use App\Tests\Factory\UserFactory;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
@@ -23,10 +25,10 @@ class PhotoSetTest extends AppTestCase
 
     private function goshuin(): Goshuin
     {
-        $goshuin = GoshuinFactory::createOne();
-        $this->signIn($goshuin->getOwner());
+        $owner = UserFactory::createOne();
+        $this->signIn($owner);
 
-        return $goshuin;
+        return GoshuinFactory::createOne(['goshuincho' => GoshuinchoFactory::createOne(['owner' => $owner])]);
     }
 
     public function test_nothing_submitted_changes_nothing(): void

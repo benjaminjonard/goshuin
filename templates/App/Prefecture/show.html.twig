@@ -8,10 +8,8 @@
         kicker: [{label: 'label.prefectures'|trans, href: path('app_prefecture_index')}],
     } %}
         {% block tools %}
-            {% if is_granted('ROLE_ADMIN') %}
-                {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_prefecture_edit', {slug: prefecture.slug}), aria: 'label.edit'|trans}) }}
-                {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_prefecture_delete', {slug: prefecture.slug}), aria: 'label.delete'|trans}) }}
-            {% endif %}
+            {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_prefecture_edit', {slug: prefecture.slug}), aria: 'label.edit'|trans}) }}
+            {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_prefecture_delete', {slug: prefecture.slug}), aria: 'label.delete'|trans}) }}
         {% endblock %}
     {% endembed %}
 {% endblock %}

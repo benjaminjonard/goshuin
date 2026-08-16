@@ -276,14 +276,14 @@ class UserTest extends AppTestCase
         $this->scrap();
     }
 
-    public function test_deleting_an_account_destroys_its_collection_and_its_files_and_keeps_the_locations(): void
+    public function test_deleting_an_account_destroys_its_collection_its_files_and_its_referential(): void
     {
         $adminId = UserFactory::new()->admin()->create()->getId();
         $targetId = UserFactory::createOne()->getId();
-        $placeId = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera'])->getId();
 
         $target = $this->anyone($targetId);
         $this->client->loginUser($target);
+        $placeId = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera'])->getId();
         $paths = $this->collect($target, $this->locations()->find($placeId));
 
         foreach ($paths as $path) {
@@ -310,9 +310,9 @@ class UserTest extends AppTestCase
         }
 
         $this->assertSame(
-            1,
+            0,
             (int) $this->connection()->fetchOne('SELECT COUNT(*) FROM gos_location WHERE id = :id', ['id' => $placeId]),
-            'A shared location was destroyed with the account.',
+            'A location outlived the account that kept it.',
         );
     }
 

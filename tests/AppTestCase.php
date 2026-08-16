@@ -4,27 +4,21 @@ declare(strict_types=1);
 
 namespace App\Tests;
 
-use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
 abstract class AppTestCase extends WebTestCase
 {
+    use SignsIn;
+
     protected KernelBrowser $client;
 
     #[\Override]
     protected function setUp(): void
     {
         $this->client = static::createClient();
-    }
-
-    protected function signIn(User $user): void
-    {
-        static::getContainer()->get('security.token_storage')
-            ->setToken(new UsernamePasswordToken($user, 'main', $user->getRoles()));
     }
 
     protected function createImage(int $width = 900, int $height = 600): UploadedFile

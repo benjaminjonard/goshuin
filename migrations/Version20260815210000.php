@@ -47,15 +47,6 @@ final class Version20260815210000 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        $this->skipIf(!$this->connection->getDatabasePlatform() instanceof PostgreSQLPlatform, 'Migration can only be executed safely on \'postgresql\'.');
-
-        $this->addSql('ALTER TABLE gos_location DROP CONSTRAINT FK_6F1AC7888BAC62AF');
-        $this->addSql('ALTER TABLE gos_location DROP CONSTRAINT FK_6F1AC7889D39C865');
-        $this->addSql('ALTER TABLE gos_location DROP city_id');
-        $this->addSql('ALTER TABLE gos_location DROP prefecture_id');
-        $this->addSql('DROP TABLE gos_city_photo');
-        $this->addSql('DROP TABLE gos_prefecture_photo');
-        $this->addSql('DROP TABLE gos_city');
-        $this->addSql('DROP TABLE gos_prefecture');
+        $this->skipIf(true, 'Always move forward.');
     }
 }

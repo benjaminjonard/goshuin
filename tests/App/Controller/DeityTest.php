@@ -22,7 +22,7 @@ class DeityTest extends AppTestCase
 
     public function test_the_deities_are_private(): void
     {
-        $deity = DeityFactory::createOne();
+        $deity = DeityFactory::createOne(['owner' => UserFactory::createOne()]);
 
         foreach (['/deities', '/deity/'.$deity->getSlug(), '/deity/'.$deity->getSlug().'/edit'] as $url) {
             $this->client->request(Request::METHOD_GET, $url);
@@ -240,7 +240,7 @@ class DeityTest extends AppTestCase
 
     public function test_a_deity_is_renamed_and_the_new_name_shows_everywhere(): void
     {
-        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $this->client->loginUser(UserFactory::createOne());
         $deity = DeityFactory::createOne(['name' => '八幡']);
         $location = LocationFactory::createOne(['romanizedName' => 'Usa Jingū', 'deities' => [$deity]]);
 
@@ -259,7 +259,7 @@ class DeityTest extends AppTestCase
 
     public function test_the_form_refuses_a_deity_with_no_name(): void
     {
-        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $this->client->loginUser(UserFactory::createOne());
         $deity = DeityFactory::createOne(['name' => 'Inari']);
 
         $this->client->request(Request::METHOD_GET, '/deity/'.$deity->getSlug().'/edit');
@@ -271,7 +271,7 @@ class DeityTest extends AppTestCase
 
     public function test_the_form_refuses_a_name_another_deity_already_bears(): void
     {
-        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $this->client->loginUser(UserFactory::createOne());
         DeityFactory::createOne(['name' => '八幡神']);
         $inari = DeityFactory::createOne(['name' => 'Inari']);
 
@@ -285,7 +285,7 @@ class DeityTest extends AppTestCase
 
     public function test_a_deity_records_the_other_names_it_is_known_by(): void
     {
-        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $this->client->loginUser(UserFactory::createOne());
         $deity = DeityFactory::createOne(['name' => 'Inari']);
 
         $crawler = $this->client->request(Request::METHOD_GET, '/deity/'.$deity->getSlug().'/edit');
@@ -309,7 +309,7 @@ class DeityTest extends AppTestCase
 
     public function test_a_blank_or_repeated_additional_name_is_dropped(): void
     {
-        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $this->client->loginUser(UserFactory::createOne());
         $deity = DeityFactory::createOne(['name' => 'Inari']);
 
         $crawler = $this->client->request(Request::METHOD_GET, '/deity/'.$deity->getSlug().'/edit');
@@ -353,7 +353,7 @@ class DeityTest extends AppTestCase
 
     public function test_a_deity_carries_a_description_and_a_photograph(): void
     {
-        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $this->client->loginUser(UserFactory::createOne());
         $deity = DeityFactory::createOne(['name' => 'Inari']);
 
         $this->client->request(Request::METHOD_GET, '/deity/'.$deity->getSlug().'/edit');
@@ -384,7 +384,7 @@ class DeityTest extends AppTestCase
 
     public function test_deleting_a_deity_takes_its_photograph_with_it(): void
     {
-        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $this->client->loginUser(UserFactory::createOne());
         $deity = DeityFactory::createOne(['name' => 'Inari']);
         $id = $deity->getId();
         $slug = $deity->getSlug();
@@ -423,7 +423,7 @@ class DeityTest extends AppTestCase
 
     public function test_a_deity_no_location_enshrines_is_deleted_and_leaves_the_index(): void
     {
-        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $this->client->loginUser(UserFactory::createOne());
         $deity = DeityFactory::createOne(['name' => 'Never named']);
         $id = $deity->getId();
         $slug = $deity->getSlug();
@@ -441,7 +441,7 @@ class DeityTest extends AppTestCase
 
     public function test_a_deity_a_location_enshrines_cannot_be_deleted(): void
     {
-        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $this->client->loginUser(UserFactory::createOne());
         $deity = DeityFactory::createOne(['name' => '八幡神']);
         LocationFactory::createOne(['romanizedName' => 'Usa Jingū', 'deities' => [$deity]]);
         $id = $deity->getId();
@@ -463,19 +463,21 @@ class DeityTest extends AppTestCase
         $this->assertNotNull(static::getContainer()->get(DeityRepository::class)->find($id), 'A deity still enshrined was deleted anyway.');
     }
 
-    public function test_a_collector_cannot_reach_the_edit_form_nor_the_deletion(): void
+    public function test_a_deity_another_collector_keeps_is_out_of_reach(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $deity = DeityFactory::createOne();
+        $slug = DeityFactory::createOne()->getSlug();
 
-        foreach (['/edit', '/delete'] as $suffix) {
-            $this->client->request(Request::METHOD_GET, '/deity/'.$deity->getSlug().$suffix);
+        $this->client->loginUser(UserFactory::createOne());
 
-            $this->assertResponseStatusCodeSame(403, sprintf('A collector reached %s.', $suffix));
+        foreach (['', '/edit', '/delete'] as $suffix) {
+            $this->client->request(Request::METHOD_GET, '/deity/'.$slug.$suffix);
+
+            $this->assertResponseStatusCodeSame(404, sprintf('A deity kept by another collector answered on %s.', $suffix === '' ? 'its page' : $suffix));
         }
     }
 
-    public function test_a_collector_is_offered_neither_edition_nor_deletion(): void
+    public function test_a_collector_is_offered_edition_and_deletion(): void
     {
         $this->client->loginUser(UserFactory::createOne());
         $deity = DeityFactory::createOne();
@@ -483,19 +485,7 @@ class DeityTest extends AppTestCase
         $crawler = $this->client->request(Request::METHOD_GET, '/deity/'.$deity->getSlug());
 
         $this->assertResponseIsSuccessful();
-        $this->assertCount(0, $crawler->filter('a[href$="/edit"]'), 'A collector was offered a door they cannot open.');
-        $this->assertCount(0, $crawler->filter('a[href$="/delete"]'));
-    }
-
-    public function test_an_administrator_is_offered_both(): void
-    {
-        $this->client->loginUser(UserFactory::new()->admin()->create());
-        $deity = DeityFactory::createOne();
-
-        $crawler = $this->client->request(Request::METHOD_GET, '/deity/'.$deity->getSlug());
-
-        $this->assertResponseIsSuccessful();
-        $this->assertCount(1, $crawler->filter('a[href$="/edit"]'), 'The administrator lost the way in.');
+        $this->assertCount(1, $crawler->filter('a[href$="/edit"]'), 'The collector lost the way in.');
         $this->assertCount(1, $crawler->filter('a[href$="/delete"]'));
     }
 

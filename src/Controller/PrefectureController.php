@@ -17,7 +17,6 @@ use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class PrefectureController extends AbstractController
 {
@@ -63,7 +62,6 @@ class PrefectureController extends AbstractController
     }
 
     #[Route(path: '/prefecture/{slug}/edit', name: 'app_prefecture_edit', methods: ['GET', 'POST'])]
-    #[IsGranted('ROLE_ADMIN')]
     public function edit(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Prefecture $prefecture): Response
     {
         $form = $this->createForm(PrefectureType::class, $prefecture);
@@ -83,7 +81,6 @@ class PrefectureController extends AbstractController
     }
 
     #[Route(path: '/prefecture/{slug}/delete', name: 'app_prefecture_delete', methods: ['GET', 'POST'])]
-    #[IsGranted('ROLE_ADMIN')]
     public function delete(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Prefecture $prefecture): Response
     {
         return $this->deleteSluggable($request, $prefecture, 'prefecture', $this->uses->of($prefecture));

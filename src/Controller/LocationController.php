@@ -15,7 +15,6 @@ use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class LocationController extends AbstractController
 {
@@ -60,7 +59,6 @@ class LocationController extends AbstractController
     }
 
     #[Route(path: '/location/{slug}/edit', name: 'app_location_edit', methods: ['GET', 'POST'])]
-    #[IsGranted('ROLE_ADMIN')]
     public function edit(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Location $location): Response
     {
         $form = $this->createForm(LocationType::class, $location);
@@ -80,7 +78,6 @@ class LocationController extends AbstractController
     }
 
     #[Route(path: '/location/{slug}/delete', name: 'app_location_delete', methods: ['GET', 'POST'])]
-    #[IsGranted('ROLE_ADMIN')]
     public function delete(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Location $location): Response
     {
         return $this->deleteSluggable($request, $location, 'location', $this->uses->of($location));

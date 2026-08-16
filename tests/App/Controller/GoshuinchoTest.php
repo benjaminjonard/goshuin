@@ -63,9 +63,9 @@ class GoshuinchoTest extends AppTestCase
 
     public function test_the_place_of_purchase_is_recorded_and_shown(): void
     {
+        $this->client->loginUser(UserFactory::createOne());
         $location = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'japaneseName' => '清水寺']);
         $locationId = $location->getId();
-        $this->client->loginUser(UserFactory::createOne());
         $this->client->request(Request::METHOD_GET, '/goshuincho/add');
 
         $this->client->submitForm('goshuincho_submit', [
@@ -464,10 +464,10 @@ class GoshuinchoTest extends AppTestCase
     public function test_a_goshuincho_holding_one_goshuin_is_not_asked_to_order_it(): void
     {
         $user = UserFactory::createOne();
+        $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $slug = (string) $goshuincho->getSlug();
         $place = LocationFactory::createOne();
-        $this->client->loginUser($user);
 
         GoshuinFactory::new()->in($goshuincho)->create(['location' => $place]);
 

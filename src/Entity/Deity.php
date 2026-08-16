@@ -16,8 +16,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: DeityRepository::class)]
 #[ORM\Table(name: 'gos_deity')]
-#[ORM\UniqueConstraint(name: 'un_deity_name', columns: ['name'])]
-#[ORM\UniqueConstraint(name: 'un_deity_slug', columns: ['slug'])]
+#[ORM\UniqueConstraint(name: 'un_deity_name', columns: ['owner_id', 'name'])]
+#[ORM\UniqueConstraint(name: 'un_deity_slug', columns: ['owner_id', 'slug'])]
 #[UniqueEntity(fields: ['name'], message: 'error.deity.not_unique')]
 class Deity implements Sluggable
 {
@@ -31,8 +31,12 @@ class Deity implements Sluggable
     private ?string $name = null;
 
     #[ORM\Column(type: Types::STRING, length: 255)]
-    #[Gedmo\Slug(fields: ['name'], unique: true)]
+    #[Gedmo\Slug(fields: ['name'], unique: true, unique_base: 'owner')]
     private ?string $slug = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    private ?User $owner = null;
 
     /** @var list<string> */
     #[ORM\Column(type: Types::JSON)]
@@ -94,6 +98,18 @@ class Deity implements Sluggable
     public function getId(): string
     {
         return $this->id;
+    }
+
+    public function getOwner(): ?User
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(?User $owner): Deity
+    {
+        $this->owner = $owner;
+
+        return $this;
     }
 
     public function getName(): ?string

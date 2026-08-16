@@ -19,6 +19,10 @@ abstract class AttachedPhoto
     #[ORM\Column(type: Types::STRING, length: 36, unique: true, options: ['fixed' => true])]
     protected string $id;
 
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    protected ?User $owner = null;
+
     #[ORM\Column(type: Types::INTEGER)]
     protected ?int $position = null;
 
@@ -70,6 +74,18 @@ abstract class AttachedPhoto
     public function getId(): string
     {
         return $this->id;
+    }
+
+    public function getOwner(): ?User
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(?User $owner): static
+    {
+        $this->owner = $owner;
+
+        return $this;
     }
 
     public function getPosition(): ?int

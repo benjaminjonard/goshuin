@@ -18,8 +18,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: PrefectureRepository::class)]
 #[ORM\Table(name: 'gos_prefecture')]
-#[ORM\UniqueConstraint(name: 'un_prefecture_name', columns: ['name'])]
-#[ORM\UniqueConstraint(name: 'un_prefecture_slug', columns: ['slug'])]
+#[ORM\UniqueConstraint(name: 'un_prefecture_name', columns: ['owner_id', 'name'])]
+#[ORM\UniqueConstraint(name: 'un_prefecture_slug', columns: ['owner_id', 'slug'])]
 #[UniqueEntity(fields: ['name'], message: 'error.prefecture.not_unique')]
 class Prefecture implements Photographed, Sluggable
 {
@@ -33,8 +33,12 @@ class Prefecture implements Photographed, Sluggable
     private ?string $name = null;
 
     #[ORM\Column(type: Types::STRING, length: 255)]
-    #[Gedmo\Slug(fields: ['name'], unique: true)]
+    #[Gedmo\Slug(fields: ['name'], unique: true, unique_base: 'owner')]
     private ?string $slug = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    private ?User $owner = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $notes = null;
@@ -119,6 +123,18 @@ class Prefecture implements Photographed, Sluggable
     public function getPhotos(): DoctrineCollection
     {
         return $this->photos;
+    }
+
+    public function getOwner(): ?User
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(?User $owner): Prefecture
+    {
+        $this->owner = $owner;
+
+        return $this;
     }
 
     public function getName(): ?string

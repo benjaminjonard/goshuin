@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\App\LiveComponent;
 
+use App\Entity\User;
 use App\Tests\Factory\DeityFactory;
 use App\Tests\Factory\UserFactory;
+use App\Tests\SignsIn;
 use App\Twig\Components\DeityForm;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\UX\LiveComponent\Test\InteractsWithLiveComponents;
@@ -18,6 +20,16 @@ class DeityFormTest extends KernelTestCase
     use Factories;
     use InteractsWithLiveComponents;
     use ResetDatabase;
+    use SignsIn;
+
+    private User $collector;
+
+    #[\Override]
+    protected function setUp(): void
+    {
+        $this->collector = UserFactory::createOne();
+        $this->signIn($this->collector);
+    }
 
     public function test_the_form_offers_every_field(): void
     {
@@ -62,6 +74,6 @@ class DeityFormTest extends KernelTestCase
 
     private function form(object $deity): TestLiveComponent
     {
-        return $this->createLiveComponent(DeityForm::class, ['deity' => $deity])->actingAs(UserFactory::new()->admin()->create());
+        return $this->createLiveComponent(DeityForm::class, ['deity' => $deity])->actingAs($this->collector);
     }
 }

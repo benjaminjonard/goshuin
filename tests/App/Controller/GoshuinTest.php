@@ -41,9 +41,9 @@ class GoshuinTest extends AppTestCase
     public function test_a_place_and_a_photograph_are_enough(): void
     {
         $user = UserFactory::createOne();
+        $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne(['romanizedName' => 'Fushimi Inari-taisha']);
-        $this->client->loginUser($user);
         $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
 
         $this->client->submitForm('goshuin_submit', [
@@ -66,9 +66,9 @@ class GoshuinTest extends AppTestCase
     public function test_the_image_is_stored_in_its_four_columns(): void
     {
         $user = UserFactory::createOne();
+        $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne();
-        $this->client->loginUser($user);
         $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
 
         $this->client->submitForm('goshuin_submit', [
@@ -93,9 +93,9 @@ class GoshuinTest extends AppTestCase
     public function test_a_goshuin_without_a_photograph_is_refused(): void
     {
         $user = UserFactory::createOne();
+        $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne();
-        $this->client->loginUser($user);
         $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
 
         $crawler = $this->client->submitForm('goshuin_submit', [
@@ -127,10 +127,10 @@ class GoshuinTest extends AppTestCase
     public function test_a_date_in_the_future_is_kept_as_it_was_entered(): void
     {
         $user = UserFactory::createOne();
+        $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne();
         $tomorrow = new \DateTimeImmutable('tomorrow');
-        $this->client->loginUser($user);
         $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
 
         $this->client->submitForm('goshuin_submit', [
@@ -151,9 +151,9 @@ class GoshuinTest extends AppTestCase
     public function test_a_goshuin_without_a_date_shows_no_date_anywhere(): void
     {
         $user = UserFactory::createOne();
+        $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne(['romanizedName' => 'Fushimi Inari-taisha']);
-        $this->client->loginUser($user);
         $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
         $this->client->submitForm('goshuin_submit', [
             'goshuin[location]' => $place->getId(),
@@ -177,10 +177,10 @@ class GoshuinTest extends AppTestCase
     public function test_the_goshuincho_comes_from_the_context_and_stays_changeable(): void
     {
         $user = UserFactory::createOne();
+        $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'The one in context']);
         $other = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Somewhere else']);
         $place = LocationFactory::createOne();
-        $this->client->loginUser($user);
 
         $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
 
@@ -206,9 +206,9 @@ class GoshuinTest extends AppTestCase
     public function test_the_goshuincho_page_links_each_goshuin_to_its_page(): void
     {
         $user = UserFactory::createOne();
+        $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne();
-        $this->client->loginUser($user);
         $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
 
         $this->client->submitForm('goshuin_submit', [
@@ -276,9 +276,9 @@ class GoshuinTest extends AppTestCase
     public function test_the_optional_attributes_are_stored_and_read_back(): void
     {
         $user = UserFactory::createOne();
+        $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne(['romanizedName' => 'Fushimi Inari-taisha']);
-        $this->client->loginUser($user);
         $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
 
         $this->client->submitForm('goshuin_submit', [
@@ -307,11 +307,11 @@ class GoshuinTest extends AppTestCase
     public function test_a_deity_named_in_the_notes_leads_to_its_page(): void
     {
         $user = UserFactory::createOne();
+        $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $inari = DeityFactory::createOne(['name' => 'Inari', 'additionalNames' => ['稲荷大明神']]);
         GoshuinFactory::new()->in($goshuincho)->create(['notes' => 'Given at the 稲荷大明神 hall, below Inari itself.']);
 
-        $this->client->loginUser($user);
         $notes = $this->client->request(Request::METHOD_GET, $this->page($goshuincho, 1))->filter('main a[href="/deity/'.$inari->getSlug().'"]');
 
         $this->assertCount(2, $notes, 'The names in the notes do not lead to the deity.');
@@ -322,9 +322,9 @@ class GoshuinTest extends AppTestCase
     public function test_photographs_land_in_their_set_with_their_labels(): void
     {
         $user = UserFactory::createOne();
+        $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne();
-        $this->client->loginUser($user);
 
         $this->create($goshuincho, $place, [
             'photo_add' => ['location' => [$this->shot(), $this->shot()], 'other' => [$this->shot()]],
@@ -349,9 +349,9 @@ class GoshuinTest extends AppTestCase
     public function test_the_page_shows_the_photographs_and_offers_nothing_to_change(): void
     {
         $user = UserFactory::createOne();
+        $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne();
-        $this->client->loginUser($user);
         $this->create($goshuincho, $place, [
             'photo_add' => ['location' => [$this->shot()]],
             'photo_add_label' => ['location' => ['The torii']],
@@ -378,9 +378,9 @@ class GoshuinTest extends AppTestCase
     public function test_a_file_that_is_not_a_photograph_is_refused(): void
     {
         $user = UserFactory::createOne();
+        $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne();
-        $this->client->loginUser($user);
 
         $this->create($goshuincho, $place, ['photo_add' => ['location' => [$this->createTextFile()]]]);
 
@@ -393,9 +393,9 @@ class GoshuinTest extends AppTestCase
     public function test_the_type_of_a_photograph_never_comes_from_the_payload(): void
     {
         $user = UserFactory::createOne();
+        $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne();
-        $this->client->loginUser($user);
 
         $this->create($goshuincho, $place, [
             'photo_add' => ['location' => [$this->shot()]],
@@ -413,9 +413,9 @@ class GoshuinTest extends AppTestCase
     public function test_a_photograph_is_relabelled_reordered_and_removed_from_the_form(): void
     {
         $user = UserFactory::createOne();
+        $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne();
-        $this->client->loginUser($user);
         $this->create($goshuincho, $place, [
             'photo_add' => ['location' => [$this->shot(), $this->shot(), $this->shot()]],
             'photo_add_label' => ['location' => ['first', 'second', 'third']],
@@ -446,9 +446,9 @@ class GoshuinTest extends AppTestCase
     public function test_deleting_a_goshuin_takes_its_photographs_and_their_files(): void
     {
         $user = UserFactory::createOne();
+        $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne();
-        $this->client->loginUser($user);
         $this->create($goshuincho, $place, [
             'photo_add' => ['location' => [$this->shot(), $this->shot()], 'other' => [$this->shot()]],
         ]);
@@ -470,9 +470,9 @@ class GoshuinTest extends AppTestCase
     public function test_the_shape_of_an_image_is_kept_and_declared(): void
     {
         $user = UserFactory::createOne();
+        $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne();
-        $this->client->loginUser($user);
         $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
         $this->client->submitForm('goshuin_submit', [
             'goshuin[location]' => $place->getId(),
@@ -516,9 +516,9 @@ class GoshuinTest extends AppTestCase
     public function test_saving_and_adding_another_comes_back_to_an_empty_form_on_the_same_goshuincho(): void
     {
         $user = UserFactory::createOne();
+        $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne(['romanizedName' => 'Fushimi Inari-taisha']);
-        $this->client->loginUser($user);
         $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
 
         $this->client->submitForm('goshuin_again', [
@@ -549,10 +549,10 @@ class GoshuinTest extends AppTestCase
     public function test_saving_and_adding_another_follows_the_goshuincho_that_was_chosen(): void
     {
         $user = UserFactory::createOne();
+        $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $other = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne();
-        $this->client->loginUser($user);
         $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
 
         $this->client->submitForm('goshuin_again', [
@@ -606,9 +606,9 @@ class GoshuinTest extends AppTestCase
     public function test_the_form_comes_back_with_its_values_and_keeps_the_image_it_already_has(): void
     {
         $user = UserFactory::createOne();
+        $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne();
-        $this->client->loginUser($user);
         $goshuin = $this->collect($goshuincho, $place);
         $image = $goshuin->getImage();
 
@@ -630,8 +630,8 @@ class GoshuinTest extends AppTestCase
     public function test_deleting_a_goshuin_destroys_its_image_and_closes_the_gap(): void
     {
         $user = UserFactory::createOne();
-        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $this->client->loginUser($user);
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $collected = $this->fill($goshuincho, ['Alpha', 'Beta', 'Gamma']);
         $removed = $collected[1];
         $paths = [$removed->getImage(), $removed->getImageMini(), $removed->getImageCard(), $removed->getImageFull()];
@@ -656,10 +656,10 @@ class GoshuinTest extends AppTestCase
     public function test_deleting_a_goshuin_leaves_its_location_alone(): void
     {
         $user = UserFactory::createOne();
+        $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne(['romanizedName' => 'Fushimi Inari-taisha']);
         $id = $place->getId();
-        $this->client->loginUser($user);
         $this->collect($goshuincho, $place);
 
         $this->client->request(Request::METHOD_GET, $this->page($goshuincho, 1).'/delete');
@@ -716,7 +716,9 @@ class GoshuinTest extends AppTestCase
     #[DataProvider('pages')]
     public function test_another_collector_reaches_no_page_that_is_not_theirs(string $suffix): void
     {
-        $goshuincho = GoshuinchoFactory::createOne(['owner' => UserFactory::createOne()]);
+        $owner = UserFactory::createOne();
+        $this->client->loginUser($owner);
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $owner]);
         $this->collect($goshuincho);
         $this->client->loginUser(UserFactory::createOne());
 
@@ -769,10 +771,9 @@ class GoshuinTest extends AppTestCase
      */
     private function fill(Goshuincho $goshuincho, array $places): array
     {
-        return array_map(
-            fn (string $place): Goshuin => $this->upload($goshuincho, LocationFactory::createOne(['romanizedName' => $place])),
-            $places,
-        );
+        $made = array_map(static fn (string $place): Location => LocationFactory::createOne(['romanizedName' => $place]), $places);
+
+        return array_map(fn (Location $place): Goshuin => $this->upload($goshuincho, $place), $made);
     }
 
     /**
@@ -934,6 +935,7 @@ class GoshuinTest extends AppTestCase
     public function test_the_index_holds_no_other_collectors_goshuin(): void
     {
         $owner = UserFactory::createOne();
+        $this->client->loginUser($owner);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $owner, 'title' => 'Not yours']);
         GoshuinFactory::new()->in($goshuincho)->create(['location' => LocationFactory::createOne(['romanizedName' => 'Hidden away'])]);
         $this->client->loginUser(UserFactory::createOne());

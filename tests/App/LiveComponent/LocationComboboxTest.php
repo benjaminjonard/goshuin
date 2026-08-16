@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Tests\App\LiveComponent;
 
+use App\Entity\User;
 use App\Repository\LocationRepository;
 use App\Tests\Factory\CityFactory;
 use App\Tests\Factory\LocationFactory;
 use App\Tests\Factory\UserFactory;
+use App\Tests\SignsIn;
 use App\Twig\Components\LocationCombobox;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\UX\LiveComponent\Test\InteractsWithLiveComponents;
@@ -20,6 +22,16 @@ class LocationComboboxTest extends KernelTestCase
     use Factories;
     use InteractsWithLiveComponents;
     use ResetDatabase;
+    use SignsIn;
+
+    private User $collector;
+
+    #[\Override]
+    protected function setUp(): void
+    {
+        $this->collector = UserFactory::createOne();
+        $this->signIn($this->collector);
+    }
 
     public function test_it_offers_nothing_before_anything_is_typed(): void
     {
@@ -166,7 +178,7 @@ class LocationComboboxTest extends KernelTestCase
     private function combobox(array $data = []): TestLiveComponent
     {
         return $this->createLiveComponent(LocationCombobox::class, ['name' => 'goshuincho[boughtAt]'] + $data)
-            ->actingAs(UserFactory::createOne())
+            ->actingAs($this->collector)
         ;
     }
 

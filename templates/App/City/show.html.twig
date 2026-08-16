@@ -8,10 +8,8 @@
         kicker: [{label: 'label.cities'|trans, href: path('app_city_index')}],
     } %}
         {% block tools %}
-            {% if is_granted('ROLE_ADMIN') %}
-                {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_city_edit', {slug: city.slug}), aria: 'label.edit'|trans}) }}
-                {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_city_delete', {slug: city.slug}), aria: 'label.delete'|trans}) }}
-            {% endif %}
+            {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_city_edit', {slug: city.slug}), aria: 'label.edit'|trans}) }}
+            {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_city_delete', {slug: city.slug}), aria: 'label.delete'|trans}) }}
         {% endblock %}
     {% endembed %}
 {% endblock %}

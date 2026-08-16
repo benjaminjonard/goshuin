@@ -6,15 +6,24 @@ namespace App\Tests\App\Service;
 
 use App\Entity\Deity;
 use App\Service\DeityLinker;
+use App\Tests\AppTestCase;
 use App\Tests\Factory\DeityFactory;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use App\Tests\Factory\UserFactory;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
-class DeityLinkerTest extends KernelTestCase
+class DeityLinkerTest extends AppTestCase
 {
     use Factories;
     use ResetDatabase;
+
+    #[\Override]
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->signIn(UserFactory::createOne());
+    }
 
     public function test_a_name_becomes_a_link_to_the_deity(): void
     {

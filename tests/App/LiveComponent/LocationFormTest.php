@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\App\LiveComponent;
 
 use App\Entity\Deity;
+use App\Entity\User;
 use App\Enum\LocationType as Kind;
 use App\Repository\DeityRepository;
 use App\Repository\LocationRepository;
@@ -14,6 +15,7 @@ use App\Service\PrefectureNamer;
 use App\Tests\Factory\CityFactory;
 use App\Tests\Factory\LocationFactory;
 use App\Tests\Factory\UserFactory;
+use App\Tests\SignsIn;
 use App\Twig\Components\LocationForm;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -30,8 +32,18 @@ class LocationFormTest extends KernelTestCase
     use Factories;
     use InteractsWithLiveComponents;
     use ResetDatabase;
+    use SignsIn;
 
     private const array EDITION_ONLY = ['deities', 'foundation', 'notes', 'photographFile', 'removePhotograph'];
+
+    private User $collector;
+
+    #[\Override]
+    protected function setUp(): void
+    {
+        $this->collector = UserFactory::createOne();
+        $this->signIn($this->collector);
+    }
 
     public function test_creating_offers_every_field_but_the_photograph(): void
     {
@@ -175,11 +187,10 @@ class LocationFormTest extends KernelTestCase
 
     public function test_both_paths_offer_rigorously_the_same_fields_apart_from_what_only_edition_carries(): void
     {
-        $user = UserFactory::createOne();
         $location = LocationFactory::createOne();
 
-        $creating = $this->fields($this->createLiveComponent(LocationForm::class)->actingAs($user)->render()->toString());
-        $editing = $this->fields($this->createLiveComponent(LocationForm::class, ['location' => $location])->actingAs($user)->render()->toString());
+        $creating = $this->fields($this->createLiveComponent(LocationForm::class)->actingAs($this->collector)->render()->toString());
+        $editing = $this->fields($this->createLiveComponent(LocationForm::class, ['location' => $location])->actingAs($this->collector)->render()->toString());
 
         $this->assertSame(
             $creating,
@@ -511,7 +522,7 @@ class LocationFormTest extends KernelTestCase
      */
     private function form(array $data = []): TestLiveComponent
     {
-        return $this->createLiveComponent(LocationForm::class, $data)->actingAs(UserFactory::createOne());
+        return $this->createLiveComponent(LocationForm::class, $data)->actingAs($this->collector);
     }
 
     private function locations(): LocationRepository
