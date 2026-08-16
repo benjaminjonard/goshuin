@@ -12,7 +12,7 @@
         {% embed 'App/_partials/_section.html.twig' with {title: 'label.essential'|trans} %}
             {% block content %}
                 <div class="grid gap-4 min-[700px]:grid-cols-[176px_minmax(0,1fr)]">
-                    <div class="grid gap-1.5">
+                    <div class="grid gap-1.5 self-start">
                         {{ form_widget(form.imageFile, {attr: {'data-image': goshuin.imageCard}}) }}
                         {{ form_errors(form.imageFile) }}
                     </div>
