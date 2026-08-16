@@ -45,6 +45,21 @@ class LocationFormTest extends KernelTestCase
         $this->assertStringNotContainsString('location[removePhotograph]', $rendered);
     }
 
+    public function test_every_field_is_bound_so_a_hand_typed_value_reaches_the_component(): void
+    {
+        $rendered = $this->form(['location' => LocationFactory::createOne()])->render()->toString();
+
+        $bound = ['romanizedName', 'japaneseName', 'type', 'city', 'prefecture', 'address', 'latitude', 'longitude', 'foundation', 'notes'];
+
+        foreach ($bound as $field) {
+            $this->assertMatchesRegularExpression(
+                '/data-model="[^"]*location\['.$field.'\]"/',
+                $rendered,
+                $field.' is not bound, so what is typed into it would never leave the browser.',
+            );
+        }
+    }
+
     public function test_editing_offers_the_photograph_too(): void
     {
         $rendered = $this->form(['location' => LocationFactory::createOne()])->render()->toString();

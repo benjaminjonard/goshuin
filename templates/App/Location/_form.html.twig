@@ -50,7 +50,7 @@
     {% block content %}
         <div class="grid gap-3.5">
             {{ form_errors(form) }}
-            {{ form_row(form.romanizedName) }}
+            {{ form_row(form.romanizedName, {attr: {'data-model': 'debounce(400)|' ~ form.romanizedName.vars.full_name}}) }}
 
             {% if this.duplicates is not empty %}
                 <p class="flex items-start gap-2.5 rounded-xl border border-accent-line bg-accent-soft px-3.5 py-3 text-[12.5px] leading-relaxed text-accent-text" role="alert">
@@ -60,16 +60,16 @@
             {% endif %}
 
             <div class="grid items-start gap-3.5 sm:grid-cols-2">
-                {{ form_row(form.japaneseName) }}
-                {{ form_row(form.type) }}
+                {{ form_row(form.japaneseName, {attr: {'data-model': 'norender|' ~ form.japaneseName.vars.full_name}}) }}
+                {{ form_row(form.type, {attr: {'data-model': 'norender|' ~ form.type.vars.full_name}}) }}
             </div>
 
             <div class="grid items-start gap-3.5 sm:grid-cols-2">
-                {{ form_row(form.city) }}
-                {{ form_row(form.prefecture) }}
+                {{ form_row(form.city, {attr: {'data-model': 'norender|' ~ form.city.vars.full_name}}) }}
+                {{ form_row(form.prefecture, {attr: {'data-model': 'norender|' ~ form.prefecture.vars.full_name}}) }}
             </div>
 
-            {{ form_row(form.address) }}
+            {{ form_row(form.address, {attr: {'data-model': 'norender|' ~ form.address.vars.full_name}}) }}
 
             <div data-controller="map"
                  data-map-mode-value="picker"
@@ -79,8 +79,8 @@
                  data-map-longitude-value="{{ form.vars.data.longitude|default(0) }}"
                  class="grid gap-3.5">
                 <div class="grid items-start gap-3.5 sm:grid-cols-2">
-                    {{ form_row(form.latitude, {attr: {'data-map-target': 'latitude'}}) }}
-                    {{ form_row(form.longitude, {attr: {'data-map-target': 'longitude'}}) }}
+                    {{ form_row(form.latitude, {attr: {'data-map-target': 'latitude', 'data-model': 'norender|' ~ form.latitude.vars.full_name}}) }}
+                    {{ form_row(form.longitude, {attr: {'data-map-target': 'longitude', 'data-model': 'norender|' ~ form.longitude.vars.full_name}}) }}
                 </div>
 
                 <div class="minimap h-[260px]" data-map-target="canvas" data-live-ignore aria-label="{{ 'label.place_on_map'|trans }}"></div>
@@ -138,8 +138,8 @@
                         {{- include('App/_partials/_icon.html.twig', {name: 'plus', small: true}) -}}
                     </button>
                 </div>
-                {{ form_row(form.foundation) }}
-                {{ form_row(form.notes) }}
+                {{ form_row(form.foundation, {attr: {'data-model': 'norender|' ~ form.foundation.vars.full_name}}) }}
+                {{ form_row(form.notes, {attr: {'data-model': 'norender|' ~ form.notes.vars.full_name}}) }}
             </div>
         {% endblock %}
     {% endembed %}
