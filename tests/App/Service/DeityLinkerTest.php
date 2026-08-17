@@ -89,6 +89,21 @@ class DeityLinkerTest extends AppTestCase
         );
     }
 
+    public function test_a_deity_past_the_first_page_is_still_linked(): void
+    {
+        for ($at = 1; $at <= 24; ++$at) {
+            DeityFactory::createOne(['name' => sprintf('Aaa %02d', $at)]);
+        }
+
+        $late = DeityFactory::createOne(['name' => 'Zzz Inari']);
+
+        $this->assertSame(
+            $this->anchor($late, 'Zzz Inari'),
+            $this->link('Zzz Inari'),
+            'A deity past the first page of the list was never linked.',
+        );
+    }
+
     public function test_a_note_naming_nobody_is_left_alone(): void
     {
         DeityFactory::createOne(['name' => 'Inari']);

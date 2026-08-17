@@ -10,6 +10,7 @@ use App\Entity\Goshuincho;
 use App\Entity\Prefecture;
 use App\Entity\Tag;
 use App\Model\Pin;
+use App\Repository\Trait\Paginates;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -19,7 +20,7 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class GoshuinRepository extends ServiceEntityRepository
 {
-    private const int PER_PAGE = 24;
+    use Paginates;
 
     public function __construct(ManagerRegistry $registry)
     {
@@ -31,14 +32,12 @@ class GoshuinRepository extends ServiceEntityRepository
      */
     public function browse(?string $term = null, int $page = 1, ?Tag $tag = null): array
     {
-        return $this->listing($term, $tag)
+        return $this->paginate($this->listing($term, $tag), $page)
             ->addSelect('location', 'goshuincho')
             ->addSelect('COALESCE(g.receivedOn, :epoch) AS HIDDEN ranked')
             ->setParameter('epoch', new \DateTimeImmutable('@0'))
             ->orderBy('ranked', 'DESC')
             ->addOrderBy('g.position', 'ASC')
-            ->setFirstResult(($page - 1) * self::PER_PAGE)
-            ->setMaxResults(self::PER_PAGE)
             ->getQuery()
             ->getResult()
         ;
@@ -46,12 +45,7 @@ class GoshuinRepository extends ServiceEntityRepository
 
     public function pages(?string $term = null, ?Tag $tag = null): int
     {
-        $total = (int) $this->listing($term, $tag)
-            ->select('COUNT(g.id)')
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        return max(1, (int) ceil($total / self::PER_PAGE));
+        return $this->pagesOf($this->listing($term, $tag));
     }
 
     /**

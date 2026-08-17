@@ -7,8 +7,8 @@ namespace App\Service;
 use App\Entity\AttachedPhoto;
 use App\Entity\Goshuin;
 use App\Entity\Goshuincho;
+use App\Entity\Interface\Photographed;
 use App\Entity\Photo;
-use App\Entity\Photographed;
 use App\Enum\PhotoType;
 use App\Repository\AttachedPhotoRepository;
 use App\Repository\GoshuinRepository;
@@ -29,8 +29,7 @@ final readonly class Positioner
     {
         $goshuincho = $this->goshuinchoOf($goshuin);
 
-        $this->manager->wrapInTransaction(function () use ($goshuin, $goshuincho): void {
-            $this->manager->lock($goshuincho, LockMode::PESSIMISTIC_WRITE);
+        $this->locked($goshuincho, function () use ($goshuin, $goshuincho): void {
             $goshuin->setPosition($this->repository->lastPosition($goshuincho) + 1);
             $this->manager->persist($goshuin);
             $this->manager->flush();
@@ -42,18 +41,14 @@ final readonly class Positioner
      */
     public function order(Goshuincho $goshuincho, array $ids): void
     {
-        $this->manager->wrapInTransaction(function () use ($goshuincho, $ids): void {
-            $this->manager->lock($goshuincho, LockMode::PESSIMISTIC_WRITE);
-            $this->renumber($this->repository->inOrder($goshuincho), $ids);
-        });
+        $this->locked($goshuincho, fn (): null => $this->renumber($this->repository->inOrder($goshuincho), $ids));
     }
 
     public function remove(Goshuin $goshuin): void
     {
         $goshuincho = $this->goshuinchoOf($goshuin);
 
-        $this->manager->wrapInTransaction(function () use ($goshuin, $goshuincho): void {
-            $this->manager->lock($goshuincho, LockMode::PESSIMISTIC_WRITE);
+        $this->locked($goshuincho, function () use ($goshuin, $goshuincho): void {
             $this->manager->remove($goshuin);
             $this->manager->flush();
             $this->renumber($this->repository->inOrder($goshuincho), []);
@@ -65,8 +60,7 @@ final readonly class Positioner
         $goshuin = $this->goshuinOf($photo);
         $type = $this->typeOf($photo);
 
-        $this->manager->wrapInTransaction(function () use ($photo, $goshuin, $type): void {
-            $this->manager->lock($goshuin, LockMode::PESSIMISTIC_WRITE);
+        $this->locked($goshuin, function () use ($photo, $goshuin, $type): void {
             $photo->setPosition($this->photos->lastPosition($goshuin, $type) + 1);
             $this->manager->persist($photo);
             $this->manager->flush();
@@ -78,10 +72,7 @@ final readonly class Positioner
      */
     public function orderPhotos(Goshuin $goshuin, PhotoType $type, array $ids): void
     {
-        $this->manager->wrapInTransaction(function () use ($goshuin, $type, $ids): void {
-            $this->manager->lock($goshuin, LockMode::PESSIMISTIC_WRITE);
-            $this->renumber($this->photos->ofType($goshuin, $type), $ids);
-        });
+        $this->locked($goshuin, fn (): null => $this->renumber($this->photos->ofType($goshuin, $type), $ids));
     }
 
     public function removePhoto(Photo $photo): void
@@ -89,8 +80,7 @@ final readonly class Positioner
         $goshuin = $this->goshuinOf($photo);
         $type = $this->typeOf($photo);
 
-        $this->manager->wrapInTransaction(function () use ($photo, $goshuin, $type): void {
-            $this->manager->lock($goshuin, LockMode::PESSIMISTIC_WRITE);
+        $this->locked($goshuin, function () use ($photo, $goshuin, $type): void {
             $this->manager->remove($photo);
             $this->manager->flush();
             $this->renumber($this->photos->ofType($goshuin, $type), []);
@@ -102,8 +92,7 @@ final readonly class Positioner
         $subject = $this->subjectOf($photo);
         $album = $this->album($subject);
 
-        $this->manager->wrapInTransaction(function () use ($photo, $subject, $album): void {
-            $this->manager->lock($subject, LockMode::PESSIMISTIC_WRITE);
+        $this->locked($subject, function () use ($photo, $subject, $album): void {
             $photo->setPosition($album->lastPosition($subject) + 1);
             $this->manager->persist($photo);
             $this->manager->flush();
@@ -117,10 +106,7 @@ final readonly class Positioner
     {
         $album = $this->album($subject);
 
-        $this->manager->wrapInTransaction(function () use ($subject, $album, $ids): void {
-            $this->manager->lock($subject, LockMode::PESSIMISTIC_WRITE);
-            $this->renumber($album->ofSubject($subject), $ids);
-        });
+        $this->locked($subject, fn (): null => $this->renumber($album->ofSubject($subject), $ids));
     }
 
     public function removeAttachedPhoto(AttachedPhoto $photo): void
@@ -128,11 +114,18 @@ final readonly class Positioner
         $subject = $this->subjectOf($photo);
         $album = $this->album($subject);
 
-        $this->manager->wrapInTransaction(function () use ($photo, $subject, $album): void {
-            $this->manager->lock($subject, LockMode::PESSIMISTIC_WRITE);
+        $this->locked($subject, function () use ($photo, $subject, $album): void {
             $this->manager->remove($photo);
             $this->manager->flush();
             $this->renumber($album->ofSubject($subject), []);
+        });
+    }
+
+    private function locked(object $subject, \Closure $work): void
+    {
+        $this->manager->wrapInTransaction(function () use ($subject, $work): void {
+            $this->manager->lock($subject, LockMode::PESSIMISTIC_WRITE);
+            $work();
         });
     }
 
@@ -177,45 +170,21 @@ final readonly class Positioner
 
     private function subjectOf(AttachedPhoto $photo): Photographed
     {
-        $subject = $photo->getSubject();
-
-        if (!$subject instanceof Photographed) {
-            throw new \LogicException('An AttachedPhoto is positioned within its subject.');
-        }
-
-        return $subject;
+        return $photo->getSubject() ?? throw new \LogicException('An AttachedPhoto is positioned within its subject.');
     }
 
     private function goshuinOf(Photo $photo): Goshuin
     {
-        $goshuin = $photo->getGoshuin();
-
-        if (!$goshuin instanceof Goshuin) {
-            throw new \LogicException('A Photo is positioned within its Goshuin.');
-        }
-
-        return $goshuin;
+        return $photo->getGoshuin() ?? throw new \LogicException('A Photo is positioned within its Goshuin.');
     }
 
     private function typeOf(Photo $photo): PhotoType
     {
-        $type = $photo->getType();
-
-        if (!$type instanceof PhotoType) {
-            throw new \LogicException('A Photo is positioned within its type.');
-        }
-
-        return $type;
+        return $photo->getType() ?? throw new \LogicException('A Photo is positioned within its type.');
     }
 
     private function goshuinchoOf(Goshuin $goshuin): Goshuincho
     {
-        $goshuincho = $goshuin->getGoshuincho();
-
-        if (!$goshuincho instanceof Goshuincho) {
-            throw new \LogicException('A Goshuin is positioned within its Goshuincho.');
-        }
-
-        return $goshuincho;
+        return $goshuin->getGoshuincho() ?? throw new \LogicException('A Goshuin is positioned within its Goshuincho.');
     }
 }

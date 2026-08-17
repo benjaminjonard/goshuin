@@ -8,6 +8,7 @@ use App\Entity\City;
 use App\Entity\Deity;
 use App\Entity\Location;
 use App\Entity\Prefecture;
+use App\Repository\Trait\Paginates;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -17,7 +18,7 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class LocationRepository extends ServiceEntityRepository
 {
-    private const int PER_PAGE = 24;
+    use Paginates;
 
     public function __construct(ManagerRegistry $registry)
     {
@@ -29,10 +30,8 @@ class LocationRepository extends ServiceEntityRepository
      */
     public function browse(?string $term = null, int $page = 1, City|Prefecture|null $narrow = null): array
     {
-        return $this->listing($term, $narrow)
+        return $this->paginate($this->listing($term, $narrow), $page)
             ->orderBy('l.romanizedName', 'ASC')
-            ->setFirstResult(($page - 1) * self::PER_PAGE)
-            ->setMaxResults(self::PER_PAGE)
             ->getQuery()
             ->getResult()
         ;
@@ -40,12 +39,7 @@ class LocationRepository extends ServiceEntityRepository
 
     public function pages(?string $term = null, City|Prefecture|null $narrow = null): int
     {
-        $total = (int) $this->listing($term, $narrow)
-            ->select('COUNT(l.id)')
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        return max(1, (int) ceil($total / self::PER_PAGE));
+        return $this->pagesOf($this->listing($term, $narrow));
     }
 
     public function countIn(City|Prefecture $place): int

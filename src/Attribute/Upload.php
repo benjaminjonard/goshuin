@@ -18,21 +18,6 @@ class Upload
     ) {
     }
 
-    public static function fromReflectionAttribute(\ReflectionAttribute $reflectionAttribute): self
-    {
-        $arguments = $reflectionAttribute->getArguments();
-
-        return new self(
-            $arguments['pathProperty'],
-            $arguments['miniProperty'],
-            $arguments['cardProperty'],
-            $arguments['fullProperty'],
-            $arguments['deleteProperty'] ?? null,
-            $arguments['widthProperty'] ?? null,
-            $arguments['heightProperty'] ?? null,
-        );
-    }
-
     public function getPathProperty(): string
     {
         return $this->pathProperty;

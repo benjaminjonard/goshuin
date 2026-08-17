@@ -15,7 +15,7 @@ class UploadAnnotationReader
 
         foreach ((new \ReflectionClass($entity::class))->getProperties() as $property) {
             foreach ($property->getAttributes(Upload::class) as $attribute) {
-                $fields[$property->getName()] = Upload::fromReflectionAttribute($attribute);
+                $fields[$property->getName()] = $attribute->newInstance();
             }
         }
 

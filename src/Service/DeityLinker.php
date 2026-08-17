@@ -54,7 +54,7 @@ final readonly class DeityLinker
     {
         $named = [];
 
-        foreach ($this->deities->browse() as $deity) {
+        foreach ($this->deities->findBy([], ['name' => 'ASC']) as $deity) {
             if ($except !== null && $deity->getId() === $except->getId()) {
                 continue;
             }

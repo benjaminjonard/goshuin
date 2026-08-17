@@ -11,6 +11,7 @@ use App\Entity\Location;
 use App\Entity\Prefecture;
 use App\Model\Summary;
 use App\Model\Tally;
+use App\Repository\Trait\Paginates;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Query\Expr\Join;
@@ -21,7 +22,7 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class GoshuinchoRepository extends ServiceEntityRepository
 {
-    private const int PER_PAGE = 24;
+    use Paginates;
 
     public function __construct(ManagerRegistry $registry)
     {
@@ -33,10 +34,8 @@ class GoshuinchoRepository extends ServiceEntityRepository
      */
     public function browse(?string $term = null, int $page = 1): array
     {
-        return $this->listing($term)
+        return $this->paginate($this->listing($term), $page)
             ->orderBy('g.title', 'ASC')
-            ->setFirstResult(($page - 1) * self::PER_PAGE)
-            ->setMaxResults(self::PER_PAGE)
             ->getQuery()
             ->getResult()
         ;
@@ -44,12 +43,7 @@ class GoshuinchoRepository extends ServiceEntityRepository
 
     public function pages(?string $term = null): int
     {
-        $total = (int) $this->listing($term)
-            ->select('COUNT(g.id)')
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        return max(1, (int) ceil($total / self::PER_PAGE));
+        return $this->pagesOf($this->listing($term));
     }
 
     private function listing(?string $term): QueryBuilder

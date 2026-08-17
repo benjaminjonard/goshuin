@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Entity;
+namespace App\Entity\Interface;
 
+use App\Entity\AttachedPhoto;
 use Doctrine\Common\Collections\Collection as DoctrineCollection;
 
 interface Photographed

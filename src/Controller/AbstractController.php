@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\City;
+use App\Entity\Interface\Sluggable;
 use App\Entity\Prefecture;
-use App\Entity\Sluggable;
 use App\Entity\Tag;
 use App\Model\Scope;
 use Doctrine\ORM\EntityManagerInterface;

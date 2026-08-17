@@ -6,6 +6,8 @@ namespace App\Repository;
 
 use App\Entity\City;
 use App\Entity\Prefecture;
+use App\Repository\Trait\FindsByName;
+use App\Repository\Trait\Paginates;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -15,7 +17,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class CityRepository extends ServiceEntityRepository
 {
-    private const int PER_PAGE = 24;
+    use FindsByName;
+    use Paginates;
 
     public function __construct(ManagerRegistry $registry)
     {
@@ -27,10 +30,8 @@ class CityRepository extends ServiceEntityRepository
      */
     public function browse(?string $term = null, int $page = 1, ?Prefecture $narrow = null): array
     {
-        return $this->listing($term, $narrow)
+        return $this->paginate($this->listing($term, $narrow), $page)
             ->orderBy('c.name', 'ASC')
-            ->setFirstResult(($page - 1) * self::PER_PAGE)
-            ->setMaxResults(self::PER_PAGE)
             ->getQuery()
             ->getResult()
         ;
@@ -38,23 +39,12 @@ class CityRepository extends ServiceEntityRepository
 
     public function pages(?string $term = null, ?Prefecture $narrow = null): int
     {
-        $total = (int) $this->listing($term, $narrow)
-            ->select('COUNT(c.id)')
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        return max(1, (int) ceil($total / self::PER_PAGE));
+        return $this->pagesOf($this->listing($term, $narrow));
     }
 
     public function namedExactly(string $name): ?City
     {
-        return $this->createQueryBuilder('c')
-            ->andWhere('LOWER(c.name) = :name')
-            ->setParameter('name', mb_strtolower($name))
-            ->setMaxResults(1)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $this->oneNamed($name);
     }
 
     public function countIn(Prefecture $prefecture): int
