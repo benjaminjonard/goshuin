@@ -166,6 +166,14 @@ label:
     home_empty: 'Aucun goshuincho pour le moment.'
     home_empty_cta: 'Créer mon premier goshuincho'
 
+    instance: 'Instance'
+    release: 'Version'
+    php_version: 'Version de PHP'
+    symfony_version: 'Version de Symfony'
+    frankenphp_version: 'Version de FrankenPHP'
+    disk_usage: 'Utilisation du disque'
+    byte_abbreviation: 'o'
+
 message:
     location_duplicate: 'Un lieu porte déjà ce nom. En créer un autre reste possible.'
 

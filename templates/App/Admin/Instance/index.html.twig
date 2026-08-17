@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'label.instance'|trans }} · Goshuin{% endblock %}
+
+{% block bar %}
+    {{ include('App/_partials/_bar.html.twig', {title: 'label.instance'|trans}) }}
+{% endblock %}
+
+{% block body %}
+    <main class="page mx-auto grid w-full max-w-[620px] gap-[clamp(12px,1.4vw,18px)]">
+        <section class="tile tile-pad">
+            {{ include('App/_partials/_kvs.html.twig', {rows: [
+                {label: 'label.release'|trans, value: release},
+                {label: 'label.php_version'|trans, value: phpVersion},
+                {label: 'label.symfony_version'|trans, value: symfonyVersion},
+                {label: 'label.frankenphp_version'|trans, value: frankenPhpVersion},
+                {label: 'label.disk_usage'|trans, value: diskUsage|bytes},
+            ]}) }}
+        </section>
+    </main>
+{% endblock %}

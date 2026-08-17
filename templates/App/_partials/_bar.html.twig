@@ -79,6 +79,10 @@
                             {{ include('App/_partials/_icon.html.twig', {name: 'goshuincho', small: true, class: 'text-fg-2'}) }}
                             {{ 'label.users'|trans }}
                         </a>
+                        <a href="{{ path('app_admin_instance') }}" class="flex items-center gap-2.5 px-4 py-3 text-[13.5px] font-semibold text-fg no-underline hover:bg-tile-2">
+                            {{ include('App/_partials/_icon.html.twig', {name: 'info', small: true, class: 'text-fg-2'}) }}
+                            {{ 'label.instance'|trans }}
+                        </a>
                     {% endif %}
                     <a href="{{ path('app_logout') }}" class="flex items-center gap-2.5 border-t border-line px-4 py-3 text-[13.5px] font-semibold text-fg no-underline hover:bg-tile-2">
                         {{ include('App/_partials/_icon.html.twig', {name: 'out', small: true, class: 'text-fg-2'}) }}
