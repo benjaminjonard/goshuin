@@ -1,8 +1,14 @@
-# W.I.P
-
 # Goshuin
 
 A self-hosted manager for a goshuin — the seals brushed by hand at Japanese temples and shrines — and the goshuincho they are collected in.
+
+## Screenshots
+<p align="center">
+    <img width="400px" src="https://github.com/user-attachments/assets/1114515f-412c-43d8-9759-3b9f778b5a4d">
+    <img width="400px" src="https://github.com/user-attachments/assets/cf991896-2237-403f-8a6c-2f6574a38678">
+    <img width="400px" src="https://github.com/user-attachments/assets/c6a80187-a211-40b3-92f4-afeb61a71e93">
+    <img width="400px" src="https://github.com/user-attachments/assets/dac4f57d-a8a7-42a8-a9f8-c2e234f419ce">
+</p>
 
 ## Installation
 
