@@ -16,6 +16,7 @@
         cards: cities|map(city => {
             href: path('app_city_show', {slug: city.slug}),
             image: city.photographCard,
+            crop: true,
             icon: 'city',
             title: city.name,
             below: city.prefecture ? city.prefecture.name : null,

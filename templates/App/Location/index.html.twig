@@ -16,6 +16,7 @@
         cards: locations|map(location => {
             href: path('app_location_show', {slug: location.slug}),
             image: location.photographCard,
+            crop: true,
             icon: 'pin',
             title: location.romanizedName,
             below: [

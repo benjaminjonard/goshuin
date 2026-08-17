@@ -26,19 +26,21 @@
                 </section>
             {% endif %}
 
-            <div class="grid content-start gap-[clamp(12px,1.4vw,18px)]">
-                {{ include('App/_partials/_totals.html.twig', {totals: [
-                    {icon: 'city', value: cities, label: 'label.stat_cities', href: path('app_city_index', {prefecture: prefecture.slug})},
-                    {icon: 'pin', value: locations, label: 'label.stat_locations', href: path('app_location_index', {prefecture: prefecture.slug})},
-                ]}) }}
+            <div class="{{ prefecture.photographFull ? 'relative' }}">
+                <div class="flex flex-col gap-[clamp(12px,1.4vw,18px)]{{ prefecture.photographFull ? ' absolute inset-0' }}">
+                    {{ include('App/_partials/_totals.html.twig', {totals: [
+                        {icon: 'city', value: cities, label: 'label.stat_cities', href: path('app_city_index', {prefecture: prefecture.slug})},
+                        {icon: 'pin', value: locations, label: 'label.stat_locations', href: path('app_location_index', {prefecture: prefecture.slug})},
+                    ]}) }}
 
-                {% if prefecture.notes is not empty %}
-                    {% embed 'App/_partials/_section.html.twig' with {title: 'label.notes'|trans} %}
-                        {% block content %}
-                            <div class="text-[14.5px] leading-[1.75] text-fg-2">{{ prefecture.notes|deities }}</div>
-                        {% endblock %}
-                    {% endembed %}
-                {% endif %}
+                    {% if prefecture.notes is not empty %}
+                        {% embed 'App/_partials/_section.html.twig' with {title: 'label.notes'|trans, class: 'flex min-h-0 flex-col'} %}
+                            {% block content %}
+                                <div class="min-h-0 overflow-y-auto text-[14.5px] leading-[1.75] text-fg-2">{{ prefecture.notes|deities }}</div>
+                            {% endblock %}
+                        {% endembed %}
+                    {% endif %}
+                </div>
             </div>
         </div>
 

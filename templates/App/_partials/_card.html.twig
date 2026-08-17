@@ -3,7 +3,7 @@
    {%- if hue|default(null) is not null %} style="--hue: {{ hue }}"{% endif %}>
     <figure class="shot">
         {% if image|default(null) %}
-            <img src="{{ image|image }}" alt="" class="shot-image"
+            <img src="{{ image|image }}" alt="" class="{{ crop|default(false) ? 'shot-cover' : 'shot-image' }}"
                  {%- if width|default(null) and height|default(null) %} width="{{ width }}" height="{{ height }}"{% endif %}>
         {% else %}
             <span class="shot-empty" aria-hidden="true">{{ include('App/_partials/_icon.html.twig', {name: icon}) }}</span>

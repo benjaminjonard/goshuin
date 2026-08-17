@@ -15,6 +15,7 @@
         cards: prefectures|map(prefecture => {
             href: path('app_prefecture_show', {slug: prefecture.slug}),
             image: prefecture.photographCard,
+            crop: true,
             icon: 'prefecture',
             title: prefecture.name,
         }),
