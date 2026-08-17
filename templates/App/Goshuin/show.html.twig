@@ -75,10 +75,19 @@
                 {label: 'label.coordinates'|trans, value: coordinates},
             ]|filter(row => row.value is not empty) %}
 
-            {% if record is not empty %}
+            {% if record is not empty or goshuin.tags is not empty %}
                 {% embed 'App/_partials/_section.html.twig' with {title: 'label.information'|trans} %}
                     {% block content %}
                         {{ include('App/_partials/_kvs.html.twig', {rows: record}) }}
+
+                        {% if goshuin.tags is not empty %}
+                            <div class="{{ record is not empty ? 'mt-4' }}">
+                                {{ include('App/_partials/_pills.html.twig', {pills: goshuin.tags|map(tag => {
+                                    text: tag.name,
+                                    href: path('app_goshuin_index', {tag: tag.slug}),
+                                })}) }}
+                            </div>
+                        {% endif %}
                     {% endblock %}
                 {% endembed %}
             {% endif %}

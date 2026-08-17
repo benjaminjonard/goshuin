@@ -8,6 +8,7 @@ use App\Entity\City;
 use App\Entity\Goshuin;
 use App\Entity\Goshuincho;
 use App\Entity\Prefecture;
+use App\Entity\Tag;
 use App\Model\Pin;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
@@ -28,9 +29,9 @@ class GoshuinRepository extends ServiceEntityRepository
     /**
      * @return list<Goshuin>
      */
-    public function browse(?string $term = null, int $page = 1): array
+    public function browse(?string $term = null, int $page = 1, ?Tag $tag = null): array
     {
-        return $this->listing($term)
+        return $this->listing($term, $tag)
             ->addSelect('location', 'goshuincho')
             ->addSelect('COALESCE(g.receivedOn, :epoch) AS HIDDEN ranked')
             ->setParameter('epoch', new \DateTimeImmutable('@0'))
@@ -43,9 +44,9 @@ class GoshuinRepository extends ServiceEntityRepository
         ;
     }
 
-    public function pages(?string $term = null): int
+    public function pages(?string $term = null, ?Tag $tag = null): int
     {
-        $total = (int) $this->listing($term)
+        $total = (int) $this->listing($term, $tag)
             ->select('COUNT(g.id)')
             ->getQuery()
             ->getSingleScalarResult();
@@ -73,12 +74,20 @@ class GoshuinRepository extends ServiceEntityRepository
         ;
     }
 
-    private function listing(?string $term): QueryBuilder
+    private function listing(?string $term, ?Tag $tag = null): QueryBuilder
     {
         $builder = $this->createQueryBuilder('g')
             ->innerJoin('g.location', 'location')
             ->innerJoin('g.goshuincho', 'goshuincho')
         ;
+
+        if ($tag !== null) {
+            $builder
+                ->innerJoin('g.tags', 'tag')
+                ->andWhere('tag = :tag')
+                ->setParameter('tag', $tag)
+            ;
+        }
 
         if ($term !== null && $term !== '') {
             $builder

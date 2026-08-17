@@ -8,6 +8,7 @@ use App\Entity\City;
 use App\Entity\Deity;
 use App\Entity\Location;
 use App\Entity\Prefecture;
+use App\Entity\Tag;
 use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class Uses
@@ -16,6 +17,8 @@ final readonly class Uses
         + (SELECT COUNT(*) FROM gos_goshuincho WHERE bought_at_id = :id)';
 
     private const string DEITY_COUNT = 'SELECT COUNT(*) FROM gos_location_deity WHERE deity_id = :id';
+
+    private const string TAG_COUNT = 'SELECT COUNT(*) FROM gos_goshuin_tag WHERE tag_id = :id';
 
     private const string CITY_COUNT = 'SELECT COUNT(*) FROM gos_location WHERE city_id = :id';
 
@@ -26,11 +29,12 @@ final readonly class Uses
     {
     }
 
-    public function of(Location|Deity|City|Prefecture $subject): int
+    public function of(Location|Deity|Tag|City|Prefecture $subject): int
     {
         $count = match (true) {
             $subject instanceof Location => self::LOCATION_COUNT,
             $subject instanceof Deity => self::DEITY_COUNT,
+            $subject instanceof Tag => self::TAG_COUNT,
             $subject instanceof City => self::CITY_COUNT,
             $subject instanceof Prefecture => self::PREFECTURE_COUNT,
         };

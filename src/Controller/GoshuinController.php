@@ -6,11 +6,13 @@ namespace App\Controller;
 
 use App\Entity\Goshuin;
 use App\Entity\Goshuincho;
+use App\Entity\Tag;
 use App\Enum\PhotoType;
 use App\Form\Type\GoshuinType;
 use App\Model\PhotoInstructions;
 use App\Repository\GoshuinRepository;
 use App\Repository\PhotoRepository;
+use App\Repository\TagRepository;
 use App\Service\PhotoSet;
 use App\Service\Positioner;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
@@ -23,6 +25,7 @@ class GoshuinController extends AbstractController
     public function __construct(
         private readonly GoshuinRepository $goshuins,
         private readonly PhotoRepository $photos,
+        private readonly TagRepository $tags,
         private readonly Positioner $positioner,
         private readonly PhotoSet $set,
     ) {
@@ -32,14 +35,19 @@ class GoshuinController extends AbstractController
     public function index(Request $request): Response
     {
         [$term, $page] = $this->browsing($request);
-        $pages = $this->goshuins->pages($term);
+        $scope = $this->scopeOf($request, [
+            'tag' => ['route' => 'app_goshuin_index', 'repository' => $this->tags],
+        ]);
+        $tag = $scope?->subject instanceof Tag ? $scope->subject : null;
+        $pages = $this->goshuins->pages($term, $tag);
 
         if ($page > $pages) {
             throw $this->createNotFoundException();
         }
 
         return $this->render('App/Goshuin/index.html.twig', [
-            'goshuins' => $this->goshuins->browse($term, $page),
+            'goshuins' => $this->goshuins->browse($term, $page, $tag),
+            'scope' => $scope,
             'term' => $term,
             'page' => $page,
             'pages' => $pages,

@@ -3,6 +3,8 @@ error:
         not_unique: 'Un compte utilise déjà cette adresse.'
     deity:
         not_unique: 'Une divinité porte déjà ce nom.'
+    tag:
+        not_unique: 'Un tag porte déjà ce nom.'
     city:
         not_unique: 'Une ville porte déjà ce nom.'
     prefecture:

@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'label.delete'|trans }} · Goshuin{% endblock %}
+
+{% block bar %}
+    {{ include('App/_partials/_bar.html.twig', {
+        kicker: [{label: 'label.tags'|trans, href: path('app_tag_index')}],
+        title: tag.name,
+    }) }}
+{% endblock %}
+
+{% block body %}
+    {{ include('App/_partials/_delete.html.twig', {
+        subject: tag.name,
+        back: path('app_tag_index'),
+        referenced: 'error.tag_referenced',
+        confirm: 'label.delete_tag',
+    }) }}
+{% endblock %}

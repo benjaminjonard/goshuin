@@ -28,12 +28,13 @@
         {% embed 'App/_partials/_fold.html.twig' with {
             title: 'label.the_goshuin'|trans,
             holds: 'label.the_goshuin_holds'|trans,
-            filled: goshuin.type is not null or goshuin.price is not null,
+            filled: goshuin.type is not null or goshuin.price is not null or goshuin.tags is not empty,
             open: true,
         } %}
             {% block content %}
                 {{ form_row(form.type) }}
                 {{ form_row(form.price, {row_attr: {class: 'sm:max-w-[220px]'}}) }}
+                {{ form_row(form.tags) }}
             {% endblock %}
         {% endembed %}
 

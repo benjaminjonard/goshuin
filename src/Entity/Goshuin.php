@@ -98,6 +98,15 @@ class Goshuin
     #[ORM\OrderBy(['position' => 'ASC'])]
     private DoctrineCollection $photos;
 
+    /**
+     * @var DoctrineCollection<int, Tag>
+     */
+    #[ORM\ManyToMany(targetEntity: Tag::class, cascade: ['persist'])]
+    #[ORM\JoinTable(name: 'gos_goshuin_tag')]
+    #[ORM\OrderBy(['name' => 'ASC'])]
+    #[Assert\Valid]
+    private DoctrineCollection $tags;
+
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Gedmo\Timestampable(on: 'create')]
     private \DateTimeImmutable $createdAt;
@@ -110,6 +119,7 @@ class Goshuin
     {
         $this->id = Uuid::v7()->toRfc4122();
         $this->photos = new ArrayCollection();
+        $this->tags = new ArrayCollection();
     }
 
     public function getId(): string
@@ -123,6 +133,30 @@ class Goshuin
     public function getPhotos(): DoctrineCollection
     {
         return $this->photos;
+    }
+
+    /**
+     * @return DoctrineCollection<int, Tag>
+     */
+    public function getTags(): DoctrineCollection
+    {
+        return $this->tags;
+    }
+
+    public function addTag(Tag $tag): Goshuin
+    {
+        if (!$this->tags->contains($tag)) {
+            $this->tags->add($tag);
+        }
+
+        return $this;
+    }
+
+    public function removeTag(Tag $tag): Goshuin
+    {
+        $this->tags->removeElement($tag);
+
+        return $this;
     }
 
     public function getGoshuincho(): ?Goshuincho

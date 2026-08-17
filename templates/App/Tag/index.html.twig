@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'label.tags'|trans }} · Goshuin{% endblock %}
+
+{% block bar %}
+    {{ include('App/_partials/_bar.html.twig', {title: 'label.tags'|trans}) }}
+{% endblock %}
+
+{% block body %}
+    <main class="page mx-auto grid w-full max-w-[1100px] gap-[clamp(12px,1.4vw,18px)]">
+        <form method="get" action="{{ path('app_tag_index') }}" class="flex flex-wrap items-center gap-2.5">
+            <input type="search" name="q" value="{{ term }}" autocomplete="off"
+                   aria-label="{{ 'label.tag_search'|trans }}"
+                   placeholder="{{ 'label.tag_search'|trans }}"
+                   class="min-w-0 flex-auto rounded-xl border border-line-2 bg-tile px-3.5 py-2.5 text-[14.5px] text-fg placeholder:text-fg-3 focus-visible:border-accent">
+            {{ include('App/_partials/_button.html.twig', {label: 'label.search'|trans, variant: 'primary', type: 'submit'}) }}
+        </form>
+
+        {% if tags is empty %}
+            <p class="tile tile-pad text-center text-[14.5px] text-fg-2">
+                {% if term is not empty %}
+                    {{ 'label.no_result'|trans }}
+                    <a href="{{ path('app_tag_index') }}" class="font-semibold text-accent-text">{{ 'label.tags'|trans }}</a>
+                {% else %}
+                    {{ 'label.no_tag_yet'|trans }}
+                {% endif %}
+            </p>
+        {% else %}
+            <ul class="tile grid gap-0 px-3 py-1.5">
+                {% for tag in tags %}
+                    <li class="flex items-center gap-3 py-2 not-first:border-t not-first:border-line">
+                        <span class="grid size-8 shrink-0 place-items-center rounded-[10px] bg-accent-soft text-accent-text" aria-hidden="true">
+                            {{ include('App/_partials/_icon.html.twig', {name: 'tag', small: true}) }}
+                        </span>
+                        <a href="{{ path('app_goshuin_index', {tag: tag.slug}) }}"
+                           class="min-w-0 flex-auto truncate text-[13.5px] font-semibold text-fg no-underline hover:text-accent-text">{{ tag.name }}</a>
+                        {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_tag_edit', {slug: tag.slug}), aria: 'label.edit'|trans}) }}
+                        {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_tag_delete', {slug: tag.slug}), aria: 'label.delete'|trans}) }}
+                    </li>
+                {% endfor %}
+            </ul>
+
+            {{ include('App/_partials/_pager.html.twig', {
+                route: 'app_tag_index',
+                parameters: term is not empty ? {q: term} : {},
+                page: page,
+                pages: pages,
+            }) }}
+        {% endif %}
+    </main>
+{% endblock %}

@@ -6,6 +6,7 @@ namespace App\Model;
 
 use App\Entity\City;
 use App\Entity\Prefecture;
+use App\Entity\Tag;
 
 final readonly class Scope
 {
@@ -15,7 +16,7 @@ final readonly class Scope
         public string $icon,
         public string $label,
         public string $href,
-        public City|Prefecture $subject,
+        public City|Prefecture|Tag $subject,
     ) {
     }
 }

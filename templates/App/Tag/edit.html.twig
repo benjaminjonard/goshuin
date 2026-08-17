@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ tag.name }} · Goshuin{% endblock %}
+
+{% block bar %}
+    {{ include('App/_partials/_bar.html.twig', {
+        kicker: [{label: 'label.tags'|trans, href: path('app_tag_index')}],
+        title: tag.name,
+    }) }}
+{% endblock %}
+
+{% block body %}
+    <main class="page mx-auto grid w-full max-w-[560px] gap-[clamp(12px,1.4vw,18px)]">
+        {{ form_start(form, {attr: {class: 'grid gap-[clamp(12px,1.4vw,18px)]'}}) }}
+            <div class="tile tile-pad grid gap-4">
+                {{ form_errors(form) }}
+                {{ form_row(form.name) }}
+            </div>
+
+            <div class="mt-1 flex justify-end gap-2.5">
+                {{ include('App/_partials/_button.html.twig', {label: 'label.cancel'|trans, href: path('app_tag_index')}) }}
+                {{ include('App/_partials/_button.html.twig', {label: 'label.save'|trans, variant: 'primary', type: 'submit', name: 'tag_submit'}) }}
+            </div>
+        {{ form_end(form) }}
+    </main>
+{% endblock %}

@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Entity\City;
 use App\Entity\Prefecture;
 use App\Entity\Sluggable;
+use App\Entity\Tag;
 use App\Model\Scope;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectRepository;
@@ -47,7 +48,7 @@ abstract class AbstractController extends SymfonyAbstractController
     }
 
     /**
-     * @param array<string, array{route: string, repository: ObjectRepository<City|Prefecture>}> $narrowings
+     * @param array<string, array{route: string, repository: ObjectRepository<City|Prefecture|Tag>}> $narrowings
      */
     protected function scopeOf(Request $request, array $narrowings): ?Scope
     {
@@ -77,7 +78,7 @@ abstract class AbstractController extends SymfonyAbstractController
         return null;
     }
 
-    protected function deleteSluggable(Request $request, Sluggable $subject, string $name, int $held): Response
+    protected function deleteSluggable(Request $request, Sluggable $subject, string $name, int $held, ?string $blocked = null): Response
     {
         $slug = $subject->getSlug();
         $form = $this->createDeleteForm('app_'.$name.'_delete', ['slug' => $slug]);
@@ -85,7 +86,7 @@ abstract class AbstractController extends SymfonyAbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             if ($held > 0) {
-                return $this->redirectToRoute('app_'.$name.'_show', ['slug' => $slug]);
+                return $this->redirectToRoute($blocked ?? 'app_'.$name.'_show', ['slug' => $slug]);
             }
 
             $this->entityManager->remove($subject);

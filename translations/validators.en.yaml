@@ -3,6 +3,8 @@ error:
         not_unique: 'An account already uses that address.'
     deity:
         not_unique: 'A deity already bears that name.'
+    tag:
+        not_unique: 'A tag already bears that name.'
     city:
         not_unique: 'A city already bears that name.'
     prefecture:

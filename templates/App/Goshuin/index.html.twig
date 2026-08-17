@@ -12,6 +12,8 @@
         search: 'label.goshuin_search',
         nothing: 'label.no_goshuin_yet',
         noun: 'label.goshuin',
+        scope: scope,
+        back: 'label.all_goshuin',
         cards: goshuins|map(goshuin => {
             href: path('app_goshuin_show', {slug: goshuin.goshuincho.slug, position: goshuin.position}),
             image: goshuin.imageCard,

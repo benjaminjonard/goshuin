@@ -8,6 +8,7 @@ use App\Entity\Goshuin;
 use App\Entity\Goshuincho;
 use App\Entity\Location;
 use App\Entity\Photo;
+use App\Entity\Tag;
 use App\Enum\GoshuinType;
 use App\Enum\PhotoType;
 use App\Repository\GoshuinRepository;
@@ -18,6 +19,7 @@ use App\Tests\Factory\CityFactory;
 use App\Tests\Factory\GoshuinFactory;
 use App\Tests\Factory\GoshuinchoFactory;
 use App\Tests\Factory\LocationFactory;
+use App\Tests\Factory\TagFactory;
 use App\Tests\Factory\UserFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\DomCrawler\Crawler;
@@ -943,6 +945,213 @@ class GoshuinTest extends AppTestCase
         $crawler = $this->client->request(Request::METHOD_GET, '/goshuin');
 
         $this->assertStringNotContainsString('Hidden away', $crawler->filter('main')->text(), 'A foreign goshuin reached the index.');
+    }
+
+    public function test_the_tags_typed_on_the_form_become_the_tags_of_the_goshuin(): void
+    {
+        $user = UserFactory::createOne();
+        $this->client->loginUser($user);
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
+        $place = LocationFactory::createOne();
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+
+        $this->client->submitForm('goshuin_submit', [
+            'goshuin[location]' => $place->getId(),
+            'goshuin[imageFile]' => $this->image(),
+            'goshuin[tags]' => 'dog, plum blossom',
+        ]);
+
+        $created = $this->repository()->findOneBy(['location' => $place->getId()]);
+        $named = $this->tagged($created);
+
+        $this->assertSame(['dog', 'plum blossom'], $named, 'The tags typed were not attached.');
+        $this->assertSame(2, $this->tags(), 'The tags typed did not reach the table.');
+
+        foreach ($created->getTags() as $tag) {
+            $this->assertSame($user->getId(), $tag->getOwner()->getId(), 'A tag was created without its collector.');
+        }
+
+        $this->discard($created);
+    }
+
+    public function test_a_tag_already_held_is_reused_whatever_its_case(): void
+    {
+        $user = UserFactory::createOne();
+        $this->client->loginUser($user);
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
+        $place = LocationFactory::createOne();
+        $held = TagFactory::createOne(['name' => 'dog', 'owner' => $user]);
+        $id = $held->getId();
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+
+        $this->client->submitForm('goshuin_submit', [
+            'goshuin[location]' => $place->getId(),
+            'goshuin[imageFile]' => $this->image(),
+            'goshuin[tags]' => 'Dog',
+        ]);
+
+        $created = $this->repository()->findOneBy(['location' => $place->getId()]);
+
+        $this->assertSame(1, $this->tags(), 'A tag already held was created a second time.');
+        $this->assertSame($id, $created->getTags()->first()->getId(), 'The tag held was not the one attached.');
+        $this->assertSame('dog', $created->getTags()->first()->getName(), 'The tag held was renamed by the casing typed.');
+
+        $this->discard($created);
+    }
+
+    public function test_a_blank_or_repeated_tag_is_dropped(): void
+    {
+        $user = UserFactory::createOne();
+        $this->client->loginUser($user);
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
+        $place = LocationFactory::createOne();
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+
+        $this->client->submitForm('goshuin_submit', [
+            'goshuin[location]' => $place->getId(),
+            'goshuin[imageFile]' => $this->image(),
+            'goshuin[tags]' => 'dog, , dog , DOG',
+        ]);
+
+        $created = $this->repository()->findOneBy(['location' => $place->getId()]);
+
+        $this->assertSame(['dog'], $this->tagged($created), 'A blank or repeated tag survived.');
+        $this->assertSame(1, $this->tags(), 'A blank or repeated tag reached the table.');
+
+        $this->discard($created);
+    }
+
+    public function test_clearing_the_tags_of_a_goshuin_leaves_the_tags_themselves(): void
+    {
+        $user = UserFactory::createOne();
+        $this->client->loginUser($user);
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
+        $tag = TagFactory::createOne(['name' => 'dog', 'owner' => $user]);
+        $goshuin = GoshuinFactory::new()->in($goshuincho)->create(['tags' => [$tag]]);
+        $id = $goshuin->getId();
+
+        $this->client->request(Request::METHOD_GET, $this->page($goshuincho, 1).'/edit');
+        $this->client->submitForm('goshuin_submit', ['goshuin[tags]' => '']);
+
+        $this->assertResponseRedirects($this->page($goshuincho, 1));
+        $this->assertSame([], $this->tagged($this->repository()->find($id)), 'The tags were not cleared.');
+        $this->assertSame(1, $this->tags(), 'Clearing the tags of a goshuin destroyed the tag itself.');
+    }
+
+    public function test_the_page_reads_the_tags_back_and_leads_each_to_the_goshuin_bearing_it(): void
+    {
+        $user = UserFactory::createOne();
+        $this->client->loginUser($user);
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
+        $tag = TagFactory::createOne(['name' => 'dog', 'owner' => $user]);
+        $slug = $tag->getSlug();
+        GoshuinFactory::new()->in($goshuincho)->create(['tags' => [$tag]]);
+
+        $main = $this->client->request(Request::METHOD_GET, $this->page($goshuincho, 1))->filter('main');
+        $pill = $main->filter('a[href="/goshuin?tag='.$slug.'"]');
+
+        $this->assertCount(1, $pill, 'A tag on the page does not lead to the goshuin bearing it.');
+        $this->assertSame('dog', trim($pill->text()));
+        $this->assertCount(
+            1,
+            $main->filter('section')->reduce(static fn (Crawler $section): bool => str_contains($section->text(), 'Information') && $section->filter('a[href^="/goshuin?tag="]')->count() > 0),
+            'The tags sit outside the information section instead of below it.',
+        );
+    }
+
+    public function test_a_goshuin_with_no_tag_says_nothing_about_tags(): void
+    {
+        $user = UserFactory::createOne();
+        $this->client->loginUser($user);
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
+        GoshuinFactory::new()->in($goshuincho)->create();
+
+        $main = $this->client->request(Request::METHOD_GET, $this->page($goshuincho, 1))->filter('main');
+
+        $this->assertCount(0, $main->filter('a[href^="/goshuin?tag="]'), 'A goshuin with no tag still offered one.');
+        $this->assertCount(0, $main->filter('ul.flex-wrap'), 'A goshuin with no tag still reserved the room for them.');
+    }
+
+    public function test_the_index_narrowed_to_a_tag_holds_only_what_bears_it(): void
+    {
+        $user = UserFactory::createOne();
+        $this->client->loginUser($user);
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
+        $tag = TagFactory::createOne(['name' => 'dog', 'owner' => $user]);
+        $slug = $tag->getSlug();
+
+        GoshuinFactory::new()->in($goshuincho, 1)->create([
+            'location' => LocationFactory::createOne(['romanizedName' => 'Gōtoku-ji']),
+            'tags' => [$tag],
+        ]);
+        GoshuinFactory::new()->in($goshuincho, 2)->create([
+            'location' => LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']),
+        ]);
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/goshuin?tag='.$slug);
+        $listed = $crawler->filter('main ul li')->text();
+
+        $this->assertResponseIsSuccessful();
+        $this->assertCount(1, $crawler->filter('main ul li'), 'The narrowing does not hold only what bears the tag.');
+        $this->assertStringContainsString('Gōtoku-ji', $listed);
+        $this->assertStringNotContainsString('Kiyomizu-dera', $listed, 'An untagged goshuin reached the narrowing.');
+        $this->assertSame('/goshuin', $crawler->filter('main p a')->last()->attr('href'), 'The narrowing offers no way back.');
+    }
+
+    public function test_narrowing_to_a_tag_survives_the_search_and_the_pager(): void
+    {
+        $user = UserFactory::createOne();
+        $this->client->loginUser($user);
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
+        $tag = TagFactory::createOne(['name' => 'dog', 'owner' => $user]);
+        $slug = $tag->getSlug();
+
+        foreach (range(1, 25) as $rank) {
+            GoshuinFactory::new()->in($goshuincho, $rank)->create([
+                'location' => LocationFactory::createOne(['romanizedName' => sprintf('Gōtoku-ji %02d', $rank)]),
+                'tags' => [$tag],
+            ]);
+        }
+
+        GoshuinFactory::new()->in($goshuincho, 26)->create([
+            'location' => LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']),
+            'tags' => [$tag],
+        ]);
+
+        $first = $this->client->request(Request::METHOD_GET, '/goshuin?tag='.$slug.'&q=g%C5%8Dtoku');
+
+        $this->assertCount(24, $first->filter('main ul li'), 'The search inside a narrowing does not fill a page.');
+
+        $second = $this->client->click($first->filter('main nav a')->last()->link());
+
+        $this->assertResponseIsSuccessful();
+        $this->assertCount(1, $second->filter('main ul li'), 'Paging dropped either the narrowing or the search.');
+        $this->assertStringNotContainsString('Kiyomizu-dera', $second->filter('main ul')->text(), 'Paging reached what the search excluded.');
+    }
+
+    public function test_the_index_narrowed_to_an_unknown_tag_is_not_found(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+
+        $this->client->request(Request::METHOD_GET, '/goshuin?tag=ghost');
+
+        $this->assertResponseStatusCodeSame(404);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function tagged(Goshuin $goshuin): array
+    {
+        return array_map(
+            static fn (Tag $tag): string => (string) $tag->getName(),
+            $goshuin->getTags()->toArray(),
+        );
+    }
+
+    private function tags(): int
+    {
+        return (int) static::getContainer()->get('doctrine')->getConnection()->fetchOne('SELECT COUNT(*) FROM gos_tag');
     }
 
     /**
