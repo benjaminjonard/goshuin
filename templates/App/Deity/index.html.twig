@@ -15,7 +15,7 @@
         cards: deities|map(deity => {
             href: path('app_deity_show', {slug: deity.slug}),
             image: deity.photographCard,
-            icon: 'tag',
+            icon: 'deity',
             title: deity.name,
             below: deity.additionalNames|join(' · '),
         }),
