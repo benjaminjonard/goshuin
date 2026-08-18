@@ -2,6 +2,13 @@
 	{$CADDY_GLOBAL_OPTIONS}
 
 	frankenphp {
+		num_threads {$FRANKENPHP_THREADS_NUMBER:2}
+
+		worker {
+			file /app/public/public/index.php
+			num {$FRANKENPHP_WORKERS_NUMBER:1}
+		}
+
 		{$FRANKENPHP_CONFIG}
 	}
 
@@ -23,8 +30,6 @@
 	    X-Frame-Options Deny
 	}
 
-	# Images are static files with unguessable names, served without touching PHP.
-	# The trade this makes is recorded in FR-4 of the PRD.
 	@immutable path /build/* /uploads/*
 	header @immutable Cache-Control "public, max-age=31536000, immutable"
 

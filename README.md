@@ -52,6 +52,8 @@ services:
 # APP_SECRET is automatically generated when using Docker
 #
 # PHP_TZ, see possible values here https://www.w3schools.com/php/php_ref_timezones.asp
+#
+# FRANKENPHP_THREADS_NUMBER, must be strictly superior to FRANKENPHP_WORKERS_NUMBER
 ########################################################################################################
 
 APP_DEBUG=0
@@ -64,6 +66,9 @@ PHP_MEMORY_LIMIT=512M
 PHP_TZ=Europe/Paris
 
 PHOTON_HOST_URL=https://photon.komoot.io
+
+FRANKENPHP_WORKERS_NUMBER=1
+FRANKENPHP_THREADS_NUMBER=2
 
 ########################################################################################################
 #                                                DATABASE
