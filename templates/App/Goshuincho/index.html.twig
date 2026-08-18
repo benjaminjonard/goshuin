@@ -3,11 +3,7 @@
 {% block title %}{{ 'label.goshuincho'|trans }} · Goshuin{% endblock %}
 
 {% block bar %}
-    {% embed 'App/_partials/_bar.html.twig' with {title: 'label.goshuincho'|trans} %}
-        {% block tools %}
-            {{ include('App/_partials/_button.html.twig', {label: 'label.add_goshuincho'|trans, icon: 'plus', variant: 'primary', href: path('app_goshuincho_add')}) }}
-        {% endblock %}
-    {% endembed %}
+    {{ include('App/_partials/_bar.html.twig', {title: 'label.goshuincho'|trans}) }}
 {% endblock %}
 
 {% block body %}

@@ -18,7 +18,7 @@
     {% set aside = deity.photographFull or deity.additionalNames is not empty or deity.description is not empty %}
 
     <main class="page stack" data-controller="lightbox">
-        <div class="grid gap-[clamp(12px,1.4vw,18px)]{{ aside ? ' grid-cols-2' }}">
+        <div class="grid gap-[clamp(12px,1.4vw,18px)]{{ aside ? ' min-[1060px]:grid-cols-2' }}">
         {% if aside %}
             <div class="grid content-start gap-[clamp(12px,1.4vw,18px)]">
                 {% if deity.photographFull %}

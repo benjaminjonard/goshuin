@@ -47,7 +47,7 @@
         ]|filter(row => row.value is not empty) %}
 
         {% if location.photographFull or record is not empty %}
-            <div class="grid gap-[clamp(12px,1.4vw,18px)]{{ location.photographFull and record is not empty ? ' grid-cols-[auto_minmax(0,1fr)]' }}">
+            <div class="grid gap-[clamp(12px,1.4vw,18px)]{{ location.photographFull and record is not empty ? ' min-[1060px]:grid-cols-[auto_minmax(0,1fr)]' }}">
                 {% if location.photographFull %}
                     <section class="tile stage">
                         <a href="{{ location.photograph|image }}" class="block" data-action="lightbox#open">

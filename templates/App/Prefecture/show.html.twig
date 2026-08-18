@@ -16,7 +16,7 @@
 
 {% block body %}
     <main class="page stack" data-controller="lightbox">
-        <div class="grid gap-[clamp(12px,1.4vw,18px)]{{ prefecture.photographFull ? ' grid-cols-2' }}">
+        <div class="grid gap-[clamp(12px,1.4vw,18px)]{{ prefecture.photographFull ? ' min-[1060px]:grid-cols-2' }}">
             {% if prefecture.photographFull %}
                 <section class="tile stage">
                     <a href="{{ prefecture.photograph|image }}" class="block" data-action="lightbox#open">
@@ -26,8 +26,8 @@
                 </section>
             {% endif %}
 
-            <div class="{{ prefecture.photographFull ? 'relative' }}">
-                <div class="flex flex-col gap-[clamp(12px,1.4vw,18px)]{{ prefecture.photographFull ? ' absolute inset-0' }}">
+            <div class="{{ prefecture.photographFull ? 'min-[1060px]:relative' }}">
+                <div class="flex flex-col gap-[clamp(12px,1.4vw,18px)]{{ prefecture.photographFull ? ' min-[1060px]:absolute min-[1060px]:inset-0' }}">
                     {{ include('App/_partials/_totals.html.twig', {totals: [
                         {icon: 'city', value: cities, label: 'label.stat_cities', href: path('app_city_index', {prefecture: prefecture.slug})},
                         {icon: 'pin', value: locations, label: 'label.stat_locations', href: path('app_location_index', {prefecture: prefecture.slug})},
