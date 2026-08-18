@@ -1,55 +1,68 @@
-{% if this.geocoderAvailable %}
-    <div class="grid gap-1.5" data-controller="dismiss">
-        <label class="text-[12.5px] font-semibold text-fg-2" for="{{ id }}-address">{{ 'label.address_search'|trans }}</label>
-        <input type="text" id="{{ id }}-address" data-model="debounce(1000)|address" value="{{ address }}"
-               class="w-full rounded-xl border border-line-2 bg-tile px-3.5 py-2.5 text-[15px] text-fg focus-visible:border-accent"
-               placeholder="{{ 'label.address_placeholder'|trans }}">
-
-        <p class="hidden overflow-hidden rounded-xl border border-line bg-tile px-3.5 py-2.5 text-[13px] text-fg-3"
-           data-loading="model(address)|removeClass(hidden)" role="status">
-            <span class="mr-2 inline-block size-4 animate-spin rounded-full border-2 border-line-2 border-t-accent align-[-3px]" aria-hidden="true"></span>
-            {{ 'label.searching'|trans }}
-        </p>
-
-        {% if this.searchable %}
-            <div class="grid overflow-hidden rounded-xl border border-line bg-tile" role="listbox"
-                 data-dismiss-target="panel" data-loading="model(address)|addClass(hidden)">
-                <span class="grid">
-                {% if this.failed %}
-                    <p class="flex items-start gap-2.5 px-3.5 py-2.5 text-[13px] text-accent-text" role="alert">
-                        {{ include('App/_partials/_icon.html.twig', {name: 'info', small: true, class: 'mt-px'}) }}
-                        {{ 'error.geocoder'|trans }}
-                    </p>
-                {% elseif this.places is empty %}
-                    <p class="px-3.5 py-2.5 text-[13px] text-fg-3">{{ 'label.no_result'|trans }}</p>
-                {% else %}
-                {% for place in this.places %}
-                    <button type="button" role="option" aria-selected="false"
-                            class="grid cursor-pointer gap-0.5 px-3.5 py-2.5 text-left hover:bg-tile-2"
-                            data-action="live#action"
-                            data-live-action-param="usePlace"
-                            data-live-place-name-param="{{ place.name }}"
-                            data-live-japanese-name-param="{{ place.japaneseName }}"
-                            data-live-city-param="{{ place.locality }}"
-                            data-live-prefecture-param="{{ place.prefecture }}"
-                            data-live-address-param="{{ place.address }}"
-                            data-live-latitude-param="{{ place.latitude }}"
-                            data-live-longitude-param="{{ place.longitude }}">
-                        <span class="truncate text-sm font-semibold text-fg">{{ place.name }}</span>
-                        <span class="truncate text-xs text-fg-3"><span class="font-jp">{{ place.japaneseName }}</span>{{ place.japaneseName and place.address ? ' · ' }}{{ place.address }}</span>
-                    </button>
-                {% endfor %}
-                {% endif %}
-                </span>
+{% if form.photographFile is defined %}
+    {% embed 'App/_partials/_section.html.twig' with {title: 'label.main_photograph'|trans} %}
+        {% block content %}
+            <div class="grid gap-1.5" data-live-ignore>
+                {{ form_row(form.photographFile, {label: false, attr: {'data-cover': form.vars.data.photographCard, 'data-untitled': true}}) }}
+                {{ form_errors(form.photographFile) }}
+                <div class="flex justify-end">{{ form_widget(form.removePhotograph) }}</div>
             </div>
-        {% endif %}
-    </div>
+        {% endblock %}
+    {% endembed %}
 {% endif %}
 
 {% embed 'App/_partials/_section.html.twig' with {title: 'label.location'|trans} %}
     {% block content %}
         <div class="grid gap-3.5">
             {{ form_errors(form) }}
+
+            {% if this.geocoderAvailable %}
+                <div class="grid gap-1.5" data-controller="dismiss">
+                    <label class="text-[12.5px] font-semibold text-fg-2" for="{{ id }}-address">{{ 'label.address_search'|trans }}</label>
+                    <input type="text" id="{{ id }}-address" data-model="debounce(1000)|address" value="{{ address }}"
+                           class="w-full rounded-xl border border-line-2 bg-tile px-3.5 py-2.5 text-[15px] text-fg focus-visible:border-accent"
+                           placeholder="{{ 'label.address_placeholder'|trans }}">
+
+                    <p class="hidden overflow-hidden rounded-xl border border-line bg-tile px-3.5 py-2.5 text-[13px] text-fg-3"
+                       data-loading="model(address)|removeClass(hidden)" role="status">
+                        <span class="mr-2 inline-block size-4 animate-spin rounded-full border-2 border-line-2 border-t-accent align-[-3px]" aria-hidden="true"></span>
+                        {{ 'label.searching'|trans }}
+                    </p>
+
+                    {% if this.searchable %}
+                        <div class="grid overflow-hidden rounded-xl border border-line bg-tile" role="listbox"
+                             data-dismiss-target="panel" data-loading="model(address)|addClass(hidden)">
+                            <span class="grid">
+                            {% if this.failed %}
+                                <p class="flex items-start gap-2.5 px-3.5 py-2.5 text-[13px] text-accent-text" role="alert">
+                                    {{ include('App/_partials/_icon.html.twig', {name: 'info', small: true, class: 'mt-px'}) }}
+                                    {{ 'error.geocoder'|trans }}
+                                </p>
+                            {% elseif this.places is empty %}
+                                <p class="px-3.5 py-2.5 text-[13px] text-fg-3">{{ 'label.no_result'|trans }}</p>
+                            {% else %}
+                            {% for place in this.places %}
+                                <button type="button" role="option" aria-selected="false"
+                                        class="grid cursor-pointer gap-0.5 px-3.5 py-2.5 text-left hover:bg-tile-2"
+                                        data-action="live#action"
+                                        data-live-action-param="usePlace"
+                                        data-live-place-name-param="{{ place.name }}"
+                                        data-live-japanese-name-param="{{ place.japaneseName }}"
+                                        data-live-city-param="{{ place.locality }}"
+                                        data-live-prefecture-param="{{ place.prefecture }}"
+                                        data-live-address-param="{{ place.address }}"
+                                        data-live-latitude-param="{{ place.latitude }}"
+                                        data-live-longitude-param="{{ place.longitude }}">
+                                    <span class="truncate text-sm font-semibold text-fg">{{ place.name }}</span>
+                                    <span class="truncate text-xs text-fg-3"><span class="font-jp">{{ place.japaneseName }}</span>{{ place.japaneseName and place.address ? ' · ' }}{{ place.address }}</span>
+                                </button>
+                            {% endfor %}
+                            {% endif %}
+                            </span>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+
             {{ form_row(form.romanizedName, {attr: {'data-model': 'debounce(400)|' ~ form.romanizedName.vars.full_name}}) }}
 
             {% if this.duplicates is not empty %}
@@ -146,18 +159,10 @@
 {% endif %}
 
 {% if form.photographFile is defined %}
-    {% embed 'App/_partials/_section.html.twig' with {title: 'label.photographs'|trans} %}
+    {% embed 'App/_partials/_section.html.twig' with {title: 'label.additional_photographs'|trans} %}
         {% block content %}
-            <div class="grid gap-3.5">
-                <div class="grid gap-1.5" data-live-ignore>
-                    {{ form_row(form.photographFile, {attr: {'data-cover': form.vars.data.photographCard, 'data-untitled': true}}) }}
-                    {{ form_errors(form.photographFile) }}
-                    <div class="flex justify-end">{{ form_widget(form.removePhotograph) }}</div>
-                </div>
-
-                <div data-live-ignore>
-                    {{ include('App/_partials/_photos.html.twig', {scope: 'place', label: 'label.additional_photographs', photos: form.vars.data.photos}) }}
-                </div>
+            <div data-live-ignore>
+                {{ include('App/_partials/_photos.html.twig', {scope: 'place', label: false, photos: form.vars.data.photos}) }}
             </div>
         {% endblock %}
     {% endembed %}

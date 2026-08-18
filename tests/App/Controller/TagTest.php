@@ -70,6 +70,25 @@ class TagTest extends AppTestCase
         $this->assertSame('crane', trim($first->text()));
     }
 
+    public function test_each_row_counts_the_goshuin_bearing_the_tag(): void
+    {
+        $user = UserFactory::createOne();
+        $this->client->loginUser($user);
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
+        $dog = TagFactory::createOne(['name' => 'dog']);
+        TagFactory::createOne(['name' => 'unused']);
+        GoshuinFactory::new()->in($goshuincho, 1)->create(['tags' => [$dog]]);
+        GoshuinFactory::new()->in($goshuincho, 2)->create(['tags' => [$dog]]);
+
+        $rows = $this->client->request(Request::METHOD_GET, '/tags')
+            ->filter('main ul li')
+            ->each(static fn (Crawler $row): string => preg_replace('/\s+/', ' ', trim($row->text())))
+        ;
+
+        $this->assertStringContainsString('2 goshuin', $rows[0], 'A tag does not count the goshuin bearing it.');
+        $this->assertStringContainsString('0 goshuin', $rows[1], 'A tag no goshuin bears counts nothing.');
+    }
+
     public function test_each_row_offers_the_tag_to_be_renamed_or_deleted(): void
     {
         $this->client->loginUser(UserFactory::createOne());

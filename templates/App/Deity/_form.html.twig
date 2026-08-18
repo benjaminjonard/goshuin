@@ -1,5 +1,12 @@
 <div class="tile tile-pad grid gap-4">
     {{ form_errors(form) }}
+
+    <div class="grid gap-1.5" data-live-ignore>
+        {{ form_row(form.photographFile, {attr: {'data-cover': form.vars.data.photographCard, 'data-untitled': true}}) }}
+        {{ form_errors(form.photographFile) }}
+        <div class="flex justify-end">{{ form_widget(form.removePhotograph) }}</div>
+    </div>
+
     {{ form_row(form.name) }}
 
     {% set control = 'grid size-9 shrink-0 cursor-pointer place-items-center rounded-xl border border-line-2 bg-tile text-fg-2' %}
@@ -28,12 +35,6 @@
     </div>
 
     {{ form_row(form.description) }}
-
-    <div class="grid gap-1.5" data-live-ignore>
-        {{ form_row(form.photographFile, {attr: {'data-cover': form.vars.data.photographCard, 'data-untitled': true}}) }}
-        {{ form_errors(form.photographFile) }}
-        <div class="flex justify-end">{{ form_widget(form.removePhotograph) }}</div>
-    </div>
 
     {{ form_rest(form) }}
 </div>

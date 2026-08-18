@@ -144,6 +144,37 @@ class GoshuinRepository extends ServiceEntityRepository
         ;
     }
 
+    /**
+     * @param list<Tag> $tags
+     *
+     * @return array<string, int>
+     */
+    public function countPerTag(array $tags): array
+    {
+        if ($tags === []) {
+            return [];
+        }
+
+        $counted = [];
+
+        $rows = $this->createQueryBuilder('g')
+            ->select('tag.id AS id')
+            ->addSelect('COUNT(g.id) AS held')
+            ->innerJoin('g.tags', 'tag')
+            ->andWhere('tag IN (:tags)')
+            ->setParameter('tags', $tags)
+            ->groupBy('tag.id')
+            ->getQuery()
+            ->getArrayResult()
+        ;
+
+        foreach ($rows as $row) {
+            $counted[(string) $row['id']] = (int) $row['held'];
+        }
+
+        return $counted;
+    }
+
     public function countIn(Goshuincho $goshuincho): int
     {
         return (int) $this->createQueryBuilder('g')

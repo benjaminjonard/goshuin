@@ -2,7 +2,9 @@
 {% set text = 'min-w-0 flex-auto rounded-lg border border-line-2 bg-tile-2 px-2 py-1 text-xs text-fg hover:border-fg-3 focus-visible:border-accent focus-visible:bg-tile' %}
 
 <div class="grid gap-3.5" data-controller="photos order">
-    <span class="text-[12.5px] font-semibold text-fg-2">{{ label|trans }}</span>
+    {% if label|default(false) %}
+        <span class="text-[12.5px] font-semibold text-fg-2">{{ label|trans }}</span>
+    {% endif %}
 
     <ol class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2.5" >
         {% for photo in photos %}

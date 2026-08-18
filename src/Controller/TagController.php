@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Entity\Tag;
 use App\Form\Type\TagType;
+use App\Repository\GoshuinRepository;
 use App\Repository\TagRepository;
 use App\Service\Uses;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
@@ -17,6 +18,7 @@ class TagController extends AbstractController
 {
     public function __construct(
         private readonly TagRepository $tags,
+        private readonly GoshuinRepository $goshuins,
         private readonly Uses $uses,
     ) {
     }
@@ -31,8 +33,11 @@ class TagController extends AbstractController
             throw $this->createNotFoundException();
         }
 
+        $tags = $this->tags->browse($term, $page);
+
         return $this->render('App/Tag/index.html.twig', [
-            'tags' => $this->tags->browse($term, $page),
+            'tags' => $tags,
+            'counts' => $this->goshuins->countPerTag($tags),
             'term' => $term,
             'page' => $page,
             'pages' => $pages,

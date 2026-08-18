@@ -107,7 +107,7 @@ label:
     holdings: 'Contenu du compte'
     pill_photographs: '{1}%count% photo|]1,Inf[ %count% photos'
     pill_goshuincho: '%count% goshuincho'
-    pill_goshuin: '{1}%count% goshuin|]1,Inf[ %count% goshuin'
+    pill_goshuin: '%count% goshuin'
     places: '{1}%count% lieu|]1,Inf[ %count% lieux'
     days: '{1}%count% jour|]1,Inf[ %count% jours'
     days_later: '{1}%count% jour plus tard|]1,Inf[ %count% jours plus tard'
