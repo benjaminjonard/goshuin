@@ -19,7 +19,7 @@
         "@symfony/stimulus-bridge": "4.0.1",
         "@symfony/webpack-encore": "7.2.0",
         "@tailwindcss/postcss": "4.3.3",
-        "cssnano": "8.0.5",
+        "cssnano": "8.0.7",
         "postcss": "8.5.26",
         "postcss-loader": "8.2.1",
         "tailwindcss": "4.3.3",
