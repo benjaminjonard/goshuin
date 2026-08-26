@@ -686,21 +686,21 @@
       </segment>
     </unit>
     <unit id="EB5SZ3x" name="label.stat_cities">
-      <segment state="initial">
+      <segment state="translated">
         <source>{count, plural, one {city} other {cities}}</source>
-        <target>{count, plural, one {city} other {cities}}</target>
+        <target>{count, plural, other {市区町村}}</target>
       </segment>
     </unit>
     <unit id="B3.c6AK" name="label.stat_prefectures">
-      <segment state="initial">
+      <segment state="translated">
         <source>{count, plural, one {prefecture} other {prefectures}}</source>
-        <target>{count, plural, one {prefecture} other {prefectures}}</target>
+        <target>{count, plural, other {都道府県}}</target>
       </segment>
     </unit>
     <unit id="LgaGmiX" name="label.stat_locations">
-      <segment state="initial">
+      <segment state="translated">
         <source>{count, plural, one {location} other {locations}}</source>
-        <target>{count, plural, one {location} other {locations}}</target>
+        <target>{count, plural, other {場所}}</target>
       </segment>
     </unit>
     <unit id="iw9qUxb" name="label.search">
