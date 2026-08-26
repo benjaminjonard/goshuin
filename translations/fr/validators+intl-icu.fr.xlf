@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:2.0" version="2.0" srcLang="en" trgLang="fr">
-  <file id="validators.fr">
+  <file id="validators.en">
     <unit id="sLx2Rr." name="error.email.not_unique">
       <segment state="translated">
         <source>An account already uses that address.</source>

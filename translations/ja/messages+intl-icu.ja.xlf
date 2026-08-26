@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:2.0" version="2.0" srcLang="en" trgLang="ja">
-  <file id="messages.ja">
+  <file id="messages.en">
     <unit id="Ee8zzIz" name="label.brand">
       <segment state="translated">
         <source>Goshuin, home</source>
@@ -686,21 +686,21 @@
       </segment>
     </unit>
     <unit id="EB5SZ3x" name="label.stat_cities">
-      <segment state="translated">
+      <segment state="initial">
         <source>{count, plural, one {city} other {cities}}</source>
-        <target>市区町村</target>
+        <target>{count, plural, one {city} other {cities}}</target>
       </segment>
     </unit>
     <unit id="B3.c6AK" name="label.stat_prefectures">
-      <segment state="translated">
+      <segment state="initial">
         <source>{count, plural, one {prefecture} other {prefectures}}</source>
-        <target>都道府県</target>
+        <target>{count, plural, one {prefecture} other {prefectures}}</target>
       </segment>
     </unit>
     <unit id="LgaGmiX" name="label.stat_locations">
-      <segment state="translated">
+      <segment state="initial">
         <source>{count, plural, one {location} other {locations}}</source>
-        <target>場所</target>
+        <target>{count, plural, one {location} other {locations}}</target>
       </segment>
     </unit>
     <unit id="iw9qUxb" name="label.search">
