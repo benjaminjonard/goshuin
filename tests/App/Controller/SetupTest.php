@@ -51,6 +51,22 @@ class SetupTest extends AppTestCase
         $this->assertNull($user->getPlainPassword(), 'The plain password survived the request.');
     }
 
+    public function test_setup_records_the_chosen_language(): void
+    {
+        $this->client->request(Request::METHOD_GET, '/setup');
+
+        $this->client->submitForm('setup_submit', [
+            'setup[name]' => 'Test User',
+            'setup[email]' => 'user@example.com',
+            'setup[locale]' => 'ja',
+            'setup[plainPassword][first]' => 'a-long-enough-password',
+            'setup[plainPassword][second]' => 'a-long-enough-password',
+        ]);
+
+        $this->assertSame('ja', static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'user@example.com'])->getLocale(), 'The chosen language was not stored.');
+        $this->assertSame('ja', $this->client->getCrawler()->filter('html')->attr('lang'), 'The first account did not open in the language it chose.');
+    }
+
     public function test_an_invalid_submission_creates_nothing(): void
     {
         $this->client->request(Request::METHOD_GET, '/setup');

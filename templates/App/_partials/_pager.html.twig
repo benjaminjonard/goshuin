@@ -9,7 +9,7 @@
         {% endif %}
 
         <span class="px-2 text-[13px] font-semibold tabular-nums text-fg-2">
-            {{- 'label.page_of'|trans({'%position%': '%02d'|format(page), '%total%': '%02d'|format(pages)}) -}}
+            {{- 'label.page_of'|trans({'position': '%02d'|format(page), 'total': '%02d'|format(pages)}) -}}
         </span>
 
         {% if page < pages %}

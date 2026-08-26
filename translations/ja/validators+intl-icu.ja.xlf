@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:2.0" version="2.0" srcLang="en" trgLang="ja">
+  <file id="validators.ja">
+    <unit id="sLx2Rr." name="error.email.not_unique">
+      <segment state="translated">
+        <source>An account already uses that address.</source>
+        <target>そのアドレスは既に使われています。</target>
+      </segment>
+    </unit>
+    <unit id="wvxmrl_" name="error.deity.not_unique">
+      <segment state="translated">
+        <source>A deity already bears that name.</source>
+        <target>その名前の神仏は既にあります。</target>
+      </segment>
+    </unit>
+    <unit id="G.Ajok3" name="error.tag.not_unique">
+      <segment state="translated">
+        <source>A tag already bears that name.</source>
+        <target>その名前のタグは既にあります。</target>
+      </segment>
+    </unit>
+    <unit id="rMOY5KM" name="error.city.not_unique">
+      <segment state="translated">
+        <source>A city already bears that name.</source>
+        <target>その名前の市区町村は既にあります。</target>
+      </segment>
+    </unit>
+    <unit id="05CZgk3" name="error.prefecture.not_unique">
+      <segment state="translated">
+        <source>A prefecture already bears that name.</source>
+        <target>その名前の都道府県は既にあります。</target>
+      </segment>
+    </unit>
+    <unit id="cuCspgt" name="error.location_required">
+      <segment state="translated">
+        <source>A place is required.</source>
+        <target>場所は必須です。</target>
+      </segment>
+    </unit>
+    <unit id="mQ6OBcM" name="error.image_required">
+      <segment state="translated">
+        <source>A photograph is required.</source>
+        <target>写真は必須です。</target>
+      </segment>
+    </unit>
+    <unit id="EWhxTuh" name="error.upload_format">
+      <segment state="translated">
+        <source>Only JPEG, PNG and WebP images are accepted.</source>
+        <target>JPEG、PNG、WebP の画像のみ受け付けます。</target>
+      </segment>
+    </unit>
+    <unit id="SMKNWZc" name="error.upload_too_large">
+      <segment state="translated">
+        <source>That file is larger than the configured limit.</source>
+        <target>そのファイルは設定された上限を超えています。</target>
+      </segment>
+    </unit>
+    <unit id="1X4WQ57" name="error.password_mismatch">
+      <segment state="translated">
+        <source>The two passwords do not match.</source>
+        <target>2つのパスワードが一致しません。</target>
+      </segment>
+    </unit>
+    <unit id=".8jgwuz" name="error.password_current_wrong">
+      <segment state="translated">
+        <source>The current password does not match.</source>
+        <target>現在のパスワードが一致しません。</target>
+      </segment>
+    </unit>
+  </file>
+</xliff>

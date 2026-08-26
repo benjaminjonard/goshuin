@@ -44,6 +44,49 @@ class SecurityTest extends AppTestCase
         $this->assertSame('fr', $crawler->filter('html')->attr('lang'), 'Signing in did not restore the stored language.');
     }
 
+    public function test_signing_in_with_an_unknown_language_falls_back_to_english(): void
+    {
+        UserFactory::createOne(['email' => 'user@example.com', 'locale' => 'jp']);
+
+        $this->submitCredentials('user@example.com', 'a-long-enough-password');
+        $crawler = $this->client->followRedirect();
+
+        $this->assertSame('en', $crawler->filter('html')->attr('lang'), 'An unknown language was not refused.');
+    }
+
+    public function test_an_anonymous_visitor_gets_the_language_their_browser_asks_for(): void
+    {
+        UserFactory::createOne();
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/login', server: ['HTTP_ACCEPT_LANGUAGE' => 'ja']);
+
+        $this->assertSame('ja', $crawler->filter('html')->attr('lang'), 'The browser language was ignored before signing in.');
+        $this->assertStringContainsString('ログイン', $crawler->filter('body')->text(), 'The Japanese catalogue was not served.');
+    }
+
+    public function test_an_unknown_browser_language_falls_back_to_english(): void
+    {
+        UserFactory::createOne();
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/login', server: ['HTTP_ACCEPT_LANGUAGE' => 'de-DE,de']);
+
+        $this->assertSame('en', $crawler->filter('html')->attr('lang'), 'A language the instance does not carry was accepted.');
+    }
+
+    public function test_a_stored_language_beats_the_one_the_browser_asks_for(): void
+    {
+        UserFactory::createOne(['email' => 'user@example.com', 'locale' => 'fr']);
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/login', server: ['HTTP_ACCEPT_LANGUAGE' => 'ja']);
+        $this->client->submit($crawler->filter('form')->form(), [
+            '_username' => 'user@example.com',
+            '_password' => 'a-long-enough-password',
+        ]);
+        $crawler = $this->client->followRedirect();
+
+        $this->assertSame('fr', $crawler->filter('html')->attr('lang'), 'The browser overrode a stored choice.');
+    }
+
     public function test_a_disabled_user_cannot_sign_in(): void
     {
         UserFactory::new()->disabled()->create(['email' => 'gone@example.com']);

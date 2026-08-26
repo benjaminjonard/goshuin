@@ -50,7 +50,7 @@
 
         {% embed 'App/_partials/_section.html.twig' with {
             title: 'label.locations'|trans,
-            aux: locations is not empty ? 'label.places'|trans({'%count%': locations|length}) : null,
+            aux: locations is not empty ? 'label.places'|trans({'count': locations|length}) : null,
         } %}
             {% block content %}
                 {% if locations is empty %}

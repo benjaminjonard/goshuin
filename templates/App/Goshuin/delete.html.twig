@@ -17,7 +17,7 @@
     <main class="page mx-auto grid w-full max-w-[560px] gap-[clamp(12px,1.4vw,18px)]">
         <div class="tile tile-pad grid gap-4">
             <h2 class="text-[15px] font-bold tracking-[-0.015em]">
-                {{- 'label.delete_goshuin'|trans({'%location%': goshuin.location.romanizedName, '%page%': goshuin.position}) -}}
+                {{- 'label.delete_goshuin'|trans({'location': goshuin.location.romanizedName, 'page': '%d'|format(goshuin.position)}) -}}
             </h2>
 
             {{ form_start(form, {attr: {class: 'flex justify-end gap-2.5'}}) }}

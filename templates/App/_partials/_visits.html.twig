@@ -1,7 +1,7 @@
 {% if goshuinchos is not empty %}
     {% embed 'App/_partials/_section.html.twig' with {
         title: 'label.my_goshuincho'|trans,
-        aux: 'label.pill_goshuincho'|trans({'%count%': goshuinchos|length}),
+        aux: 'label.pill_goshuincho'|trans({'count': goshuinchos|length}),
     } %}
         {% block content %}
             <ul class="gallery">
@@ -30,7 +30,7 @@
 {% if goshuins is not empty %}
     {% embed 'App/_partials/_section.html.twig' with {
         title: 'label.my_goshuin'|trans,
-        aux: 'label.pill_goshuin'|trans({'%count%': goshuins|length}),
+        aux: 'label.pill_goshuin'|trans({'count': goshuins|length}),
     } %}
         {% block content %}
             <ol class="gallery">

@@ -54,7 +54,7 @@
                             class="flex cursor-pointer items-center gap-2.5 border-t border-line px-3.5 py-2.5 text-left text-[13.5px] font-semibold text-accent-text hover:bg-tile-2"
                             data-action="live#action" data-live-action-param="startCreating">
                         {{ include('App/_partials/_icon.html.twig', {name: 'plus', small: true}) }}
-                        {{ 'label.create_named_location'|trans({'%name%': this.creatable}) }}
+                        {{ 'label.create_named_location'|trans({'name': this.creatable}) }}
                     </button>
                 {% endif %}
             </div>

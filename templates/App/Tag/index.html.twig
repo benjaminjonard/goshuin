@@ -34,7 +34,7 @@
                         </span>
                         <a href="{{ path('app_goshuin_index', {tag: tag.slug}) }}"
                            class="min-w-0 flex-auto truncate text-[13.5px] font-semibold text-fg no-underline hover:text-accent-text">{{ tag.name }}</a>
-                        <span class="shrink-0 text-[12.5px] tabular-nums text-fg-3">{{ 'label.pill_goshuin'|trans({'%count%': counts[tag.id]|default(0)}) }}</span>
+                        <span class="shrink-0 text-[12.5px] tabular-nums text-fg-3">{{ 'label.pill_goshuin'|trans({'count': counts[tag.id]|default(0)}) }}</span>
                         {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_tag_edit', {slug: tag.slug}), aria: 'label.edit'|trans}) }}
                         {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_tag_delete', {slug: tag.slug}), aria: 'label.delete'|trans}) }}
                     </li>

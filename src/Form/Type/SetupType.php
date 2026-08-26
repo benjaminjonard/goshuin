@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Form\Type;
 
 use App\Entity\User;
+use App\Service\LocaleHelper;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
@@ -15,6 +17,11 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class SetupType extends AbstractType
 {
+    public function __construct(
+        private readonly LocaleHelper $locales,
+    ) {
+    }
+
     #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
@@ -26,6 +33,11 @@ class SetupType extends AbstractType
             ->add('email', EmailType::class, [
                 'label' => 'label.email',
                 'attr' => ['autocomplete' => 'email'],
+            ])
+            ->add('locale', ChoiceType::class, [
+                'label' => 'label.language',
+                'choices' => $this->locales->choices(),
+                'choice_translation_domain' => false,
             ])
             ->add('plainPassword', RepeatedType::class, [
                 'type' => PasswordType::class,

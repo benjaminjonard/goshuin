@@ -107,7 +107,7 @@
             {% if pinned is not empty %}
                 {% embed 'App/_partials/_section.html.twig' with {
                     title: 'label.where_they_come_from'|trans,
-                    aux: 'label.places'|trans({'%count%': summary.locations}),
+                    aux: 'label.places'|trans({'count': summary.locations}),
                 } %}
                     {% block content %}
                         <div data-controller="map"
@@ -137,7 +137,7 @@
             {% if days is not empty %}
                 {% embed 'App/_partials/_section.html.twig' with {
                     title: 'label.the_trip'|trans,
-                    aux: summary.days ? 'label.days'|trans({'%count%': summary.days}) : null,
+                    aux: summary.days ? 'label.days'|trans({'count': summary.days}) : null,
                 } %}
                     {% block content %}
                         <ol class="grid gap-0">
@@ -151,7 +151,7 @@
                                             {% if day.after %}
                                                 <span class="flex items-center gap-[7px] text-[11.5px] text-fg-3">
                                                     <span class="h-px w-3.5 bg-line-2" aria-hidden="true"></span>
-                                                    {{ 'label.days_later'|trans({'%count%': day.after}) }}
+                                                    {{ 'label.days_later'|trans({'count': day.after}) }}
                                                 </span>
                                             {% endif %}
                                         </p>

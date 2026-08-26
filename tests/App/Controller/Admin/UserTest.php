@@ -204,6 +204,39 @@ class UserTest extends AppTestCase
         $this->assertNotNull($this->users()->find($adminId));
     }
 
+    public function test_an_invited_account_is_created_in_the_language_it_was_given(): void
+    {
+        $this->client->loginUser(UserFactory::new()->admin()->create());
+        $this->client->request(Request::METHOD_GET, '/admin/users/add');
+
+        $this->client->submitForm('user_submit', [
+            'user[name]' => 'Invited',
+            'user[email]' => 'invited@example.com',
+            'user[locale]' => 'ja',
+            'user[plainPassword][first]' => 'a-long-enough-password',
+            'user[plainPassword][second]' => 'a-long-enough-password',
+            'user[enabled]' => true,
+        ]);
+
+        $this->assertResponseRedirects();
+        $this->assertSame('ja', $this->users()->findOneBy(['email' => 'invited@example.com'])->getLocale(), 'The chosen language was not stored.');
+    }
+
+    public function test_the_confirmation_names_the_account_it_would_delete(): void
+    {
+        $admin = UserFactory::new()->admin()->create();
+        $target = UserFactory::createOne(['name' => 'Hanako', 'email' => 'hanako@example.com']);
+        $this->client->loginUser($admin);
+
+        $crawler = $this->client->request(Request::METHOD_GET, sprintf('/admin/users/%s/delete', $target->getId()));
+
+        $this->assertSame(
+            'Delete Hanako (hanako@example.com) and everything they hold?',
+            trim($crawler->filter('main h2')->first()->text()),
+            'The confirmation did not fill both placeholders.',
+        );
+    }
+
     public function test_an_administrator_deletes_an_account(): void
     {
         $admin = UserFactory::new()->admin()->create();

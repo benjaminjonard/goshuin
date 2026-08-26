@@ -8,8 +8,8 @@
                     {{ include('App/_partials/_icon.html.twig', {name: total.icon, small: true}) }}
                 </span>
                 <span>
-                    <span class="block text-[19px] font-bold tabular-nums leading-none">{{ total.value }}</span>
-                    <span class="block text-[11.5px] text-fg-3">{{ total.label|trans({'%count%': total.value}) }}</span>
+                    <span class="block text-[19px] font-bold tabular-nums leading-none">{{ total.text|default(false) ? total.value : total.value|format_number }}</span>
+                    <span class="block text-[11.5px] text-fg-3">{{ total.label|trans({'count': total.value}) }}</span>
                 </span>
             {% endset %}
 

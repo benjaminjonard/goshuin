@@ -68,7 +68,7 @@
             {% if this.duplicates is not empty %}
                 <p class="flex items-start gap-2.5 rounded-xl border border-accent-line bg-accent-soft px-3.5 py-3 text-[12.5px] leading-relaxed text-accent-text" role="alert">
                     {{ include('App/_partials/_icon.html.twig', {name: 'info', small: true, class: 'mt-px'}) }}
-                    <span>{{ 'message.location_duplicate'|trans({'%count%': this.duplicates|length}) }}</span>
+                    <span>{{ 'message.location_duplicate'|trans }}</span>
                 </p>
             {% endif %}
 

@@ -31,6 +31,7 @@
                         {
                             icon: 'prefecture',
                             value: city.prefecture ? city.prefecture.name : null,
+                            text: true,
                             label: 'label.prefecture',
                             href: city.prefecture ? path('app_prefecture_show', {slug: city.prefecture.slug}) : null,
                         },

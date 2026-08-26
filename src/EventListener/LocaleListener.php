@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace App\EventListener;
 
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use App\Service\LocaleHelper;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 
-#[AsEventListener(event: 'kernel.request', priority: 16)]
+#[AsEventListener(event: 'kernel.request', priority: 15)]
 final readonly class LocaleListener
 {
     public function __construct(
-        #[Autowire('%default_locale%')] private string $defaultLocale,
-        #[Autowire('%app.locales%')] private array $locales,
+        private LocaleHelper $locales,
     ) {
     }
 
@@ -24,8 +23,15 @@ final readonly class LocaleListener
         }
 
         $request = $event->getRequest();
-        $locale = $request->hasPreviousSession() ? $request->getSession()->get('_locale') : null;
 
-        $request->setLocale(\in_array($locale, $this->locales, true) ? $locale : $this->defaultLocale);
+        if (!$request->hasPreviousSession()) {
+            return;
+        }
+
+        $locale = $request->getSession()->get('_locale');
+
+        if (\is_string($locale) && $this->locales->knows($locale)) {
+            $request->setLocale($locale);
+        }
     }
 }

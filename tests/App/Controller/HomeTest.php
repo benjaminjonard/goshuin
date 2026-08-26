@@ -8,6 +8,7 @@ use App\Entity\City;
 use App\Entity\Goshuincho;
 use App\Entity\Location;
 use App\Entity\Prefecture;
+use App\Repository\UserRepository;
 use App\Tests\AppTestCase;
 use App\Tests\Factory\CityFactory;
 use App\Tests\Factory\GoshuinFactory;
@@ -195,6 +196,30 @@ class HomeTest extends AppTestCase
 
     }
 
+    public function test_a_total_of_one_reads_in_the_singular(): void
+    {
+        $user = UserFactory::createOne();
+        $this->client->loginUser($user);
+        $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kansai']);
+        $kyoto = PrefectureFactory::createOne(['name' => 'Kyōto']);
+
+        $this->collect($goshuincho, LocationFactory::createOne([
+            'romanizedName' => 'Kiyomizu-dera',
+            'city' => CityFactory::createOne(['name' => 'Kyōto', 'prefecture' => $kyoto]),
+            'prefecture' => $kyoto,
+        ]), '2025-03-14');
+
+        $totals = $this->client->request(Request::METHOD_GET, '/')->filter('main .tile.flex');
+
+        $stated = $totals->each(static fn (Crawler $tile): string => preg_replace('/\s+/', ' ', trim($tile->text())));
+
+        $this->assertSame(
+            ['1 goshuincho', '1 goshuin', '1 city', '1 prefecture'],
+            $stated,
+            'A total of one did not read in the singular, or a label with one form grew a plural.',
+        );
+    }
+
     public function test_each_total_leads_to_the_list_it_counts(): void
     {
         $user = UserFactory::createOne();
@@ -212,6 +237,59 @@ class HomeTest extends AppTestCase
         ;
 
         $this->assertSame(['/goshuincho', '/goshuin', '/cities', '/prefectures'], $links, 'The totals do not lead to the lists they count.');
+    }
+
+    public function test_japanese_totals_read_the_same_at_every_count(): void
+    {
+        UserFactory::createOne(['email' => 'user@example.com', 'locale' => 'ja']);
+
+        $login = $this->client->request(Request::METHOD_GET, '/login');
+        $this->client->submit($login->filter('form')->form(), [
+            '_username' => 'user@example.com',
+            '_password' => 'a-long-enough-password',
+        ]);
+        $this->client->followRedirect();
+
+        $user = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'user@example.com']);
+        $kansai = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kansai']);
+        $kyoto = PrefectureFactory::createOne(['name' => 'Kyōto']);
+
+        $this->collect($kansai, LocationFactory::createOne([
+            'romanizedName' => 'Kiyomizu-dera',
+            'city' => CityFactory::createOne(['name' => 'Kyōto', 'prefecture' => $kyoto]),
+            'prefecture' => $kyoto,
+        ]), '2025-03-14');
+
+        $this->assertSame(
+            ['1 御朱印帳', '1 御朱印', '1 市区町村', '1 都道府県'],
+            $this->tiles(),
+            'The Japanese totals are not served.',
+        );
+
+        $kanto = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kantō']);
+        $kanagawa = PrefectureFactory::createOne(['name' => 'Kanagawa']);
+
+        $this->collect($kanto, LocationFactory::createOne([
+            'romanizedName' => 'Tsurugaoka Hachimangū',
+            'city' => CityFactory::createOne(['name' => 'Kamakura', 'prefecture' => $kanagawa]),
+            'prefecture' => $kanagawa,
+        ]), '2025-04-01');
+
+        $this->assertSame(
+            ['2 御朱印帳', '2 御朱印', '2 市区町村', '2 都道府県'],
+            $this->tiles(),
+            'A Japanese label changed form with its count.',
+        );
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function tiles(): array
+    {
+        return $this->client->request(Request::METHOD_GET, '/')
+            ->filter('main .tile.flex')
+            ->each(static fn (Crawler $tile): string => preg_replace('/\s+/', ' ', trim($tile->text())));
     }
 
     private function collect(Goshuincho $goshuincho, Location $place, string $day): void

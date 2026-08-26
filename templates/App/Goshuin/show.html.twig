@@ -35,7 +35,7 @@
         <div class="grid min-w-0 gap-[clamp(12px,1.4vw,18px)]" data-controller="lightbox">
             <section class="tile stage">
                 <img src="{{ goshuin.imageFull|image }}" class="image-page"
-                     alt="{{ 'label.goshuin_from'|trans({'%location%': place.romanizedName}) }}">
+                     alt="{{ 'label.goshuin_from'|trans({'location': place.romanizedName}) }}">
             </section>
 
             {% if goshuin.notes is not empty %}

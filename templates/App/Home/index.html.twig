@@ -36,7 +36,7 @@
                 {% embed 'App/_partials/_section.html.twig' with {title: 'label.goshuincho'|trans} %}
                     {% block aux %}
                         <div class="flex items-center gap-3.5">
-                            <span class="text-[12.5px] tabular-nums text-fg-3">{{ 'label.pill_goshuincho'|trans({'%count%': tally.goshuincho}) }}</span>
+                            <span class="text-[12.5px] tabular-nums text-fg-3">{{ 'label.pill_goshuincho'|trans({'count': tally.goshuincho}) }}</span>
                             <div class="flex items-center gap-1.5" data-carousel-target="nav" style="display: none">
                                 {{ include('App/_partials/_button.html.twig', {
                                     icon: 'back',
@@ -68,7 +68,7 @@
             {% if pins is not empty %}
                 {% embed 'App/_partials/_section.html.twig' with {
                     title: 'label.map'|trans,
-                    aux: 'label.pill_goshuin'|trans({'%count%': placed}),
+                    aux: 'label.pill_goshuin'|trans({'count': placed}),
                 } %}
                     {% block content %}
                         <div data-controller="map"

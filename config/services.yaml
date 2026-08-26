@@ -1,7 +1,6 @@
 parameters:
     default_locale: 'en'
     app.release: '1.0.1'
-    app.locales: ['en', 'fr']
     app.map_tile_url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
     app.map_attribution: '© OpenStreetMap contributors'
     app.photon_host_url: '%env(string:PHOTON_HOST_URL)%'

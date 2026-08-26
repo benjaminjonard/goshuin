@@ -1,0 +1,1097 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:2.0" version="2.0" srcLang="en" trgLang="en">
+  <file id="messages.en">
+    <unit id="Ee8zzIz" name="label.brand">
+      <segment state="translated">
+        <source>Goshuin, home</source>
+        <target>Goshuin, home</target>
+      </segment>
+    </unit>
+    <unit id="QgoejJR" name="label.back">
+      <segment state="translated">
+        <source>Back</source>
+        <target>Back</target>
+      </segment>
+    </unit>
+    <unit id="CzzpYWY" name="label.close">
+      <segment state="translated">
+        <source>Close</source>
+        <target>Close</target>
+      </segment>
+    </unit>
+    <unit id="Ogsv.lD" name="label.language">
+      <segment state="translated">
+        <source>Language</source>
+        <target>Language</target>
+      </segment>
+    </unit>
+    <unit id="qR8P.Yr" name="label.goshuincho">
+      <segment state="translated">
+        <source>Goshuincho</source>
+        <target>Goshuincho</target>
+      </segment>
+    </unit>
+    <unit id="bpB8UkS" name="label.goshuin">
+      <segment state="translated">
+        <source>Goshuin</source>
+        <target>Goshuin</target>
+      </segment>
+    </unit>
+    <unit id="QgJjQWe" name="label.location">
+      <segment state="translated">
+        <source>Location</source>
+        <target>Location</target>
+      </segment>
+    </unit>
+    <unit id="3.Ysket" name="label.location_search">
+      <segment state="translated">
+        <source>Search a location</source>
+        <target>Search a location</target>
+      </segment>
+    </unit>
+    <unit id="ht09dJH" name="label.japanese_name">
+      <segment state="translated">
+        <source>Japanese name</source>
+        <target>Japanese name</target>
+      </segment>
+    </unit>
+    <unit id="FjQuuzf" name="label.romanized_name">
+      <segment state="translated">
+        <source>Romanized name</source>
+        <target>Romanized name</target>
+      </segment>
+    </unit>
+    <unit id="2k0nwW5" name="label.additional_names">
+      <segment state="translated">
+        <source>Additional names</source>
+        <target>Additional names</target>
+      </segment>
+    </unit>
+    <unit id="eTDViYv" name="label.add_name">
+      <segment state="translated">
+        <source>Add a name</source>
+        <target>Add a name</target>
+      </segment>
+    </unit>
+    <unit id="CEVgeJ7" name="label.address">
+      <segment state="translated">
+        <source>Address</source>
+        <target>Address</target>
+      </segment>
+    </unit>
+    <unit id="6wy53yC" name="label.address_search">
+      <segment state="translated">
+        <source>Find the place</source>
+        <target>Find the place</target>
+      </segment>
+    </unit>
+    <unit id="YMb_FVz" name="label.searching">
+      <segment state="translated">
+        <source>Searching</source>
+        <target>Searching</target>
+      </segment>
+    </unit>
+    <unit id="PF78zaa" name="label.address_placeholder">
+      <segment state="translated">
+        <source>Name or address, to fill the fields below</source>
+        <target>Name or address, to fill the fields below</target>
+      </segment>
+    </unit>
+    <unit id="sWri7JQ" name="label.deities">
+      <segment state="translated">
+        <source>Deities</source>
+        <target>Deities</target>
+      </segment>
+    </unit>
+    <unit id="dPK36XF" name="label.add_deity">
+      <segment state="translated">
+        <source>Add a deity</source>
+        <target>Add a deity</target>
+      </segment>
+    </unit>
+    <unit id="y.c6Nzt" name="label.deity_search">
+      <segment state="translated">
+        <source>Search a deity</source>
+        <target>Search a deity</target>
+      </segment>
+    </unit>
+    <unit id="p8ZavMW" name="label.tags">
+      <segment state="translated">
+        <source>Tags</source>
+        <target>Tags</target>
+      </segment>
+    </unit>
+    <unit id="iDEfQfw" name="label.tags_example">
+      <segment state="translated">
+        <source>dog, plum blossom</source>
+        <target>dog, plum blossom</target>
+      </segment>
+    </unit>
+    <unit id="4_BeR8X" name="label.tag_search">
+      <segment state="translated">
+        <source>Search a tag</source>
+        <target>Search a tag</target>
+      </segment>
+    </unit>
+    <unit id="6dXT.J6" name="label.city_search">
+      <segment state="translated">
+        <source>Search a city</source>
+        <target>Search a city</target>
+      </segment>
+    </unit>
+    <unit id="cO64PI7" name="label.prefecture_search">
+      <segment state="translated">
+        <source>Search a prefecture</source>
+        <target>Search a prefecture</target>
+      </segment>
+    </unit>
+    <unit id="DJ3spN4" name="label.goshuincho_search">
+      <segment state="translated">
+        <source>Search a goshuincho</source>
+        <target>Search a goshuincho</target>
+      </segment>
+    </unit>
+    <unit id="iRiv9QR" name="label.goshuin_search">
+      <segment state="translated">
+        <source>Search a goshuin</source>
+        <target>Search a goshuin</target>
+      </segment>
+    </unit>
+    <unit id="J_1tGU2" name="label.foundation">
+      <segment state="translated">
+        <source>Foundation</source>
+        <target>Foundation</target>
+      </segment>
+    </unit>
+    <unit id="MXpeMi7" name="label.city">
+      <segment state="translated">
+        <source>City</source>
+        <target>City</target>
+      </segment>
+    </unit>
+    <unit id="9dA7hpx" name="label.prefecture">
+      <segment state="translated">
+        <source>Prefecture</source>
+        <target>Prefecture</target>
+      </segment>
+    </unit>
+    <unit id="83zUn6j" name="label.cities">
+      <segment state="translated">
+        <source>Cities</source>
+        <target>Cities</target>
+      </segment>
+    </unit>
+    <unit id="FWJTuSb" name="label.prefectures">
+      <segment state="translated">
+        <source>Prefectures</source>
+        <target>Prefectures</target>
+      </segment>
+    </unit>
+    <unit id="SrSZN8m" name="label.unrecorded">
+      <segment state="translated">
+        <source>Not recorded</source>
+        <target>Not recorded</target>
+      </segment>
+    </unit>
+    <unit id="FBSuKKD" name="label.latitude">
+      <segment state="translated">
+        <source>Latitude</source>
+        <target>Latitude</target>
+      </segment>
+    </unit>
+    <unit id="8KmAwr0" name="label.place_on_map">
+      <segment state="translated">
+        <source>Click the map to place the point, or type the coordinates.</source>
+        <target>Click the map to place the point, or type the coordinates.</target>
+      </segment>
+    </unit>
+    <unit id="A3tB9aX" name="label.longitude">
+      <segment state="translated">
+        <source>Longitude</source>
+        <target>Longitude</target>
+      </segment>
+    </unit>
+    <unit id="mlQpx4G" name="label.create_location">
+      <segment state="translated">
+        <source>Create the location</source>
+        <target>Create the location</target>
+      </segment>
+    </unit>
+    <unit id="ruSDIKQ" name="label.create_named_location">
+      <segment state="translated">
+        <source>Create « {name} »</source>
+        <target>Create « {name} »</target>
+      </segment>
+    </unit>
+    <unit id="soosUuE" name="label.no_result">
+      <segment state="translated">
+        <source>No result</source>
+        <target>No result</target>
+      </segment>
+    </unit>
+    <unit id="NLVgclI" name="label.change">
+      <segment state="translated">
+        <source>Change</source>
+        <target>Change</target>
+      </segment>
+    </unit>
+    <unit id="1i94cYA" name="label.location_type">
+      <segment state="translated">
+        <source>Location type</source>
+        <target>Location type</target>
+      </segment>
+    </unit>
+    <unit id="zAkVaLX" name="label.shrine">
+      <segment state="translated">
+        <source>Shrine</source>
+        <target>Shrine</target>
+      </segment>
+    </unit>
+    <unit id="QPjttgQ" name="label.temple">
+      <segment state="translated">
+        <source>Temple</source>
+        <target>Temple</target>
+      </segment>
+    </unit>
+    <unit id="oz.tM7G" name="label.other">
+      <segment state="translated">
+        <source>Other</source>
+        <target>Other</target>
+      </segment>
+    </unit>
+    <unit id="ilojZnl" name="label.add_goshuincho">
+      <segment state="translated">
+        <source>New goshuincho</source>
+        <target>New goshuincho</target>
+      </segment>
+    </unit>
+    <unit id="UihE71K" name="label.add_goshuin">
+      <segment state="translated">
+        <source>Add a goshuin</source>
+        <target>Add a goshuin</target>
+      </segment>
+    </unit>
+    <unit id="1vyz2Yp" name="label.edit">
+      <segment state="translated">
+        <source>Edit</source>
+        <target>Edit</target>
+      </segment>
+    </unit>
+    <unit id="gyxJCjl" name="label.delete">
+      <segment state="translated">
+        <source>Delete</source>
+        <target>Delete</target>
+      </segment>
+    </unit>
+    <unit id="..ZIB7S" name="label.cancel">
+      <segment state="translated">
+        <source>Cancel</source>
+        <target>Cancel</target>
+      </segment>
+    </unit>
+    <unit id="znwE9XF" name="label.save">
+      <segment state="translated">
+        <source>Save</source>
+        <target>Save</target>
+      </segment>
+    </unit>
+    <unit id="kKgpta0" name="label.save_and_add">
+      <segment state="translated">
+        <source>Save and add another</source>
+        <target>Save and add another</target>
+      </segment>
+    </unit>
+    <unit id="M.FAcLc" name="label.received_at">
+      <segment state="translated">
+        <source>Received at</source>
+        <target>Received at</target>
+      </segment>
+    </unit>
+    <unit id="kodyof0" name="label.received_on">
+      <segment state="translated">
+        <source>Date</source>
+        <target>Date</target>
+      </segment>
+    </unit>
+    <unit id="q34mYew" name="label.bought_at">
+      <segment state="translated">
+        <source>Bought at</source>
+        <target>Bought at</target>
+      </segment>
+    </unit>
+    <unit id="bfrAA5f" name="label.origin">
+      <segment state="translated">
+        <source>Temple of origin</source>
+        <target>Temple of origin</target>
+      </segment>
+    </unit>
+    <unit id="fKtAFZJ" name="label.price_paid">
+      <segment state="translated">
+        <source>Price paid</source>
+        <target>Price paid</target>
+      </segment>
+    </unit>
+    <unit id="ZIbme0L" name="label.title">
+      <segment state="translated">
+        <source>Title</source>
+        <target>Title</target>
+      </segment>
+    </unit>
+    <unit id="EUdtGnh" name="label.cover_front">
+      <segment state="translated">
+        <source>Front cover</source>
+        <target>Front cover</target>
+      </segment>
+    </unit>
+    <unit id="tByLyph" name="label.cover_back">
+      <segment state="translated">
+        <source>Back cover</source>
+        <target>Back cover</target>
+      </segment>
+    </unit>
+    <unit id="2uQllrI" name="label.drop_or_browse">
+      <segment state="translated">
+        <source>Drop a photograph or browse</source>
+        <target>Drop a photograph or browse</target>
+      </segment>
+    </unit>
+    <unit id="xk0UynU" name="label.replace_or_browse">
+      <segment state="translated">
+        <source>Drop a new image to replace it</source>
+        <target>Drop a new image to replace it</target>
+      </segment>
+    </unit>
+    <unit id="TVvbsUG" name="label.remove_cover">
+      <segment state="translated">
+        <source>Remove this cover</source>
+        <target>Remove this cover</target>
+      </segment>
+    </unit>
+    <unit id="WgYmKWm" name="label.no_cover">
+      <segment state="translated">
+        <source>No cover photographed</source>
+        <target>No cover photographed</target>
+      </segment>
+    </unit>
+    <unit id="PqqF05U" name="label.hue">
+      <segment state="translated">
+        <source>Colour</source>
+        <target>Colour</target>
+      </segment>
+    </unit>
+    <unit id="mq_phuo" name="label.purchase">
+      <segment state="translated">
+        <source>Purchase</source>
+        <target>Purchase</target>
+      </segment>
+    </unit>
+    <unit id="LsGVnZM" name="label.purchased_on">
+      <segment state="translated">
+        <source>Bought on</source>
+        <target>Bought on</target>
+      </segment>
+    </unit>
+    <unit id="Zb4xuOb" name="label.description">
+      <segment state="translated">
+        <source>Description</source>
+        <target>Description</target>
+      </segment>
+    </unit>
+    <unit id="I8iXxbV" name="label.delete_goshuincho">
+      <segment state="translated">
+        <source>Delete {title} and everything in it?</source>
+        <target>Delete {title} and everything in it?</target>
+      </segment>
+    </unit>
+    <unit id="aWxUf06" name="label.delete_goshuin">
+      <segment state="translated">
+        <source>Delete the goshuin from {location}, on page {page}?</source>
+        <target>Delete the goshuin from {location}, on page {page}?</target>
+      </segment>
+    </unit>
+    <unit id="uYCAva_" name="label.no_goshuin_yet">
+      <segment state="translated">
+        <source>No goshuin yet.</source>
+        <target>No goshuin yet.</target>
+      </segment>
+    </unit>
+    <unit id="O_0K8EM" name="label.image">
+      <segment state="translated">
+        <source>Image</source>
+        <target>Image</target>
+      </segment>
+    </unit>
+    <unit id="C7rwh_a" name="label.goshuin_from">
+      <segment state="translated">
+        <source>Goshuin from {location}</source>
+        <target>Goshuin from {location}</target>
+      </segment>
+    </unit>
+    <unit id="OmyXHwr" name="label.page">
+      <segment state="translated">
+        <source>Page</source>
+        <target>Page</target>
+      </segment>
+    </unit>
+    <unit id="xEixJVa" name="label.page_of">
+      <segment state="translated">
+        <source>Page {position} / {total}</source>
+        <target>Page {position} / {total}</target>
+      </segment>
+    </unit>
+    <unit id="GW9pHVg" name="label.previous_page">
+      <segment state="translated">
+        <source>Previous page</source>
+        <target>Previous page</target>
+      </segment>
+    </unit>
+    <unit id="4l3UZYZ" name="label.next_page">
+      <segment state="translated">
+        <source>Next page</source>
+        <target>Next page</target>
+      </segment>
+    </unit>
+    <unit id="MJmeESi" name="label.order">
+      <segment state="translated">
+        <source>Order in the goshuincho</source>
+        <target>Order in the goshuincho</target>
+      </segment>
+    </unit>
+    <unit id="CLuhpaK" name="label.move_earlier">
+      <segment state="translated">
+        <source>Move earlier in the goshuincho</source>
+        <target>Move earlier in the goshuincho</target>
+      </segment>
+    </unit>
+    <unit id="cajeYjR" name="label.move_later">
+      <segment state="translated">
+        <source>Move later in the goshuincho</source>
+        <target>Move later in the goshuincho</target>
+      </segment>
+    </unit>
+    <unit id="9rMO3M_" name="label.additional_information">
+      <segment state="translated">
+        <source>Additional information</source>
+        <target>Additional information</target>
+      </segment>
+    </unit>
+    <unit id="tuC.GA7" name="label.information">
+      <segment state="translated">
+        <source>Information</source>
+        <target>Information</target>
+      </segment>
+    </unit>
+    <unit id="F6jRLUe" name="label.coordinates">
+      <segment state="translated">
+        <source>Coordinates</source>
+        <target>Coordinates</target>
+      </segment>
+    </unit>
+    <unit id="bINYR5w" name="label.map">
+      <segment state="translated">
+        <source>Map</source>
+        <target>Map</target>
+      </segment>
+    </unit>
+    <unit id="ezihE3j" name="label.notes">
+      <segment state="translated">
+        <source>Notes</source>
+        <target>Notes</target>
+      </segment>
+    </unit>
+    <unit id="kQEMxcw" name="label.additional_photographs">
+      <segment state="translated">
+        <source>Additional photos</source>
+        <target>Additional photos</target>
+      </segment>
+    </unit>
+    <unit id="SKa47Qy" name="label.photographs">
+      <segment state="translated">
+        <source>Photographs</source>
+        <target>Photographs</target>
+      </segment>
+    </unit>
+    <unit id="Dym235j" name="label.photographs_hold">
+      <segment state="translated">
+        <source>Of the place, and of anything else</source>
+        <target>Of the place, and of anything else</target>
+      </segment>
+    </unit>
+    <unit id="MggZq2i" name="label.remove">
+      <segment state="translated">
+        <source>Remove</source>
+        <target>Remove</target>
+      </segment>
+    </unit>
+    <unit id="OVash2S" name="label.photos_location">
+      <segment state="translated">
+        <source>Photographs - Place</source>
+        <target>Photographs - Place</target>
+      </segment>
+    </unit>
+    <unit id="nPi3ZfL" name="label.photos_other">
+      <segment state="translated">
+        <source>Photographs - Other</source>
+        <target>Photographs - Other</target>
+      </segment>
+    </unit>
+    <unit id="olIWOM0" name="label.photo_label">
+      <segment state="translated">
+        <source>Label</source>
+        <target>Label</target>
+      </segment>
+    </unit>
+    <unit id="ero773n" name="label.essential">
+      <segment state="translated">
+        <source>The essentials</source>
+        <target>The essentials</target>
+      </segment>
+    </unit>
+    <unit id="WtcJVwb" name="label.the_goshuin">
+      <segment state="translated">
+        <source>The goshuin</source>
+        <target>The goshuin</target>
+      </segment>
+    </unit>
+    <unit id="Qr1nxqY" name="label.the_goshuin_holds">
+      <segment state="translated">
+        <source>Type, price paid</source>
+        <target>Type, price paid</target>
+      </segment>
+    </unit>
+    <unit id="ecob9Ew" name="label.notes_hold">
+      <segment state="translated">
+        <source>Free text</source>
+        <target>Free text</target>
+      </segment>
+    </unit>
+    <unit id="tGp4Iol" name="label.section_empty">
+      <segment state="translated">
+        <source>Empty</source>
+        <target>Empty</target>
+      </segment>
+    </unit>
+    <unit id="lBr3Bzk" name="label.section_filled">
+      <segment state="translated">
+        <source>Filled</source>
+        <target>Filled</target>
+      </segment>
+    </unit>
+    <unit id="QS3l_wE" name="label.goshuin_type">
+      <segment state="translated">
+        <source>Goshuin type</source>
+        <target>Goshuin type</target>
+      </segment>
+    </unit>
+    <unit id="GTQ9xzD" name="label.type_standard">
+      <segment state="translated">
+        <source>Standard</source>
+        <target>Standard</target>
+      </segment>
+    </unit>
+    <unit id="RqOO2ss" name="label.type_kirie">
+      <segment state="translated">
+        <source>Cut-paper kirie</source>
+        <target>Cut-paper kirie</target>
+      </segment>
+    </unit>
+    <unit id="k6UtQMz" name="label.type_limited">
+      <segment state="translated">
+        <source>Limited edition</source>
+        <target>Limited edition</target>
+      </segment>
+    </unit>
+    <unit id="LKge0d6" name="label.type_seasonal">
+      <segment state="translated">
+        <source>Seasonal edition</source>
+        <target>Seasonal edition</target>
+      </segment>
+    </unit>
+    <unit id="qRwFlMY" name="label.previous">
+      <segment state="translated">
+        <source>Previous</source>
+        <target>Previous</target>
+      </segment>
+    </unit>
+    <unit id="C62419s" name="label.next">
+      <segment state="translated">
+        <source>Next</source>
+        <target>Next</target>
+      </segment>
+    </unit>
+    <unit id="DMQ8pIx" name="label.where_they_come_from">
+      <segment state="translated">
+        <source>Where they come from</source>
+        <target>Where they come from</target>
+      </segment>
+    </unit>
+    <unit id="ftb4jyM" name="label.the_trip">
+      <segment state="translated">
+        <source>The trip</source>
+        <target>The trip</target>
+      </segment>
+    </unit>
+    <unit id="by_3Jdr" name="label.holdings">
+      <segment state="translated">
+        <source>What this account holds</source>
+        <target>What this account holds</target>
+      </segment>
+    </unit>
+    <unit id="EuF47.Z" name="label.pill_photographs">
+      <segment state="translated">
+        <source>{count, plural, one {# photograph} other {# photographs}}</source>
+        <target>{count, plural, one {# photograph} other {# photographs}}</target>
+      </segment>
+    </unit>
+    <unit id="gQaTNSI" name="label.pill_goshuincho">
+      <segment state="translated">
+        <source>{count} goshuincho</source>
+        <target>{count} goshuincho</target>
+      </segment>
+    </unit>
+    <unit id="Ji.FPhT" name="label.pill_goshuin">
+      <segment state="translated">
+        <source>{count} goshuin</source>
+        <target>{count} goshuin</target>
+      </segment>
+    </unit>
+    <unit id="JZ8H9Cy" name="label.places">
+      <segment state="translated">
+        <source>{count, plural, one {# place} other {# places}}</source>
+        <target>{count, plural, one {# place} other {# places}}</target>
+      </segment>
+    </unit>
+    <unit id="VAiO2A1" name="label.days">
+      <segment state="translated">
+        <source>{count, plural, one {# day} other {# days}}</source>
+        <target>{count, plural, one {# day} other {# days}}</target>
+      </segment>
+    </unit>
+    <unit id="8ANP3n6" name="label.days_later">
+      <segment state="translated">
+        <source>{count, plural, one {# day later} other {# days later}}</source>
+        <target>{count, plural, one {# day later} other {# days later}}</target>
+      </segment>
+    </unit>
+    <unit id="rbSrbI." name="label.stat_goshuincho">
+      <segment state="translated">
+        <source>goshuincho</source>
+        <target>goshuincho</target>
+      </segment>
+    </unit>
+    <unit id="z4dcF5E" name="label.stat_goshuin">
+      <segment state="translated">
+        <source>goshuin</source>
+        <target>goshuin</target>
+      </segment>
+    </unit>
+    <unit id="EB5SZ3x" name="label.stat_cities">
+      <segment state="translated">
+        <source>{count, plural, one {city} other {cities}}</source>
+        <target>{count, plural, one {city} other {cities}}</target>
+      </segment>
+    </unit>
+    <unit id="B3.c6AK" name="label.stat_prefectures">
+      <segment state="translated">
+        <source>{count, plural, one {prefecture} other {prefectures}}</source>
+        <target>{count, plural, one {prefecture} other {prefectures}}</target>
+      </segment>
+    </unit>
+    <unit id="LgaGmiX" name="label.stat_locations">
+      <segment state="translated">
+        <source>{count, plural, one {location} other {locations}}</source>
+        <target>{count, plural, one {location} other {locations}}</target>
+      </segment>
+    </unit>
+    <unit id="iw9qUxb" name="label.search">
+      <segment state="translated">
+        <source>Search</source>
+        <target>Search</target>
+      </segment>
+    </unit>
+    <unit id="Z3.dph7" name="label.no_location_yet">
+      <segment state="translated">
+        <source>No location yet.</source>
+        <target>No location yet.</target>
+      </segment>
+    </unit>
+    <unit id="RxhNXBV" name="label.no_deity_yet">
+      <segment state="translated">
+        <source>No deity yet.</source>
+        <target>No deity yet.</target>
+      </segment>
+    </unit>
+    <unit id="lBbdYWD" name="label.no_tag_yet">
+      <segment state="translated">
+        <source>No tag yet.</source>
+        <target>No tag yet.</target>
+      </segment>
+    </unit>
+    <unit id="OG_Atjx" name="label.no_city_yet">
+      <segment state="translated">
+        <source>No city yet.</source>
+        <target>No city yet.</target>
+      </segment>
+    </unit>
+    <unit id="wBq4gNW" name="label.no_prefecture_yet">
+      <segment state="translated">
+        <source>No prefecture yet.</source>
+        <target>No prefecture yet.</target>
+      </segment>
+    </unit>
+    <unit id="t2o1BoP" name="label.all_locations">
+      <segment state="translated">
+        <source>All the locations</source>
+        <target>All the locations</target>
+      </segment>
+    </unit>
+    <unit id="U_.PWCl" name="label.all_goshuin">
+      <segment state="translated">
+        <source>All the goshuin</source>
+        <target>All the goshuin</target>
+      </segment>
+    </unit>
+    <unit id="aqgxYpo" name="label.my_goshuincho">
+      <segment state="translated">
+        <source>My goshuincho</source>
+        <target>My goshuincho</target>
+      </segment>
+    </unit>
+    <unit id="E92i_MG" name="label.my_goshuin">
+      <segment state="translated">
+        <source>My goshuin</source>
+        <target>My goshuin</target>
+      </segment>
+    </unit>
+    <unit id="mmf5Khh" name="label.all_cities">
+      <segment state="translated">
+        <source>All the cities</source>
+        <target>All the cities</target>
+      </segment>
+    </unit>
+    <unit id="6bI_pPw" name="label.main_photograph">
+      <segment state="translated">
+        <source>Main photograph</source>
+        <target>Main photograph</target>
+      </segment>
+    </unit>
+    <unit id="wp3TJvh" name="label.photograph">
+      <segment state="translated">
+        <source>Photograph</source>
+        <target>Photograph</target>
+      </segment>
+    </unit>
+    <unit id="nDFUjB1" name="label.delete_location">
+      <segment state="translated">
+        <source>Delete {name}?</source>
+        <target>Delete {name}?</target>
+      </segment>
+    </unit>
+    <unit id="PJ1mP6e" name="label.delete_deity">
+      <segment state="translated">
+        <source>Delete {name}?</source>
+        <target>Delete {name}?</target>
+      </segment>
+    </unit>
+    <unit id="vSeksVY" name="label.delete_tag">
+      <segment state="translated">
+        <source>Delete {name}?</source>
+        <target>Delete {name}?</target>
+      </segment>
+    </unit>
+    <unit id="Uzvhs9f" name="label.delete_city">
+      <segment state="translated">
+        <source>Delete {name}?</source>
+        <target>Delete {name}?</target>
+      </segment>
+    </unit>
+    <unit id="OuvsMZq" name="label.delete_prefecture">
+      <segment state="translated">
+        <source>Delete {name}?</source>
+        <target>Delete {name}?</target>
+      </segment>
+    </unit>
+    <unit id="YgXFkLl" name="label.locations">
+      <segment state="translated">
+        <source>Locations</source>
+        <target>Locations</target>
+      </segment>
+    </unit>
+    <unit id="NKFqzv9" name="label.home">
+      <segment state="translated">
+        <source>Home</source>
+        <target>Home</target>
+      </segment>
+    </unit>
+    <unit id="UsWSixX" name="label.sign_in">
+      <segment state="translated">
+        <source>Sign in</source>
+        <target>Sign in</target>
+      </segment>
+    </unit>
+    <unit id="Z2KPz6l" name="label.sign_out">
+      <segment state="translated">
+        <source>Sign out</source>
+        <target>Sign out</target>
+      </segment>
+    </unit>
+    <unit id="9qHNRU7" name="label.account">
+      <segment state="translated">
+        <source>My account</source>
+        <target>My account</target>
+      </segment>
+    </unit>
+    <unit id="sKwVoqy" name="label.settings">
+      <segment state="translated">
+        <source>Settings</source>
+        <target>Settings</target>
+      </segment>
+    </unit>
+    <unit id="GQQkfB3" name="label.users">
+      <segment state="translated">
+        <source>Users</source>
+        <target>Users</target>
+      </segment>
+    </unit>
+    <unit id="Gt.9Y5J" name="label.add_user">
+      <segment state="translated">
+        <source>New user</source>
+        <target>New user</target>
+      </segment>
+    </unit>
+    <unit id="HEBPjJt" name="label.delete_user">
+      <segment state="translated">
+        <source>Delete {name} ({email}) and everything they hold?</source>
+        <target>Delete {name} ({email}) and everything they hold?</target>
+      </segment>
+    </unit>
+    <unit id="jxDZ.4q" name="label.administrator">
+      <segment state="translated">
+        <source>Administrator</source>
+        <target>Administrator</target>
+      </segment>
+    </unit>
+    <unit id="juiCFPq" name="label.enabled">
+      <segment state="translated">
+        <source>Active</source>
+        <target>Active</target>
+      </segment>
+    </unit>
+    <unit id="SHVGc_c" name="label.disabled">
+      <segment state="translated">
+        <source>Disabled</source>
+        <target>Disabled</target>
+      </segment>
+    </unit>
+    <unit id="0BVSEus" name="label.theme">
+      <segment state="translated">
+        <source>Theme</source>
+        <target>Theme</target>
+      </segment>
+    </unit>
+    <unit id="Ooh6O7s" name="label.theme_system">
+      <segment state="translated">
+        <source>Follow the system</source>
+        <target>Follow the system</target>
+      </segment>
+    </unit>
+    <unit id="T0j2HpE" name="label.theme_light">
+      <segment state="translated">
+        <source>Light</source>
+        <target>Light</target>
+      </segment>
+    </unit>
+    <unit id="VQuckMb" name="label.theme_dark">
+      <segment state="translated">
+        <source>Dark</source>
+        <target>Dark</target>
+      </segment>
+    </unit>
+    <unit id="ZonOOHb" name="label.password_current">
+      <segment state="translated">
+        <source>Current password</source>
+        <target>Current password</target>
+      </segment>
+    </unit>
+    <unit id="2c8.s6J" name="label.password_new">
+      <segment state="translated">
+        <source>New password</source>
+        <target>New password</target>
+      </segment>
+    </unit>
+    <unit id="01jOe1c" name="label.password_change">
+      <segment state="translated">
+        <source>Change the password</source>
+        <target>Change the password</target>
+      </segment>
+    </unit>
+    <unit id="LfY_FKz" name="label.avatar">
+      <segment state="translated">
+        <source>Avatar</source>
+        <target>Avatar</target>
+      </segment>
+    </unit>
+    <unit id="tzXODIT" name="label.your_name">
+      <segment state="translated">
+        <source>Your name</source>
+        <target>Your name</target>
+      </segment>
+    </unit>
+    <unit id="aSiMEIt" name="label.name">
+      <segment state="translated">
+        <source>Name</source>
+        <target>Name</target>
+      </segment>
+    </unit>
+    <unit id="ykW6lkh" name="label.email">
+      <segment state="translated">
+        <source>Email</source>
+        <target>Email</target>
+      </segment>
+    </unit>
+    <unit id="yaiKGee" name="label.password">
+      <segment state="translated">
+        <source>Password</source>
+        <target>Password</target>
+      </segment>
+    </unit>
+    <unit id="hxGH40E" name="label.password_repeat">
+      <segment state="translated">
+        <source>Repeat the password</source>
+        <target>Repeat the password</target>
+      </segment>
+    </unit>
+    <unit id="3pkh79k" name="label.password_help">
+      <segment state="translated">
+        <source>At least twelve characters.</source>
+        <target>At least twelve characters.</target>
+      </segment>
+    </unit>
+    <unit id="vSffSvs" name="label.setup_title">
+      <segment state="translated">
+        <source>First connection</source>
+        <target>First connection</target>
+      </segment>
+    </unit>
+    <unit id="crodILl" name="label.setup_submit">
+      <segment state="translated">
+        <source>Create my account</source>
+        <target>Create my account</target>
+      </segment>
+    </unit>
+    <unit id="ulAflPb" name="label.home_empty">
+      <segment state="translated">
+        <source>No goshuincho yet.</source>
+        <target>No goshuincho yet.</target>
+      </segment>
+    </unit>
+    <unit id="kGlFZG1" name="label.home_empty_cta">
+      <segment state="translated">
+        <source>Create my first goshuincho</source>
+        <target>Create my first goshuincho</target>
+      </segment>
+    </unit>
+    <unit id="1Rd7Fyz" name="label.instance">
+      <segment state="translated">
+        <source>Instance</source>
+        <target>Instance</target>
+      </segment>
+    </unit>
+    <unit id="Zq30YAn" name="label.release">
+      <segment state="translated">
+        <source>Release</source>
+        <target>Release</target>
+      </segment>
+    </unit>
+    <unit id="AjtENes" name="label.php_version">
+      <segment state="translated">
+        <source>PHP version</source>
+        <target>PHP version</target>
+      </segment>
+    </unit>
+    <unit id="iZ.8Nwo" name="label.symfony_version">
+      <segment state="translated">
+        <source>Symfony version</source>
+        <target>Symfony version</target>
+      </segment>
+    </unit>
+    <unit id="nzdbVxz" name="label.frankenphp_version">
+      <segment state="translated">
+        <source>FrankenPHP version</source>
+        <target>FrankenPHP version</target>
+      </segment>
+    </unit>
+    <unit id="vsP_Dtz" name="label.disk_usage">
+      <segment state="translated">
+        <source>Disk usage</source>
+        <target>Disk usage</target>
+      </segment>
+    </unit>
+    <unit id="hL4b33u" name="label.byte_abbreviation">
+      <segment state="translated">
+        <source>B</source>
+        <target>B</target>
+      </segment>
+    </unit>
+    <unit id="BHXhHc." name="message.location_duplicate">
+      <segment state="translated">
+        <source>A location with that name already exists. Creating another one is allowed.</source>
+        <target>A location with that name already exists. Creating another one is allowed.</target>
+      </segment>
+    </unit>
+    <unit id="YYTpSZa" name="error.credentials">
+      <segment state="translated">
+        <source>Those credentials do not match an account.</source>
+        <target>Those credentials do not match an account.</target>
+      </segment>
+    </unit>
+    <unit id="iTspeD_" name="error.geocoder">
+      <segment state="translated">
+        <source>The place search is unavailable.</source>
+        <target>The place search is unavailable.</target>
+      </segment>
+    </unit>
+    <unit id="RAecl4d" name="error.too_many_attempts">
+      <segment state="translated">
+        <source>Too many failed attempts. Try again shortly.</source>
+        <target>Too many failed attempts. Try again shortly.</target>
+      </segment>
+    </unit>
+    <unit id="IxdPvtM" name="error.admin_last">
+      <segment state="translated">
+        <source>This is the only administrator, so it cannot be removed.</source>
+        <target>This is the only administrator, so it cannot be removed.</target>
+      </segment>
+    </unit>
+    <unit id="q71Lsl8" name="error.location_referenced">
+      <segment state="translated">
+        <source>This location is still in use, so it cannot be deleted.</source>
+        <target>This location is still in use, so it cannot be deleted.</target>
+      </segment>
+    </unit>
+    <unit id="hHpAcKa" name="error.deity_referenced">
+      <segment state="translated">
+        <source>This deity is still enshrined in a location, so it cannot be deleted.</source>
+        <target>This deity is still enshrined in a location, so it cannot be deleted.</target>
+      </segment>
+    </unit>
+    <unit id="MpIBkjD" name="error.tag_referenced">
+      <segment state="translated">
+        <source>This tag is still on a goshuin, so it cannot be deleted.</source>
+        <target>This tag is still on a goshuin, so it cannot be deleted.</target>
+      </segment>
+    </unit>
+    <unit id="sNAmj4N" name="error.city_referenced">
+      <segment state="translated">
+        <source>This city still holds a location, so it cannot be deleted.</source>
+        <target>This city still holds a location, so it cannot be deleted.</target>
+      </segment>
+    </unit>
+    <unit id="DiZIEs7" name="error.prefecture_referenced">
+      <segment state="translated">
+        <source>This prefecture still holds a city or a location, so it cannot be deleted.</source>
+        <target>This prefecture still holds a city or a location, so it cannot be deleted.</target>
+      </segment>
+    </unit>
+  </file>
+</xliff>

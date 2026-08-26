@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:2.0" version="2.0" srcLang="en" trgLang="fr">
+  <file id="validators.fr">
+    <unit id="sLx2Rr." name="error.email.not_unique">
+      <segment state="translated">
+        <source>An account already uses that address.</source>
+        <target>Un compte utilise déjà cette adresse.</target>
+      </segment>
+    </unit>
+    <unit id="wvxmrl_" name="error.deity.not_unique">
+      <segment state="translated">
+        <source>A deity already bears that name.</source>
+        <target>Une divinité porte déjà ce nom.</target>
+      </segment>
+    </unit>
+    <unit id="G.Ajok3" name="error.tag.not_unique">
+      <segment state="translated">
+        <source>A tag already bears that name.</source>
+        <target>Un tag porte déjà ce nom.</target>
+      </segment>
+    </unit>
+    <unit id="rMOY5KM" name="error.city.not_unique">
+      <segment state="translated">
+        <source>A city already bears that name.</source>
+        <target>Une ville porte déjà ce nom.</target>
+      </segment>
+    </unit>
+    <unit id="05CZgk3" name="error.prefecture.not_unique">
+      <segment state="translated">
+        <source>A prefecture already bears that name.</source>
+        <target>Une préfecture porte déjà ce nom.</target>
+      </segment>
+    </unit>
+    <unit id="cuCspgt" name="error.location_required">
+      <segment state="translated">
+        <source>A place is required.</source>
+        <target>Un lieu est requis.</target>
+      </segment>
+    </unit>
+    <unit id="mQ6OBcM" name="error.image_required">
+      <segment state="translated">
+        <source>A photograph is required.</source>
+        <target>Une photo est requise.</target>
+      </segment>
+    </unit>
+    <unit id="EWhxTuh" name="error.upload_format">
+      <segment state="translated">
+        <source>Only JPEG, PNG and WebP images are accepted.</source>
+        <target>Seules les images JPEG, PNG et WebP sont acceptées.</target>
+      </segment>
+    </unit>
+    <unit id="SMKNWZc" name="error.upload_too_large">
+      <segment state="translated">
+        <source>That file is larger than the configured limit.</source>
+        <target>Ce fichier dépasse la limite configurée.</target>
+      </segment>
+    </unit>
+    <unit id="1X4WQ57" name="error.password_mismatch">
+      <segment state="translated">
+        <source>The two passwords do not match.</source>
+        <target>Les deux mots de passe ne correspondent pas.</target>
+      </segment>
+    </unit>
+    <unit id=".8jgwuz" name="error.password_current_wrong">
+      <segment state="translated">
+        <source>The current password does not match.</source>
+        <target>Le mot de passe actuel ne correspond pas.</target>
+      </segment>
+    </unit>
+  </file>
+</xliff>

@@ -221,6 +221,27 @@ class SettingsTest extends AppTestCase
         $this->assertRouteSame('app_login', [], 'The other session survived the password change.');
     }
 
+    public function test_japanese_is_offered_stored_and_applied(): void
+    {
+        $user = UserFactory::createOne(['locale' => 'en']);
+        $this->client->loginUser($user);
+        $crawler = $this->client->request(Request::METHOD_GET, '/settings');
+
+        $this->assertCount(1, $crawler->filter('#account_locale option[value="ja"]'), 'Japanese is not offered.');
+
+        $this->client->submitForm('account_submit', [
+            'account[name]' => $user->getName(),
+            'account[email]' => $user->getEmail(),
+            'account[locale]' => 'ja',
+            'account[theme]' => 'system',
+        ]);
+        $crawler = $this->client->followRedirect();
+
+        $this->assertSame('ja', $this->users()->find($user->getId())->getLocale(), 'Japanese was not stored.');
+        $this->assertSame('ja', $crawler->filter('html')->attr('lang'), 'Japanese was not applied to the next request.');
+        $this->assertSame('設定', trim($crawler->filter('h1')->text()), 'The Japanese catalogue was not served.');
+    }
+
     private function users(): UserRepository
     {
         $this->manager();

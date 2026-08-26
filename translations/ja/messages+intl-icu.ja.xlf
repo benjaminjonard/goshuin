@@ -1,0 +1,1097 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:2.0" version="2.0" srcLang="en" trgLang="ja">
+  <file id="messages.ja">
+    <unit id="Ee8zzIz" name="label.brand">
+      <segment state="translated">
+        <source>Goshuin, home</source>
+        <target>Goshuin ホーム</target>
+      </segment>
+    </unit>
+    <unit id="QgoejJR" name="label.back">
+      <segment state="translated">
+        <source>Back</source>
+        <target>戻る</target>
+      </segment>
+    </unit>
+    <unit id="CzzpYWY" name="label.close">
+      <segment state="translated">
+        <source>Close</source>
+        <target>閉じる</target>
+      </segment>
+    </unit>
+    <unit id="Ogsv.lD" name="label.language">
+      <segment state="translated">
+        <source>Language</source>
+        <target>言語</target>
+      </segment>
+    </unit>
+    <unit id="qR8P.Yr" name="label.goshuincho">
+      <segment state="translated">
+        <source>Goshuincho</source>
+        <target>御朱印帳</target>
+      </segment>
+    </unit>
+    <unit id="bpB8UkS" name="label.goshuin">
+      <segment state="translated">
+        <source>Goshuin</source>
+        <target>御朱印</target>
+      </segment>
+    </unit>
+    <unit id="QgJjQWe" name="label.location">
+      <segment state="translated">
+        <source>Location</source>
+        <target>場所</target>
+      </segment>
+    </unit>
+    <unit id="3.Ysket" name="label.location_search">
+      <segment state="translated">
+        <source>Search a location</source>
+        <target>場所を検索</target>
+      </segment>
+    </unit>
+    <unit id="ht09dJH" name="label.japanese_name">
+      <segment state="translated">
+        <source>Japanese name</source>
+        <target>日本語名</target>
+      </segment>
+    </unit>
+    <unit id="FjQuuzf" name="label.romanized_name">
+      <segment state="translated">
+        <source>Romanized name</source>
+        <target>ローマ字名</target>
+      </segment>
+    </unit>
+    <unit id="2k0nwW5" name="label.additional_names">
+      <segment state="translated">
+        <source>Additional names</source>
+        <target>別名</target>
+      </segment>
+    </unit>
+    <unit id="eTDViYv" name="label.add_name">
+      <segment state="translated">
+        <source>Add a name</source>
+        <target>名前を追加</target>
+      </segment>
+    </unit>
+    <unit id="CEVgeJ7" name="label.address">
+      <segment state="translated">
+        <source>Address</source>
+        <target>住所</target>
+      </segment>
+    </unit>
+    <unit id="6wy53yC" name="label.address_search">
+      <segment state="translated">
+        <source>Find the place</source>
+        <target>場所を探す</target>
+      </segment>
+    </unit>
+    <unit id="YMb_FVz" name="label.searching">
+      <segment state="translated">
+        <source>Searching</source>
+        <target>検索中</target>
+      </segment>
+    </unit>
+    <unit id="PF78zaa" name="label.address_placeholder">
+      <segment state="translated">
+        <source>Name or address, to fill the fields below</source>
+        <target>名称または住所（下の項目が埋まります）</target>
+      </segment>
+    </unit>
+    <unit id="sWri7JQ" name="label.deities">
+      <segment state="translated">
+        <source>Deities</source>
+        <target>神仏</target>
+      </segment>
+    </unit>
+    <unit id="dPK36XF" name="label.add_deity">
+      <segment state="translated">
+        <source>Add a deity</source>
+        <target>神仏を追加</target>
+      </segment>
+    </unit>
+    <unit id="y.c6Nzt" name="label.deity_search">
+      <segment state="translated">
+        <source>Search a deity</source>
+        <target>神仏を検索</target>
+      </segment>
+    </unit>
+    <unit id="p8ZavMW" name="label.tags">
+      <segment state="translated">
+        <source>Tags</source>
+        <target>タグ</target>
+      </segment>
+    </unit>
+    <unit id="iDEfQfw" name="label.tags_example">
+      <segment state="translated">
+        <source>dog, plum blossom</source>
+        <target>犬、梅</target>
+      </segment>
+    </unit>
+    <unit id="4_BeR8X" name="label.tag_search">
+      <segment state="translated">
+        <source>Search a tag</source>
+        <target>タグを検索</target>
+      </segment>
+    </unit>
+    <unit id="6dXT.J6" name="label.city_search">
+      <segment state="translated">
+        <source>Search a city</source>
+        <target>市区町村を検索</target>
+      </segment>
+    </unit>
+    <unit id="cO64PI7" name="label.prefecture_search">
+      <segment state="translated">
+        <source>Search a prefecture</source>
+        <target>都道府県を検索</target>
+      </segment>
+    </unit>
+    <unit id="DJ3spN4" name="label.goshuincho_search">
+      <segment state="translated">
+        <source>Search a goshuincho</source>
+        <target>御朱印帳を検索</target>
+      </segment>
+    </unit>
+    <unit id="iRiv9QR" name="label.goshuin_search">
+      <segment state="translated">
+        <source>Search a goshuin</source>
+        <target>御朱印を検索</target>
+      </segment>
+    </unit>
+    <unit id="J_1tGU2" name="label.foundation">
+      <segment state="translated">
+        <source>Foundation</source>
+        <target>創建</target>
+      </segment>
+    </unit>
+    <unit id="MXpeMi7" name="label.city">
+      <segment state="translated">
+        <source>City</source>
+        <target>市区町村</target>
+      </segment>
+    </unit>
+    <unit id="9dA7hpx" name="label.prefecture">
+      <segment state="translated">
+        <source>Prefecture</source>
+        <target>都道府県</target>
+      </segment>
+    </unit>
+    <unit id="83zUn6j" name="label.cities">
+      <segment state="translated">
+        <source>Cities</source>
+        <target>市区町村</target>
+      </segment>
+    </unit>
+    <unit id="FWJTuSb" name="label.prefectures">
+      <segment state="translated">
+        <source>Prefectures</source>
+        <target>都道府県</target>
+      </segment>
+    </unit>
+    <unit id="SrSZN8m" name="label.unrecorded">
+      <segment state="translated">
+        <source>Not recorded</source>
+        <target>未記録</target>
+      </segment>
+    </unit>
+    <unit id="FBSuKKD" name="label.latitude">
+      <segment state="translated">
+        <source>Latitude</source>
+        <target>緯度</target>
+      </segment>
+    </unit>
+    <unit id="8KmAwr0" name="label.place_on_map">
+      <segment state="translated">
+        <source>Click the map to place the point, or type the coordinates.</source>
+        <target>地図をクリックして地点を置く、または座標を入力。</target>
+      </segment>
+    </unit>
+    <unit id="A3tB9aX" name="label.longitude">
+      <segment state="translated">
+        <source>Longitude</source>
+        <target>経度</target>
+      </segment>
+    </unit>
+    <unit id="mlQpx4G" name="label.create_location">
+      <segment state="translated">
+        <source>Create the location</source>
+        <target>場所を作成</target>
+      </segment>
+    </unit>
+    <unit id="ruSDIKQ" name="label.create_named_location">
+      <segment state="translated">
+        <source>Create « {name} »</source>
+        <target>「{name}」を作成</target>
+      </segment>
+    </unit>
+    <unit id="soosUuE" name="label.no_result">
+      <segment state="translated">
+        <source>No result</source>
+        <target>該当なし</target>
+      </segment>
+    </unit>
+    <unit id="NLVgclI" name="label.change">
+      <segment state="translated">
+        <source>Change</source>
+        <target>変更</target>
+      </segment>
+    </unit>
+    <unit id="1i94cYA" name="label.location_type">
+      <segment state="translated">
+        <source>Location type</source>
+        <target>場所の種別</target>
+      </segment>
+    </unit>
+    <unit id="zAkVaLX" name="label.shrine">
+      <segment state="translated">
+        <source>Shrine</source>
+        <target>神社</target>
+      </segment>
+    </unit>
+    <unit id="QPjttgQ" name="label.temple">
+      <segment state="translated">
+        <source>Temple</source>
+        <target>お寺</target>
+      </segment>
+    </unit>
+    <unit id="oz.tM7G" name="label.other">
+      <segment state="translated">
+        <source>Other</source>
+        <target>その他</target>
+      </segment>
+    </unit>
+    <unit id="ilojZnl" name="label.add_goshuincho">
+      <segment state="translated">
+        <source>New goshuincho</source>
+        <target>新しい御朱印帳</target>
+      </segment>
+    </unit>
+    <unit id="UihE71K" name="label.add_goshuin">
+      <segment state="translated">
+        <source>Add a goshuin</source>
+        <target>御朱印を追加</target>
+      </segment>
+    </unit>
+    <unit id="1vyz2Yp" name="label.edit">
+      <segment state="translated">
+        <source>Edit</source>
+        <target>編集</target>
+      </segment>
+    </unit>
+    <unit id="gyxJCjl" name="label.delete">
+      <segment state="translated">
+        <source>Delete</source>
+        <target>削除</target>
+      </segment>
+    </unit>
+    <unit id="..ZIB7S" name="label.cancel">
+      <segment state="translated">
+        <source>Cancel</source>
+        <target>キャンセル</target>
+      </segment>
+    </unit>
+    <unit id="znwE9XF" name="label.save">
+      <segment state="translated">
+        <source>Save</source>
+        <target>保存</target>
+      </segment>
+    </unit>
+    <unit id="kKgpta0" name="label.save_and_add">
+      <segment state="translated">
+        <source>Save and add another</source>
+        <target>保存して続けて追加</target>
+      </segment>
+    </unit>
+    <unit id="M.FAcLc" name="label.received_at">
+      <segment state="translated">
+        <source>Received at</source>
+        <target>拝受場所</target>
+      </segment>
+    </unit>
+    <unit id="kodyof0" name="label.received_on">
+      <segment state="translated">
+        <source>Date</source>
+        <target>拝受日</target>
+      </segment>
+    </unit>
+    <unit id="q34mYew" name="label.bought_at">
+      <segment state="translated">
+        <source>Bought at</source>
+        <target>購入場所</target>
+      </segment>
+    </unit>
+    <unit id="bfrAA5f" name="label.origin">
+      <segment state="translated">
+        <source>Temple of origin</source>
+        <target>授与元</target>
+      </segment>
+    </unit>
+    <unit id="fKtAFZJ" name="label.price_paid">
+      <segment state="translated">
+        <source>Price paid</source>
+        <target>金額</target>
+      </segment>
+    </unit>
+    <unit id="ZIbme0L" name="label.title">
+      <segment state="translated">
+        <source>Title</source>
+        <target>名称</target>
+      </segment>
+    </unit>
+    <unit id="EUdtGnh" name="label.cover_front">
+      <segment state="translated">
+        <source>Front cover</source>
+        <target>表紙</target>
+      </segment>
+    </unit>
+    <unit id="tByLyph" name="label.cover_back">
+      <segment state="translated">
+        <source>Back cover</source>
+        <target>裏表紙</target>
+      </segment>
+    </unit>
+    <unit id="2uQllrI" name="label.drop_or_browse">
+      <segment state="translated">
+        <source>Drop a photograph or browse</source>
+        <target>写真をドロップ、または選択</target>
+      </segment>
+    </unit>
+    <unit id="xk0UynU" name="label.replace_or_browse">
+      <segment state="translated">
+        <source>Drop a new image to replace it</source>
+        <target>新しい画像をドロップして差し替え</target>
+      </segment>
+    </unit>
+    <unit id="TVvbsUG" name="label.remove_cover">
+      <segment state="translated">
+        <source>Remove this cover</source>
+        <target>この表紙を削除</target>
+      </segment>
+    </unit>
+    <unit id="WgYmKWm" name="label.no_cover">
+      <segment state="translated">
+        <source>No cover photographed</source>
+        <target>表紙の写真なし</target>
+      </segment>
+    </unit>
+    <unit id="PqqF05U" name="label.hue">
+      <segment state="translated">
+        <source>Colour</source>
+        <target>色</target>
+      </segment>
+    </unit>
+    <unit id="mq_phuo" name="label.purchase">
+      <segment state="translated">
+        <source>Purchase</source>
+        <target>購入</target>
+      </segment>
+    </unit>
+    <unit id="LsGVnZM" name="label.purchased_on">
+      <segment state="translated">
+        <source>Bought on</source>
+        <target>購入日</target>
+      </segment>
+    </unit>
+    <unit id="Zb4xuOb" name="label.description">
+      <segment state="translated">
+        <source>Description</source>
+        <target>説明</target>
+      </segment>
+    </unit>
+    <unit id="I8iXxbV" name="label.delete_goshuincho">
+      <segment state="translated">
+        <source>Delete {title} and everything in it?</source>
+        <target>「{title}」と、その中身をすべて削除しますか？</target>
+      </segment>
+    </unit>
+    <unit id="aWxUf06" name="label.delete_goshuin">
+      <segment state="translated">
+        <source>Delete the goshuin from {location}, on page {page}?</source>
+        <target>{page}ページの、{location}の御朱印を削除しますか？</target>
+      </segment>
+    </unit>
+    <unit id="uYCAva_" name="label.no_goshuin_yet">
+      <segment state="translated">
+        <source>No goshuin yet.</source>
+        <target>御朱印はまだありません。</target>
+      </segment>
+    </unit>
+    <unit id="O_0K8EM" name="label.image">
+      <segment state="translated">
+        <source>Image</source>
+        <target>画像</target>
+      </segment>
+    </unit>
+    <unit id="C7rwh_a" name="label.goshuin_from">
+      <segment state="translated">
+        <source>Goshuin from {location}</source>
+        <target>{location}の御朱印</target>
+      </segment>
+    </unit>
+    <unit id="OmyXHwr" name="label.page">
+      <segment state="translated">
+        <source>Page</source>
+        <target>ページ</target>
+      </segment>
+    </unit>
+    <unit id="xEixJVa" name="label.page_of">
+      <segment state="translated">
+        <source>Page {position} / {total}</source>
+        <target>{position} / {total} ページ</target>
+      </segment>
+    </unit>
+    <unit id="GW9pHVg" name="label.previous_page">
+      <segment state="translated">
+        <source>Previous page</source>
+        <target>前のページ</target>
+      </segment>
+    </unit>
+    <unit id="4l3UZYZ" name="label.next_page">
+      <segment state="translated">
+        <source>Next page</source>
+        <target>次のページ</target>
+      </segment>
+    </unit>
+    <unit id="MJmeESi" name="label.order">
+      <segment state="translated">
+        <source>Order in the goshuincho</source>
+        <target>御朱印帳内の順序</target>
+      </segment>
+    </unit>
+    <unit id="CLuhpaK" name="label.move_earlier">
+      <segment state="translated">
+        <source>Move earlier in the goshuincho</source>
+        <target>御朱印帳内で前へ移動</target>
+      </segment>
+    </unit>
+    <unit id="cajeYjR" name="label.move_later">
+      <segment state="translated">
+        <source>Move later in the goshuincho</source>
+        <target>御朱印帳内で後へ移動</target>
+      </segment>
+    </unit>
+    <unit id="9rMO3M_" name="label.additional_information">
+      <segment state="translated">
+        <source>Additional information</source>
+        <target>補足情報</target>
+      </segment>
+    </unit>
+    <unit id="tuC.GA7" name="label.information">
+      <segment state="translated">
+        <source>Information</source>
+        <target>情報</target>
+      </segment>
+    </unit>
+    <unit id="F6jRLUe" name="label.coordinates">
+      <segment state="translated">
+        <source>Coordinates</source>
+        <target>座標</target>
+      </segment>
+    </unit>
+    <unit id="bINYR5w" name="label.map">
+      <segment state="translated">
+        <source>Map</source>
+        <target>地図</target>
+      </segment>
+    </unit>
+    <unit id="ezihE3j" name="label.notes">
+      <segment state="translated">
+        <source>Notes</source>
+        <target>メモ</target>
+      </segment>
+    </unit>
+    <unit id="kQEMxcw" name="label.additional_photographs">
+      <segment state="translated">
+        <source>Additional photos</source>
+        <target>追加の写真</target>
+      </segment>
+    </unit>
+    <unit id="SKa47Qy" name="label.photographs">
+      <segment state="translated">
+        <source>Photographs</source>
+        <target>写真</target>
+      </segment>
+    </unit>
+    <unit id="Dym235j" name="label.photographs_hold">
+      <segment state="translated">
+        <source>Of the place, and of anything else</source>
+        <target>場所の写真、その他の写真</target>
+      </segment>
+    </unit>
+    <unit id="MggZq2i" name="label.remove">
+      <segment state="translated">
+        <source>Remove</source>
+        <target>削除</target>
+      </segment>
+    </unit>
+    <unit id="OVash2S" name="label.photos_location">
+      <segment state="translated">
+        <source>Photographs - Place</source>
+        <target>写真 - 場所</target>
+      </segment>
+    </unit>
+    <unit id="nPi3ZfL" name="label.photos_other">
+      <segment state="translated">
+        <source>Photographs - Other</source>
+        <target>写真 - その他</target>
+      </segment>
+    </unit>
+    <unit id="olIWOM0" name="label.photo_label">
+      <segment state="translated">
+        <source>Label</source>
+        <target>見出し</target>
+      </segment>
+    </unit>
+    <unit id="ero773n" name="label.essential">
+      <segment state="translated">
+        <source>The essentials</source>
+        <target>基本情報</target>
+      </segment>
+    </unit>
+    <unit id="WtcJVwb" name="label.the_goshuin">
+      <segment state="translated">
+        <source>The goshuin</source>
+        <target>御朱印</target>
+      </segment>
+    </unit>
+    <unit id="Qr1nxqY" name="label.the_goshuin_holds">
+      <segment state="translated">
+        <source>Type, price paid</source>
+        <target>種別、金額</target>
+      </segment>
+    </unit>
+    <unit id="ecob9Ew" name="label.notes_hold">
+      <segment state="translated">
+        <source>Free text</source>
+        <target>自由記述</target>
+      </segment>
+    </unit>
+    <unit id="tGp4Iol" name="label.section_empty">
+      <segment state="translated">
+        <source>Empty</source>
+        <target>未入力</target>
+      </segment>
+    </unit>
+    <unit id="lBr3Bzk" name="label.section_filled">
+      <segment state="translated">
+        <source>Filled</source>
+        <target>入力済み</target>
+      </segment>
+    </unit>
+    <unit id="QS3l_wE" name="label.goshuin_type">
+      <segment state="translated">
+        <source>Goshuin type</source>
+        <target>御朱印の種別</target>
+      </segment>
+    </unit>
+    <unit id="GTQ9xzD" name="label.type_standard">
+      <segment state="translated">
+        <source>Standard</source>
+        <target>通常</target>
+      </segment>
+    </unit>
+    <unit id="RqOO2ss" name="label.type_kirie">
+      <segment state="translated">
+        <source>Cut-paper kirie</source>
+        <target>切り絵</target>
+      </segment>
+    </unit>
+    <unit id="k6UtQMz" name="label.type_limited">
+      <segment state="translated">
+        <source>Limited edition</source>
+        <target>限定</target>
+      </segment>
+    </unit>
+    <unit id="LKge0d6" name="label.type_seasonal">
+      <segment state="translated">
+        <source>Seasonal edition</source>
+        <target>季節限定</target>
+      </segment>
+    </unit>
+    <unit id="qRwFlMY" name="label.previous">
+      <segment state="translated">
+        <source>Previous</source>
+        <target>前</target>
+      </segment>
+    </unit>
+    <unit id="C62419s" name="label.next">
+      <segment state="translated">
+        <source>Next</source>
+        <target>次</target>
+      </segment>
+    </unit>
+    <unit id="DMQ8pIx" name="label.where_they_come_from">
+      <segment state="translated">
+        <source>Where they come from</source>
+        <target>拝受した場所</target>
+      </segment>
+    </unit>
+    <unit id="ftb4jyM" name="label.the_trip">
+      <segment state="translated">
+        <source>The trip</source>
+        <target>行程</target>
+      </segment>
+    </unit>
+    <unit id="by_3Jdr" name="label.holdings">
+      <segment state="translated">
+        <source>What this account holds</source>
+        <target>このアカウントが持つもの</target>
+      </segment>
+    </unit>
+    <unit id="EuF47.Z" name="label.pill_photographs">
+      <segment state="translated">
+        <source>{count, plural, one {# photograph} other {# photographs}}</source>
+        <target>{count, plural, other {写真#枚}}</target>
+      </segment>
+    </unit>
+    <unit id="gQaTNSI" name="label.pill_goshuincho">
+      <segment state="translated">
+        <source>{count} goshuincho</source>
+        <target>御朱印帳{count}冊</target>
+      </segment>
+    </unit>
+    <unit id="Ji.FPhT" name="label.pill_goshuin">
+      <segment state="translated">
+        <source>{count} goshuin</source>
+        <target>御朱印{count}件</target>
+      </segment>
+    </unit>
+    <unit id="JZ8H9Cy" name="label.places">
+      <segment state="translated">
+        <source>{count, plural, one {# place} other {# places}}</source>
+        <target>{count, plural, other {#箇所}}</target>
+      </segment>
+    </unit>
+    <unit id="VAiO2A1" name="label.days">
+      <segment state="translated">
+        <source>{count, plural, one {# day} other {# days}}</source>
+        <target>{count, plural, other {#日}}</target>
+      </segment>
+    </unit>
+    <unit id="8ANP3n6" name="label.days_later">
+      <segment state="translated">
+        <source>{count, plural, one {# day later} other {# days later}}</source>
+        <target>{count, plural, other {#日後}}</target>
+      </segment>
+    </unit>
+    <unit id="rbSrbI." name="label.stat_goshuincho">
+      <segment state="translated">
+        <source>goshuincho</source>
+        <target>御朱印帳</target>
+      </segment>
+    </unit>
+    <unit id="z4dcF5E" name="label.stat_goshuin">
+      <segment state="translated">
+        <source>goshuin</source>
+        <target>御朱印</target>
+      </segment>
+    </unit>
+    <unit id="EB5SZ3x" name="label.stat_cities">
+      <segment state="translated">
+        <source>{count, plural, one {city} other {cities}}</source>
+        <target>市区町村</target>
+      </segment>
+    </unit>
+    <unit id="B3.c6AK" name="label.stat_prefectures">
+      <segment state="translated">
+        <source>{count, plural, one {prefecture} other {prefectures}}</source>
+        <target>都道府県</target>
+      </segment>
+    </unit>
+    <unit id="LgaGmiX" name="label.stat_locations">
+      <segment state="translated">
+        <source>{count, plural, one {location} other {locations}}</source>
+        <target>場所</target>
+      </segment>
+    </unit>
+    <unit id="iw9qUxb" name="label.search">
+      <segment state="translated">
+        <source>Search</source>
+        <target>検索</target>
+      </segment>
+    </unit>
+    <unit id="Z3.dph7" name="label.no_location_yet">
+      <segment state="translated">
+        <source>No location yet.</source>
+        <target>場所はまだありません。</target>
+      </segment>
+    </unit>
+    <unit id="RxhNXBV" name="label.no_deity_yet">
+      <segment state="translated">
+        <source>No deity yet.</source>
+        <target>神仏はまだありません。</target>
+      </segment>
+    </unit>
+    <unit id="lBbdYWD" name="label.no_tag_yet">
+      <segment state="translated">
+        <source>No tag yet.</source>
+        <target>タグはまだありません。</target>
+      </segment>
+    </unit>
+    <unit id="OG_Atjx" name="label.no_city_yet">
+      <segment state="translated">
+        <source>No city yet.</source>
+        <target>市区町村はまだありません。</target>
+      </segment>
+    </unit>
+    <unit id="wBq4gNW" name="label.no_prefecture_yet">
+      <segment state="translated">
+        <source>No prefecture yet.</source>
+        <target>都道府県はまだありません。</target>
+      </segment>
+    </unit>
+    <unit id="t2o1BoP" name="label.all_locations">
+      <segment state="translated">
+        <source>All the locations</source>
+        <target>場所一覧</target>
+      </segment>
+    </unit>
+    <unit id="U_.PWCl" name="label.all_goshuin">
+      <segment state="translated">
+        <source>All the goshuin</source>
+        <target>御朱印一覧</target>
+      </segment>
+    </unit>
+    <unit id="aqgxYpo" name="label.my_goshuincho">
+      <segment state="translated">
+        <source>My goshuincho</source>
+        <target>マイ御朱印帳</target>
+      </segment>
+    </unit>
+    <unit id="E92i_MG" name="label.my_goshuin">
+      <segment state="translated">
+        <source>My goshuin</source>
+        <target>マイ御朱印</target>
+      </segment>
+    </unit>
+    <unit id="mmf5Khh" name="label.all_cities">
+      <segment state="translated">
+        <source>All the cities</source>
+        <target>市区町村一覧</target>
+      </segment>
+    </unit>
+    <unit id="6bI_pPw" name="label.main_photograph">
+      <segment state="translated">
+        <source>Main photograph</source>
+        <target>メイン写真</target>
+      </segment>
+    </unit>
+    <unit id="wp3TJvh" name="label.photograph">
+      <segment state="translated">
+        <source>Photograph</source>
+        <target>写真</target>
+      </segment>
+    </unit>
+    <unit id="nDFUjB1" name="label.delete_location">
+      <segment state="translated">
+        <source>Delete {name}?</source>
+        <target>「{name}」を削除しますか？</target>
+      </segment>
+    </unit>
+    <unit id="PJ1mP6e" name="label.delete_deity">
+      <segment state="translated">
+        <source>Delete {name}?</source>
+        <target>「{name}」を削除しますか？</target>
+      </segment>
+    </unit>
+    <unit id="vSeksVY" name="label.delete_tag">
+      <segment state="translated">
+        <source>Delete {name}?</source>
+        <target>「{name}」を削除しますか？</target>
+      </segment>
+    </unit>
+    <unit id="Uzvhs9f" name="label.delete_city">
+      <segment state="translated">
+        <source>Delete {name}?</source>
+        <target>「{name}」を削除しますか？</target>
+      </segment>
+    </unit>
+    <unit id="OuvsMZq" name="label.delete_prefecture">
+      <segment state="translated">
+        <source>Delete {name}?</source>
+        <target>「{name}」を削除しますか？</target>
+      </segment>
+    </unit>
+    <unit id="YgXFkLl" name="label.locations">
+      <segment state="translated">
+        <source>Locations</source>
+        <target>場所</target>
+      </segment>
+    </unit>
+    <unit id="NKFqzv9" name="label.home">
+      <segment state="translated">
+        <source>Home</source>
+        <target>ホーム</target>
+      </segment>
+    </unit>
+    <unit id="UsWSixX" name="label.sign_in">
+      <segment state="translated">
+        <source>Sign in</source>
+        <target>ログイン</target>
+      </segment>
+    </unit>
+    <unit id="Z2KPz6l" name="label.sign_out">
+      <segment state="translated">
+        <source>Sign out</source>
+        <target>ログアウト</target>
+      </segment>
+    </unit>
+    <unit id="9qHNRU7" name="label.account">
+      <segment state="translated">
+        <source>My account</source>
+        <target>アカウント</target>
+      </segment>
+    </unit>
+    <unit id="sKwVoqy" name="label.settings">
+      <segment state="translated">
+        <source>Settings</source>
+        <target>設定</target>
+      </segment>
+    </unit>
+    <unit id="GQQkfB3" name="label.users">
+      <segment state="translated">
+        <source>Users</source>
+        <target>ユーザー</target>
+      </segment>
+    </unit>
+    <unit id="Gt.9Y5J" name="label.add_user">
+      <segment state="translated">
+        <source>New user</source>
+        <target>新しいユーザー</target>
+      </segment>
+    </unit>
+    <unit id="HEBPjJt" name="label.delete_user">
+      <segment state="translated">
+        <source>Delete {name} ({email}) and everything they hold?</source>
+        <target>{name}（{email}）と、その所有物をすべて削除しますか？</target>
+      </segment>
+    </unit>
+    <unit id="jxDZ.4q" name="label.administrator">
+      <segment state="translated">
+        <source>Administrator</source>
+        <target>管理者</target>
+      </segment>
+    </unit>
+    <unit id="juiCFPq" name="label.enabled">
+      <segment state="translated">
+        <source>Active</source>
+        <target>有効</target>
+      </segment>
+    </unit>
+    <unit id="SHVGc_c" name="label.disabled">
+      <segment state="translated">
+        <source>Disabled</source>
+        <target>無効</target>
+      </segment>
+    </unit>
+    <unit id="0BVSEus" name="label.theme">
+      <segment state="translated">
+        <source>Theme</source>
+        <target>テーマ</target>
+      </segment>
+    </unit>
+    <unit id="Ooh6O7s" name="label.theme_system">
+      <segment state="translated">
+        <source>Follow the system</source>
+        <target>システムに合わせる</target>
+      </segment>
+    </unit>
+    <unit id="T0j2HpE" name="label.theme_light">
+      <segment state="translated">
+        <source>Light</source>
+        <target>ライト</target>
+      </segment>
+    </unit>
+    <unit id="VQuckMb" name="label.theme_dark">
+      <segment state="translated">
+        <source>Dark</source>
+        <target>ダーク</target>
+      </segment>
+    </unit>
+    <unit id="ZonOOHb" name="label.password_current">
+      <segment state="translated">
+        <source>Current password</source>
+        <target>現在のパスワード</target>
+      </segment>
+    </unit>
+    <unit id="2c8.s6J" name="label.password_new">
+      <segment state="translated">
+        <source>New password</source>
+        <target>新しいパスワード</target>
+      </segment>
+    </unit>
+    <unit id="01jOe1c" name="label.password_change">
+      <segment state="translated">
+        <source>Change the password</source>
+        <target>パスワードを変更</target>
+      </segment>
+    </unit>
+    <unit id="LfY_FKz" name="label.avatar">
+      <segment state="translated">
+        <source>Avatar</source>
+        <target>アバター</target>
+      </segment>
+    </unit>
+    <unit id="tzXODIT" name="label.your_name">
+      <segment state="translated">
+        <source>Your name</source>
+        <target>名前</target>
+      </segment>
+    </unit>
+    <unit id="aSiMEIt" name="label.name">
+      <segment state="translated">
+        <source>Name</source>
+        <target>名前</target>
+      </segment>
+    </unit>
+    <unit id="ykW6lkh" name="label.email">
+      <segment state="translated">
+        <source>Email</source>
+        <target>メールアドレス</target>
+      </segment>
+    </unit>
+    <unit id="yaiKGee" name="label.password">
+      <segment state="translated">
+        <source>Password</source>
+        <target>パスワード</target>
+      </segment>
+    </unit>
+    <unit id="hxGH40E" name="label.password_repeat">
+      <segment state="translated">
+        <source>Repeat the password</source>
+        <target>パスワードを再入力</target>
+      </segment>
+    </unit>
+    <unit id="3pkh79k" name="label.password_help">
+      <segment state="translated">
+        <source>At least twelve characters.</source>
+        <target>12文字以上。</target>
+      </segment>
+    </unit>
+    <unit id="vSffSvs" name="label.setup_title">
+      <segment state="translated">
+        <source>First connection</source>
+        <target>初回接続</target>
+      </segment>
+    </unit>
+    <unit id="crodILl" name="label.setup_submit">
+      <segment state="translated">
+        <source>Create my account</source>
+        <target>アカウントを作成</target>
+      </segment>
+    </unit>
+    <unit id="ulAflPb" name="label.home_empty">
+      <segment state="translated">
+        <source>No goshuincho yet.</source>
+        <target>御朱印帳はまだありません。</target>
+      </segment>
+    </unit>
+    <unit id="kGlFZG1" name="label.home_empty_cta">
+      <segment state="translated">
+        <source>Create my first goshuincho</source>
+        <target>最初の御朱印帳を作成</target>
+      </segment>
+    </unit>
+    <unit id="1Rd7Fyz" name="label.instance">
+      <segment state="translated">
+        <source>Instance</source>
+        <target>インスタンス</target>
+      </segment>
+    </unit>
+    <unit id="Zq30YAn" name="label.release">
+      <segment state="translated">
+        <source>Release</source>
+        <target>リリース</target>
+      </segment>
+    </unit>
+    <unit id="AjtENes" name="label.php_version">
+      <segment state="translated">
+        <source>PHP version</source>
+        <target>PHPバージョン</target>
+      </segment>
+    </unit>
+    <unit id="iZ.8Nwo" name="label.symfony_version">
+      <segment state="translated">
+        <source>Symfony version</source>
+        <target>Symfonyバージョン</target>
+      </segment>
+    </unit>
+    <unit id="nzdbVxz" name="label.frankenphp_version">
+      <segment state="translated">
+        <source>FrankenPHP version</source>
+        <target>FrankenPHPバージョン</target>
+      </segment>
+    </unit>
+    <unit id="vsP_Dtz" name="label.disk_usage">
+      <segment state="translated">
+        <source>Disk usage</source>
+        <target>ディスク使用量</target>
+      </segment>
+    </unit>
+    <unit id="hL4b33u" name="label.byte_abbreviation">
+      <segment state="translated">
+        <source>B</source>
+        <target>B</target>
+      </segment>
+    </unit>
+    <unit id="BHXhHc." name="message.location_duplicate">
+      <segment state="translated">
+        <source>A location with that name already exists. Creating another one is allowed.</source>
+        <target>同じ名前の場所がすでにあります。別に作成することもできます。</target>
+      </segment>
+    </unit>
+    <unit id="YYTpSZa" name="error.credentials">
+      <segment state="translated">
+        <source>Those credentials do not match an account.</source>
+        <target>その認証情報に一致するアカウントはありません。</target>
+      </segment>
+    </unit>
+    <unit id="iTspeD_" name="error.geocoder">
+      <segment state="translated">
+        <source>The place search is unavailable.</source>
+        <target>場所の検索は利用できません。</target>
+      </segment>
+    </unit>
+    <unit id="RAecl4d" name="error.too_many_attempts">
+      <segment state="translated">
+        <source>Too many failed attempts. Try again shortly.</source>
+        <target>失敗が続きました。しばらくしてからお試しください。</target>
+      </segment>
+    </unit>
+    <unit id="IxdPvtM" name="error.admin_last">
+      <segment state="translated">
+        <source>This is the only administrator, so it cannot be removed.</source>
+        <target>管理者はこの一人だけのため、削除できません。</target>
+      </segment>
+    </unit>
+    <unit id="q71Lsl8" name="error.location_referenced">
+      <segment state="translated">
+        <source>This location is still in use, so it cannot be deleted.</source>
+        <target>この場所は使用中のため、削除できません。</target>
+      </segment>
+    </unit>
+    <unit id="hHpAcKa" name="error.deity_referenced">
+      <segment state="translated">
+        <source>This deity is still enshrined in a location, so it cannot be deleted.</source>
+        <target>この神仏はまだ場所に祀られているため、削除できません。</target>
+      </segment>
+    </unit>
+    <unit id="MpIBkjD" name="error.tag_referenced">
+      <segment state="translated">
+        <source>This tag is still on a goshuin, so it cannot be deleted.</source>
+        <target>このタグはまだ御朱印に付いているため、削除できません。</target>
+      </segment>
+    </unit>
+    <unit id="sNAmj4N" name="error.city_referenced">
+      <segment state="translated">
+        <source>This city still holds a location, so it cannot be deleted.</source>
+        <target>この市区町村はまだ場所を含むため、削除できません。</target>
+      </segment>
+    </unit>
+    <unit id="DiZIEs7" name="error.prefecture_referenced">
+      <segment state="translated">
+        <source>This prefecture still holds a city or a location, so it cannot be deleted.</source>
+        <target>この都道府県はまだ市区町村または場所を含むため、削除できません。</target>
+      </segment>
+    </unit>
+  </file>
+</xliff>

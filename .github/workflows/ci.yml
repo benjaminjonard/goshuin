@@ -110,7 +110,7 @@ jobs:
             sed -i "s|APP_ENV=.*|APP_ENV=test|i" ".env"
             sed -i "s|APP_DEBUG=.*|APP_DEBUG=1|i" ".env"
             sed -i "s|APP_SECRET=.*|APP_SECRET=aRandomSecret|i" ".env"
-            sed -i "s|DB_NAME=.*|DB_NAME=mendako|i" ".env"
+            sed -i "s|DB_NAME=.*|DB_NAME=goshuin|i" ".env"
             sed -i "s|DB_HOST=.*|DB_HOST=postgres|i" ".env"
             sed -i "s|DB_PORT=.*|DB_PORT=5432|i" ".env"
             sed -i "s|DB_USER=.*|DB_USER=postgres|i" ".env"
