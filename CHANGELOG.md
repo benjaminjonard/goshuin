@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.0.2] / 2026-08-27
+### Features
+- Add japanese language support (benjaminjonard)
+
+### Miscellaneous
+- Add Crowdin to handle translations (benjaminjonard)
+
 ## [1.0.1] / 2026-08-18
 ### Fixes
 - Fix name detection in texts (benjaminjonard)
