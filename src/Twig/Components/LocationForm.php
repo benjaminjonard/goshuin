@@ -13,6 +13,7 @@ use App\Repository\LocationRepository;
 use App\Service\Geocoder;
 use App\Service\LocationTypeGuesser;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -42,7 +43,7 @@ class LocationForm
     #[LiveProp(writable: true)]
     public string $address = '';
 
-    /** @var list<array{name: string, japaneseName: string, locality: string, prefecture: string, address: string, latitude: float, longitude: float}> */
+    /** @var list<array{name: string, kanjiName: string, locality: string, prefecture: string, address: string, latitude: float, longitude: float}> */
     #[LiveProp]
     public array $found = [];
 
@@ -62,13 +63,14 @@ class LocationForm
         private readonly LocationTypeGuesser $guesser,
         private readonly Geocoder $geocoder,
         private readonly EntityManagerInterface $entityManager,
+        private readonly RequestStack $requests,
     ) {
     }
 
     #[LiveAction]
     public function usePlace(
         #[LiveArg] string $placeName,
-        #[LiveArg] string $japaneseName,
+        #[LiveArg] string $kanjiName,
         #[LiveArg] string $city,
         #[LiveArg] string $prefecture,
         #[LiveArg] string $address,
@@ -76,13 +78,13 @@ class LocationForm
         #[LiveArg] string $longitude,
     ): void {
         $this->formValues['romanizedName'] = $placeName;
-        $this->formValues['japaneseName'] = $japaneseName;
+        $this->formValues['kanjiName'] = $kanjiName;
         $this->formValues['city'] = $city;
         $this->formValues['prefecture'] = $prefecture;
         $this->formValues['address'] = $address;
         $this->formValues['latitude'] = $latitude;
         $this->formValues['longitude'] = $longitude;
-        $this->formValues['type'] = $this->guesser->guess($japaneseName !== '' ? $japaneseName : $placeName)?->value ?? '';
+        $this->formValues['type'] = $this->guesser->guess($kanjiName !== '' ? $kanjiName : $placeName)?->value ?? '';
         $this->address = '';
     }
 
@@ -131,8 +133,8 @@ class LocationForm
             }
 
             $this->offered[$row] = array_map(
-                static fn (Deity $deity): string => (string) $deity->getName(),
-                $this->deities->search($typed),
+                fn (Deity $deity): string => (string) $deity->getDisplayName($this->locale()),
+                $this->deities->search($typed, $this->locale()),
             );
         }
 
@@ -156,7 +158,7 @@ class LocationForm
     }
 
     /**
-     * @return list<array{name: string, japaneseName: string, locality: string, prefecture: string, address: string, latitude: float, longitude: float}>
+     * @return list<array{name: string, kanjiName: string, locality: string, prefecture: string, address: string, latitude: float, longitude: float}>
      */
     public function getPlaces(): array
     {
@@ -196,7 +198,7 @@ class LocationForm
      */
     public function getDuplicates(): array
     {
-        $name = trim((string) ($this->formValues['romanizedName'] ?? ''));
+        $name = trim((string) ($this->formValues[Location::displayFields($this->locale())[0]] ?? ''));
 
         if ($name === '' || $this->location !== null) {
             return [];
@@ -224,5 +226,9 @@ class LocationForm
         }
 
         return $location;
+    }
+    private function locale(): string
+    {
+        return $this->requests->getCurrentRequest()?->getLocale() ?? 'en';
     }
 }

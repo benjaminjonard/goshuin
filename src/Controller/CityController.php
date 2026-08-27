@@ -45,7 +45,7 @@ class CityController extends AbstractController
         }
 
         return $this->render('App/City/index.html.twig', [
-            'cities' => $this->cities->browse($term, $page, $scope?->subject),
+            'cities' => $this->cities->browse($request->getLocale(), $term, $page, $scope?->subject),
             'scope' => $scope,
             'term' => $term,
             'page' => $page,
@@ -53,8 +53,8 @@ class CityController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/city/{slug}', name: 'app_city_show', methods: ['GET'])]
-    public function show(#[MapEntity(mapping: ['slug' => 'slug'])] City $city): Response
+    #[Route(path: '/city/{id}', name: 'app_city_show', methods: ['GET'])]
+    public function show(#[MapEntity(expr: 'repository.findById(id)')] City $city): Response
     {
         return $this->render('App/City/show.html.twig', [
             'city' => $city,
@@ -64,8 +64,8 @@ class CityController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/city/{slug}/edit', name: 'app_city_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] City $city): Response
+    #[Route(path: '/city/{id}/edit', name: 'app_city_edit', methods: ['GET', 'POST'])]
+    public function edit(Request $request, #[MapEntity(expr: 'repository.findById(id)')] City $city): Response
     {
         $form = $this->createForm(CityType::class, $city);
         $form->handleRequest($request);
@@ -74,7 +74,7 @@ class CityController extends AbstractController
             $this->entityManager->flush();
             $this->set->applyFrom($request, $city, 'city');
 
-            return $this->redirectToRoute('app_city_show', ['slug' => $city->getSlug()]);
+            return $this->redirectToRoute('app_city_show', ['id' => $city->getId()]);
         }
 
         return $this->render('App/City/edit.html.twig', [
@@ -83,9 +83,9 @@ class CityController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/city/{slug}/delete', name: 'app_city_delete', methods: ['GET', 'POST'])]
-    public function delete(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] City $city): Response
+    #[Route(path: '/city/{id}/delete', name: 'app_city_delete', methods: ['GET', 'POST'])]
+    public function delete(Request $request, #[MapEntity(expr: 'repository.findById(id)')] City $city): Response
     {
-        return $this->deleteSluggable($request, $city, 'city', $this->uses->of($city));
+        return $this->deleteSubject($request, $city, 'city', $this->uses->of($city));
     }
 }

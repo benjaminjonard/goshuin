@@ -54,8 +54,8 @@ class GoshuinController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/goshuincho/{slug}/goshuin/add', name: 'app_goshuin_add', methods: ['GET', 'POST'])]
-    public function add(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Goshuincho $goshuincho): Response
+    #[Route(path: '/goshuincho/{id}/goshuin/add', name: 'app_goshuin_add', methods: ['GET', 'POST'])]
+    public function add(Request $request, #[MapEntity(expr: 'repository.findById(id)')] Goshuincho $goshuincho): Response
     {
         $goshuin = new Goshuin();
         $goshuin->setGoshuincho($goshuincho);
@@ -68,10 +68,10 @@ class GoshuinController extends AbstractController
             $this->photograph($request, $goshuin);
 
             if ($request->request->has('goshuin_again')) {
-                return $this->redirectToRoute('app_goshuin_add', ['slug' => $goshuin->getGoshuincho()?->getSlug()]);
+                return $this->redirectToRoute('app_goshuin_add', ['id' => $goshuin->getGoshuincho()?->getId()]);
             }
 
-            return $this->redirectToRoute('app_goshuincho_show', ['slug' => $goshuin->getGoshuincho()?->getSlug()]);
+            return $this->redirectToRoute('app_goshuincho_show', ['id' => $goshuin->getGoshuincho()?->getId()]);
         }
 
         return $this->render('App/Goshuin/add.html.twig', [
@@ -81,8 +81,8 @@ class GoshuinController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/goshuincho/{slug}/goshuin/{position}', name: 'app_goshuin_show', requirements: ['position' => '\d+'], methods: ['GET'])]
-    public function show(#[MapEntity(mapping: ['slug' => 'slug'])] Goshuincho $goshuincho, int $position): Response
+    #[Route(path: '/goshuincho/{id}/goshuin/{position}', name: 'app_goshuin_show', requirements: ['position' => '\d+'], methods: ['GET'])]
+    public function show(#[MapEntity(expr: 'repository.findById(id)')] Goshuincho $goshuincho, int $position): Response
     {
         $goshuin = $this->goshuins->atPosition($goshuincho, $position);
 
@@ -98,8 +98,8 @@ class GoshuinController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/goshuincho/{slug}/goshuin/{position}/edit', name: 'app_goshuin_edit', requirements: ['position' => '\d+'], methods: ['GET', 'POST'])]
-    public function edit(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Goshuincho $goshuincho, int $position): Response
+    #[Route(path: '/goshuincho/{id}/goshuin/{position}/edit', name: 'app_goshuin_edit', requirements: ['position' => '\d+'], methods: ['GET', 'POST'])]
+    public function edit(Request $request, #[MapEntity(expr: 'repository.findById(id)')] Goshuincho $goshuincho, int $position): Response
     {
         $goshuin = $this->goshuins->atPosition($goshuincho, $position);
 
@@ -115,7 +115,7 @@ class GoshuinController extends AbstractController
             $this->photograph($request, $goshuin);
 
             return $this->redirectToRoute('app_goshuin_show', [
-                'slug' => $goshuin->getGoshuincho()?->getSlug(),
+                'id' => $goshuin->getGoshuincho()?->getId(),
                 'position' => $goshuin->getPosition(),
             ]);
         }
@@ -128,8 +128,8 @@ class GoshuinController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/goshuincho/{slug}/goshuin/{position}/delete', name: 'app_goshuin_delete', requirements: ['position' => '\d+'], methods: ['GET', 'POST'])]
-    public function delete(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Goshuincho $goshuincho, int $position): Response
+    #[Route(path: '/goshuincho/{id}/goshuin/{position}/delete', name: 'app_goshuin_delete', requirements: ['position' => '\d+'], methods: ['GET', 'POST'])]
+    public function delete(Request $request, #[MapEntity(expr: 'repository.findById(id)')] Goshuincho $goshuincho, int $position): Response
     {
         $goshuin = $this->goshuins->atPosition($goshuincho, $position);
 
@@ -137,13 +137,13 @@ class GoshuinController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        $form = $this->createDeleteForm('app_goshuin_delete', ['slug' => $goshuincho->getSlug(), 'position' => $position]);
+        $form = $this->createDeleteForm('app_goshuin_delete', ['id' => $goshuincho->getId(), 'position' => $position]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->positioner->remove($goshuin);
 
-            return $this->redirectToRoute('app_goshuincho_show', ['slug' => $goshuincho->getSlug()]);
+            return $this->redirectToRoute('app_goshuincho_show', ['id' => $goshuincho->getId()]);
         }
 
         return $this->render('App/Goshuin/delete.html.twig', [

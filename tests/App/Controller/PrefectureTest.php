@@ -29,7 +29,7 @@ class PrefectureTest extends AppTestCase
     {
         $prefecture = PrefectureFactory::createOne(['owner' => UserFactory::createOne()]);
 
-        foreach (['/prefectures', '/prefecture/'.$prefecture->getSlug(), '/prefecture/'.$prefecture->getSlug().'/edit', '/prefecture/'.$prefecture->getSlug().'/delete'] as $url) {
+        foreach (['/prefectures', '/prefecture/'.$prefecture->getId(), '/prefecture/'.$prefecture->getId().'/edit', '/prefecture/'.$prefecture->getId().'/delete'] as $url) {
             $this->client->request(Request::METHOD_GET, $url);
 
             $this->assertResponseRedirects();
@@ -41,11 +41,11 @@ class PrefectureTest extends AppTestCase
     public function test_a_prefecture_another_collector_keeps_is_out_of_reach(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $slug = PrefectureFactory::createOne()->getSlug();
+        $id = PrefectureFactory::createOne()->getId();
 
         $this->client->loginUser(UserFactory::createOne());
 
-        foreach (['/prefecture/'.$slug, '/prefecture/'.$slug.'/edit', '/prefecture/'.$slug.'/delete'] as $url) {
+        foreach (['/prefecture/'.$id, '/prefecture/'.$id.'/edit', '/prefecture/'.$id.'/delete'] as $url) {
             $this->client->request(Request::METHOD_GET, $url);
 
             $this->assertResponseStatusCodeSame(404, sprintf('%s answered for a prefecture kept by another collector.', $url));
@@ -55,8 +55,8 @@ class PrefectureTest extends AppTestCase
     public function test_the_index_lists_the_prefectures_and_opens_each_one(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        PrefectureFactory::createOne(['name' => 'Kyōto']);
-        $kanagawa = PrefectureFactory::createOne(['name' => 'Kanagawa']);
+        PrefectureFactory::createOne(['romanizedName' => 'Kyōto']);
+        $kanagawa = PrefectureFactory::createOne(['romanizedName' => 'Kanagawa']);
 
         $crawler = $this->client->request(Request::METHOD_GET, '/prefectures');
 
@@ -64,8 +64,35 @@ class PrefectureTest extends AppTestCase
         $this->assertCount(2, $crawler->filter('main ul li a'), 'The index does not list every prefecture.');
 
         $first = $crawler->filter('main ul li a')->first();
-        $this->assertSame('/prefecture/'.$kanagawa->getSlug(), $first->attr('href'), 'A prefecture does not open its own page.');
+        $this->assertSame('/prefecture/'.$kanagawa->getId(), $first->attr('href'), 'A prefecture does not open its own page.');
         $this->assertStringContainsString('Kanagawa', $first->text());
+    }
+
+    public function test_the_index_is_ordered_by_the_reading_when_it_is_read_in_japanese(): void
+    {
+        UserFactory::createOne(['email' => 'user@example.com', 'locale' => 'ja']);
+
+        $login = $this->client->request(Request::METHOD_GET, '/login');
+        $this->client->submit($login->filter('form')->form(), [
+            '_username' => 'user@example.com',
+            '_password' => 'a-long-enough-password',
+        ]);
+        $this->client->followRedirect();
+
+        foreach ([
+            ['romanizedName' => 'Tokyo', 'kanjiName' => '東京都', 'kanaName' => 'とうきょう'],
+            ['romanizedName' => 'Kanagawa', 'kanjiName' => '神奈川県', 'kanaName' => 'かながわ'],
+            ['romanizedName' => 'Nara', 'kanjiName' => '奈良県', 'kanaName' => 'なら'],
+        ] as $names) {
+            PrefectureFactory::createOne($names);
+        }
+
+        $named = $this->client->request(Request::METHOD_GET, '/prefectures')
+            ->filter('main ul li a')
+            ->each(static fn (Crawler $row): string => trim($row->text()))
+        ;
+
+        $this->assertSame(['神奈川県', '東京都', '奈良県'], $named, 'The index is not ordered by the kana reading.');
     }
 
     public function test_the_index_is_ordered_by_the_name(): void
@@ -73,7 +100,7 @@ class PrefectureTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
 
         foreach (['Tokyo', 'Kanagawa', 'Nara'] as $name) {
-            PrefectureFactory::createOne(['name' => $name]);
+            PrefectureFactory::createOne(['romanizedName' => $name]);
         }
 
         $names = $this->client->request(Request::METHOD_GET, '/prefectures')
@@ -89,7 +116,7 @@ class PrefectureTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
 
         foreach (range(1, 26) as $rank) {
-            PrefectureFactory::createOne(['name' => sprintf('Ken %02d', $rank)]);
+            PrefectureFactory::createOne(['romanizedName' => sprintf('Ken %02d', $rank)]);
         }
 
         $first = $this->client->request(Request::METHOD_GET, '/prefectures');
@@ -127,8 +154,8 @@ class PrefectureTest extends AppTestCase
     public function test_the_search_matches_any_part_of_a_name(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        PrefectureFactory::createOne(['name' => 'Nara']);
-        PrefectureFactory::createOne(['name' => 'Kanagawa']);
+        PrefectureFactory::createOne(['romanizedName' => 'Nara']);
+        PrefectureFactory::createOne(['romanizedName' => 'Kanagawa']);
 
         foreach (['nagaw' => 'Kanagawa', 'KANA' => 'Kanagawa', 'nar' => 'Nara'] as $term => $expected) {
             $rows = $this->client->request(Request::METHOD_GET, '/prefectures?q='.urlencode((string) $term))->filter('main ul li a');
@@ -141,7 +168,7 @@ class PrefectureTest extends AppTestCase
     public function test_a_search_matching_nothing_says_so_and_leads_back(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        PrefectureFactory::createOne(['name' => 'Nara']);
+        PrefectureFactory::createOne(['romanizedName' => 'Nara']);
 
         $crawler = $this->client->request(Request::METHOD_GET, '/prefectures?q=nobody');
 
@@ -153,14 +180,14 @@ class PrefectureTest extends AppTestCase
     public function test_a_prefecture_page_counts_its_cities_and_locations_and_leads_to_each_list(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $kanagawa = PrefectureFactory::createOne(['name' => 'Kanagawa']);
-        $kamakura = CityFactory::createOne(['name' => 'Kamakura', 'prefecture' => $kanagawa]);
-        CityFactory::createOne(['name' => 'Yokohama', 'prefecture' => $kanagawa]);
-        CityFactory::createOne(['name' => 'Nara']);
+        $kanagawa = PrefectureFactory::createOne(['romanizedName' => 'Kanagawa']);
+        $kamakura = CityFactory::createOne(['romanizedName' => 'Kamakura', 'prefecture' => $kanagawa]);
+        CityFactory::createOne(['romanizedName' => 'Yokohama', 'prefecture' => $kanagawa]);
+        CityFactory::createOne(['romanizedName' => 'Nara']);
         LocationFactory::createOne(['romanizedName' => 'Hase-dera', 'city' => $kamakura, 'prefecture' => $kanagawa]);
         LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$kanagawa->getSlug());
+        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$kanagawa->getId());
 
         $this->assertResponseIsSuccessful();
         $this->assertSame('Kanagawa', trim($crawler->filter('h1')->text()), 'The page does not name the prefecture.');
@@ -170,17 +197,17 @@ class PrefectureTest extends AppTestCase
         );
 
         $this->assertSame([
-            ['/cities?prefecture='.$kanagawa->getSlug(), '2 cities'],
-            ['/locations?prefecture='.$kanagawa->getSlug(), '1 location'],
+            ['/cities?prefecture='.$kanagawa->getId(), '2 cities'],
+            ['/locations?prefecture='.$kanagawa->getId(), '1 location'],
         ], $totals, 'The page does not count what it holds, nor lead to each list.');
     }
 
     public function test_a_prefecture_holding_nothing_counts_nothing(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $prefecture = PrefectureFactory::createOne(['name' => 'Nara']);
+        $prefecture = PrefectureFactory::createOne(['romanizedName' => 'Nara']);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getSlug());
+        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getId());
 
         $this->assertResponseIsSuccessful();
         $this->assertCount(0, $crawler->filter('main a.tile'), 'A count was invented for a prefecture holding nothing.');
@@ -189,11 +216,11 @@ class PrefectureTest extends AppTestCase
     public function test_the_cities_of_a_prefecture_are_listed_on_their_own_page(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $kanagawa = PrefectureFactory::createOne(['name' => 'Kanagawa']);
-        CityFactory::createOne(['name' => 'Kamakura', 'prefecture' => $kanagawa]);
-        CityFactory::createOne(['name' => 'Nara']);
+        $kanagawa = PrefectureFactory::createOne(['romanizedName' => 'Kanagawa']);
+        CityFactory::createOne(['romanizedName' => 'Kamakura', 'prefecture' => $kanagawa]);
+        CityFactory::createOne(['romanizedName' => 'Nara']);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/cities?prefecture='.$kanagawa->getSlug());
+        $crawler = $this->client->request(Request::METHOD_GET, '/cities?prefecture='.$kanagawa->getId());
 
         $this->assertResponseIsSuccessful();
         $this->assertCount(1, $crawler->filter('main ul li a'), 'The list is not narrowed to the cities of the prefecture.');
@@ -204,11 +231,11 @@ class PrefectureTest extends AppTestCase
     public function test_the_locations_of_a_prefecture_are_listed_on_their_own_page(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $kanagawa = PrefectureFactory::createOne(['name' => 'Kanagawa']);
+        $kanagawa = PrefectureFactory::createOne(['romanizedName' => 'Kanagawa']);
         LocationFactory::createOne(['romanizedName' => 'Hase-dera', 'prefecture' => $kanagawa]);
         LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/locations?prefecture='.$kanagawa->getSlug());
+        $crawler = $this->client->request(Request::METHOD_GET, '/locations?prefecture='.$kanagawa->getId());
 
         $this->assertResponseIsSuccessful();
         $this->assertCount(1, $crawler->filter('main ul li a'), 'The list is not narrowed to the locations of the prefecture.');
@@ -241,7 +268,7 @@ class PrefectureTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
         $prefecture = PrefectureFactory::createOne(['notes' => 'Faces the bay.']);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getSlug());
+        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getId());
 
         $this->assertResponseIsSuccessful();
         $this->assertCount(0, $crawler->filter('main form'), 'A collector was offered something to change.');
@@ -251,64 +278,63 @@ class PrefectureTest extends AppTestCase
     public function test_a_prefecture_is_renamed_and_the_new_name_shows_everywhere(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $prefecture = PrefectureFactory::createOne(['name' => 'Kanagawa']);
+        $prefecture = PrefectureFactory::createOne(['romanizedName' => 'Kanagawa']);
         $location = LocationFactory::createOne(['romanizedName' => 'Hase-dera', 'prefecture' => $prefecture]);
 
-        $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getSlug().'/edit');
+        $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getId().'/edit');
         $this->client->submitForm('prefecture_submit', [
-            'prefecture[name]' => 'Kanagawa-ken',
+            'prefecture[romanizedName]' => 'Kanagawa-ken',
             'prefecture[notes]' => 'Faces the bay.',
         ]);
 
-        $this->assertResponseRedirects('/prefecture/'.$prefecture->getSlug());
+        $this->assertResponseRedirects('/prefecture/'.$prefecture->getId());
 
         $this->manager()->clear();
         $stored = $this->stored($prefecture->getId());
 
-        $this->assertSame('Kanagawa-ken', $stored->getName(), 'The new name was not stored.');
+        $this->assertSame('Kanagawa-ken', $stored->getRomanizedName(), 'The new name was not stored.');
         $this->assertSame('Faces the bay.', $stored->getNotes(), 'The notes were not stored.');
 
-        $page = $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug())->filter('main')->text();
+        $page = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId())->filter('main')->text();
         $this->assertStringContainsString('Kanagawa-ken', $page, 'The renamed prefecture did not reach the location sitting in it.');
     }
 
     public function test_the_form_refuses_a_prefecture_with_no_name(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $prefecture = PrefectureFactory::createOne(['name' => 'Kanagawa']);
+        $prefecture = PrefectureFactory::createOne(['romanizedName' => 'Kanagawa']);
 
-        $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getSlug().'/edit');
-        $this->client->submitForm('prefecture_submit', ['prefecture[name]' => '']);
+        $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getId().'/edit');
+        $this->client->submitForm('prefecture_submit', ['prefecture[romanizedName]' => '']);
 
         $this->assertResponseStatusCodeSame(422);
 
         $this->manager()->clear();
-        $this->assertSame('Kanagawa', $this->stored($prefecture->getId())->getName(), 'A refused submission still wrote the prefecture away without a name.');
+        $this->assertSame('Kanagawa', $this->stored($prefecture->getId())->getRomanizedName(), 'A refused submission still wrote the prefecture away without a name.');
     }
 
-    public function test_the_form_refuses_a_name_another_prefecture_already_bears(): void
+    public function test_a_name_another_prefecture_already_bears_is_accepted(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        PrefectureFactory::createOne(['name' => 'Nara']);
-        $kanagawa = PrefectureFactory::createOne(['name' => 'Kanagawa']);
+        PrefectureFactory::createOne(['romanizedName' => 'Nara']);
+        $subject = PrefectureFactory::createOne(['romanizedName' => 'Kamakura']);
 
-        $this->client->request(Request::METHOD_GET, '/prefecture/'.$kanagawa->getSlug().'/edit');
-        $crawler = $this->client->submitForm('prefecture_submit', ['prefecture[name]' => 'Nara']);
+        $this->client->request(Request::METHOD_GET, '/prefecture/'.$subject->getId().'/edit');
+        $this->client->submitForm('prefecture_submit', ['prefecture[romanizedName]' => 'Nara']);
 
-        $this->assertResponseStatusCodeSame(422);
-        $this->assertStringContainsString('already bears that name', $crawler->filter('main')->text(), 'The collision is not stated.');
+        $this->assertResponseRedirects();
 
         $this->manager()->clear();
-        $this->assertSame('Kanagawa', $this->stored($kanagawa->getId())->getName(), 'The colliding name was stored anyway.');
+        $this->assertSame('Nara', static::getContainer()->get(PrefectureRepository::class)->find($subject->getId())->getRomanizedName(), 'A name another row already bears was refused.');
     }
 
     public function test_a_prefecture_still_holding_a_city_cannot_be_deleted(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $prefecture = PrefectureFactory::createOne(['name' => 'Kanagawa']);
-        CityFactory::createOne(['name' => 'Kamakura', 'prefecture' => $prefecture]);
+        $prefecture = PrefectureFactory::createOne(['romanizedName' => 'Kanagawa']);
+        CityFactory::createOne(['romanizedName' => 'Kamakura', 'prefecture' => $prefecture]);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getSlug().'/delete');
+        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getId().'/delete');
 
         $this->assertStringContainsString('still holds a city or a location', $crawler->filter('main')->text(), 'The refusal is not stated.');
         $this->assertCount(0, $crawler->filter('main form'), 'A prefecture still in use was offered for deletion anyway.');
@@ -320,10 +346,10 @@ class PrefectureTest extends AppTestCase
     public function test_a_prefecture_still_holding_a_location_cannot_be_deleted(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $prefecture = PrefectureFactory::createOne(['name' => 'Kanagawa']);
+        $prefecture = PrefectureFactory::createOne(['romanizedName' => 'Kanagawa']);
         LocationFactory::createOne(['romanizedName' => 'Hase-dera', 'prefecture' => $prefecture]);
 
-        $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getSlug().'/delete');
+        $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getId().'/delete');
 
         $this->assertCount(0, $this->client->getCrawler()->filter('main form'), 'A prefecture still in use was offered for deletion anyway.');
 
@@ -334,11 +360,11 @@ class PrefectureTest extends AppTestCase
     public function test_a_prefecture_nothing_holds_is_deleted(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $prefecture = PrefectureFactory::createOne(['name' => 'Kanagawa']);
+        $prefecture = PrefectureFactory::createOne(['romanizedName' => 'Kanagawa']);
         $id = $prefecture->getId();
-        $slug = $prefecture->getSlug();
+        $id = $prefecture->getId();
 
-        $this->client->request(Request::METHOD_GET, '/prefecture/'.$slug.'/delete');
+        $this->client->request(Request::METHOD_GET, '/prefecture/'.$id.'/delete');
         $this->client->submitForm('delete_submit');
 
         $this->assertResponseRedirects('/prefectures');
@@ -350,7 +376,7 @@ class PrefectureTest extends AppTestCase
     public function test_a_prefecture_carries_a_main_photograph_and_a_gallery(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $prefecture = PrefectureFactory::createOne(['name' => 'Kanagawa']);
+        $prefecture = PrefectureFactory::createOne(['romanizedName' => 'Kanagawa']);
 
         $this->correct($prefecture, [
             'photo_add' => ['prefecture' => [$this->createImage(900, 600), $this->createImage(900, 600)]],
@@ -365,7 +391,7 @@ class PrefectureTest extends AppTestCase
         $this->assertSame([1, 2], $photos->map(static fn (PrefecturePhoto $p): ?int => $p->getPosition())->toArray(), 'The gallery is not numbered from one.');
         $this->assertSame(['The bay', null], $photos->map(static fn (PrefecturePhoto $p): ?string => $p->getLabel())->toArray(), 'A blank label was stored as a string.');
 
-        $page = $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getSlug());
+        $page = $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getId());
         $this->assertCount(1, $page->filter('main .stage img'), 'The page does not show the main photograph.');
         $this->assertCount(2, $page->filter('main .gallery img'), 'The page does not show the gallery.');
 
@@ -375,7 +401,7 @@ class PrefectureTest extends AppTestCase
     public function test_a_photograph_that_is_not_an_image_is_refused_without_taking_the_others_down(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $prefecture = PrefectureFactory::createOne(['name' => 'Kanagawa']);
+        $prefecture = PrefectureFactory::createOne(['romanizedName' => 'Kanagawa']);
 
         $this->correct($prefecture, [
             'photo_add' => ['prefecture' => [$this->createTextFile(), $this->createImage(900, 600)]],
@@ -391,7 +417,7 @@ class PrefectureTest extends AppTestCase
      */
     private function correct(Prefecture $prefecture, array $photographs): void
     {
-        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getSlug().'/edit');
+        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$prefecture->getId().'/edit');
         $form = $crawler->selectButton('prefecture_submit')->form();
 
         $added = $photographs['photo_add'] ?? [];
@@ -415,38 +441,38 @@ class PrefectureTest extends AppTestCase
     {
         $user = UserFactory::createOne();
         $this->client->loginUser($user);
-        $kyoto = PrefectureFactory::createOne(['name' => 'Kyōto']);
+        $kyoto = PrefectureFactory::createOne(['romanizedName' => 'Kyōto']);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kansai']);
         GoshuinFactory::new()->in($goshuincho)->create(['location' => LocationFactory::createOne([
             'romanizedName' => 'Kiyomizu-dera',
             'prefecture' => $kyoto,
         ])]);
         GoshuinFactory::new()->in(GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kantō']))->create([
-            'location' => LocationFactory::createOne(['romanizedName' => 'Sensō-ji', 'prefecture' => PrefectureFactory::createOne(['name' => 'Tōkyō'])]),
+            'location' => LocationFactory::createOne(['romanizedName' => 'Sensō-ji', 'prefecture' => PrefectureFactory::createOne(['romanizedName' => 'Tōkyō'])]),
         ]);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$kyoto->getSlug());
+        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$kyoto->getId());
 
         $this->assertResponseIsSuccessful();
         $body = $crawler->filter('main')->text();
         $this->assertStringContainsString('Kansai', $body, 'The page does not name the goshuincho the prefecture was collected in.');
         $this->assertStringNotContainsString('Kantō', $body, 'A goshuincho naming another prefecture reached the page.');
-        $this->assertCount(1, $crawler->filter('main a[href="/goshuincho/'.$goshuincho->getSlug().'/goshuin/1"]'), 'The page does not show the goshuin received in the prefecture.');
+        $this->assertCount(1, $crawler->filter('main a[href="/goshuincho/'.$goshuincho->getId().'/goshuin/1"]'), 'The page does not show the goshuin received in the prefecture.');
     }
 
     public function test_the_page_holds_no_other_collectors_goshuin(): void
     {
         $owner = UserFactory::createOne();
         $this->client->loginUser($owner);
-        $theirs = PrefectureFactory::createOne(['name' => 'Kyōto']);
+        $theirs = PrefectureFactory::createOne(['romanizedName' => 'Kyōto']);
         GoshuinFactory::new()->in(GoshuinchoFactory::createOne(['owner' => $owner, 'title' => 'Not yours']))->create([
             'location' => LocationFactory::createOne(['romanizedName' => 'Hidden away', 'prefecture' => $theirs]),
         ]);
 
         $this->client->loginUser(UserFactory::createOne());
-        $mine = PrefectureFactory::createOne(['name' => 'Kyōto']);
+        $mine = PrefectureFactory::createOne(['romanizedName' => 'Kyōto']);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$mine->getSlug());
+        $crawler = $this->client->request(Request::METHOD_GET, '/prefecture/'.$mine->getId());
 
         $this->assertStringNotContainsString('Not yours', $crawler->filter('main')->text(), 'A foreign goshuincho reached the prefecture page.');
         $this->assertCount(0, $crawler->filter('main a[href*="/goshuin/"]'), 'A foreign goshuin reached the prefecture page.');

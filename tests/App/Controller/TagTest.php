@@ -23,9 +23,9 @@ class TagTest extends AppTestCase
 
     public function test_the_tags_are_private(): void
     {
-        $slug = TagFactory::createOne(['owner' => UserFactory::createOne()])->getSlug();
+        $id = TagFactory::createOne(['owner' => UserFactory::createOne()])->getId();
 
-        foreach (['/tags', '/tag/'.$slug.'/edit', '/tag/'.$slug.'/delete'] as $url) {
+        foreach (['/tags', '/tag/'.$id.'/edit', '/tag/'.$id.'/delete'] as $url) {
             $this->client->request(Request::METHOD_GET, $url);
 
             $this->assertResponseRedirects();
@@ -37,10 +37,10 @@ class TagTest extends AppTestCase
     public function test_a_tag_belonging_to_another_collector_is_not_found(): void
     {
         $tag = TagFactory::createOne(['name' => 'dog', 'owner' => UserFactory::createOne()]);
-        $slug = $tag->getSlug();
+        $id = $tag->getId();
         $this->client->loginUser(UserFactory::createOne());
 
-        foreach (['/tag/'.$slug.'/edit', '/tag/'.$slug.'/delete'] as $url) {
+        foreach (['/tag/'.$id.'/edit', '/tag/'.$id.'/delete'] as $url) {
             $this->client->request(Request::METHOD_GET, $url);
 
             $this->assertResponseStatusCodeSame(404, sprintf('%s reaches another collector.', $url));
@@ -57,7 +57,7 @@ class TagTest extends AppTestCase
     {
         $this->client->loginUser(UserFactory::createOne());
         $crane = TagFactory::createOne(['name' => 'crane']);
-        $slug = $crane->getSlug();
+        $id = $crane->getId();
         TagFactory::createOne(['name' => 'dog']);
 
         $crawler = $this->client->request(Request::METHOD_GET, '/tags');
@@ -66,7 +66,7 @@ class TagTest extends AppTestCase
         $this->assertCount(2, $crawler->filter('main ul li'), 'The index does not list every tag.');
 
         $first = $crawler->filter('main ul li a[href^="/goshuin"]')->first();
-        $this->assertSame('/goshuin?tag='.$slug, $first->attr('href'), 'A tag does not lead to the goshuin bearing it.');
+        $this->assertSame('/goshuin?tag='.$id, $first->attr('href'), 'A tag does not lead to the goshuin bearing it.');
         $this->assertSame('crane', trim($first->text()));
     }
 
@@ -92,12 +92,12 @@ class TagTest extends AppTestCase
     public function test_each_row_offers_the_tag_to_be_renamed_or_deleted(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $slug = TagFactory::createOne(['name' => 'dog'])->getSlug();
+        $id = TagFactory::createOne(['name' => 'dog'])->getId();
 
         $row = $this->client->request(Request::METHOD_GET, '/tags')->filter('main ul li');
 
-        $this->assertCount(1, $row->filter('a[href="/tag/'.$slug.'/edit"]'), 'A tag cannot be renamed from the index.');
-        $this->assertCount(1, $row->filter('a[href="/tag/'.$slug.'/delete"]'), 'A tag cannot be deleted from the index.');
+        $this->assertCount(1, $row->filter('a[href="/tag/'.$id.'/edit"]'), 'A tag cannot be renamed from the index.');
+        $this->assertCount(1, $row->filter('a[href="/tag/'.$id.'/delete"]'), 'A tag cannot be deleted from the index.');
     }
 
     public function test_the_index_is_ordered_by_the_name(): void
@@ -214,13 +214,13 @@ class TagTest extends AppTestCase
         $user = UserFactory::createOne();
         $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
-        $page = '/goshuincho/'.$goshuincho->getSlug().'/goshuin/1';
+        $page = '/goshuincho/'.$goshuincho->getId().'/goshuin/1';
         $tag = TagFactory::createOne(['name' => 'dog']);
         $id = $tag->getId();
-        $slug = $tag->getSlug();
+        $id = $tag->getId();
         GoshuinFactory::new()->in($goshuincho)->create(['tags' => [$tag]]);
 
-        $this->client->request(Request::METHOD_GET, '/tag/'.$slug.'/edit');
+        $this->client->request(Request::METHOD_GET, '/tag/'.$id.'/edit');
         $this->client->submitForm('tag_submit', ['tag[name]' => 'shiba']);
 
         $this->assertResponseRedirects('/tags');
@@ -238,7 +238,7 @@ class TagTest extends AppTestCase
         $tag = TagFactory::createOne(['name' => 'dog']);
         $id = $tag->getId();
 
-        $this->client->request(Request::METHOD_GET, '/tag/'.$tag->getSlug().'/edit');
+        $this->client->request(Request::METHOD_GET, '/tag/'.$tag->getId().'/edit');
         $this->client->submitForm('tag_submit', ['tag[name]' => '']);
 
         $this->assertResponseStatusCodeSame(422);
@@ -252,7 +252,7 @@ class TagTest extends AppTestCase
         $dog = TagFactory::createOne(['name' => 'dog']);
         $id = $dog->getId();
 
-        $this->client->request(Request::METHOD_GET, '/tag/'.$dog->getSlug().'/edit');
+        $this->client->request(Request::METHOD_GET, '/tag/'.$dog->getId().'/edit');
         $crawler = $this->client->submitForm('tag_submit', ['tag[name]' => 'crane']);
 
         $this->assertResponseStatusCodeSame(422);
@@ -267,7 +267,7 @@ class TagTest extends AppTestCase
         $own = TagFactory::createOne(['name' => 'crane']);
         $ownId = $own->getId();
 
-        $this->client->request(Request::METHOD_GET, '/tag/'.$own->getSlug().'/edit');
+        $this->client->request(Request::METHOD_GET, '/tag/'.$own->getId().'/edit');
         $this->client->submitForm('tag_submit', ['tag[name]' => 'dog']);
 
         $this->assertResponseRedirects('/tags');
@@ -281,7 +281,7 @@ class TagTest extends AppTestCase
         $tag = TagFactory::createOne(['name' => 'dog']);
         $id = $tag->getId();
 
-        $this->client->request(Request::METHOD_GET, '/tag/'.$tag->getSlug().'/delete');
+        $this->client->request(Request::METHOD_GET, '/tag/'.$tag->getId().'/delete');
         $this->client->submitForm('delete_submit');
 
         $this->assertResponseRedirects('/tags');
@@ -296,12 +296,12 @@ class TagTest extends AppTestCase
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $tag = TagFactory::createOne(['name' => 'dog']);
         $id = $tag->getId();
-        $slug = $tag->getSlug();
+        $id = $tag->getId();
         $free = TagFactory::createOne(['name' => 'unused']);
-        $spare = $free->getSlug();
+        $spare = $free->getId();
         GoshuinFactory::new()->in($goshuincho)->create(['tags' => [$tag]]);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/tag/'.$slug.'/delete');
+        $crawler = $this->client->request(Request::METHOD_GET, '/tag/'.$id.'/delete');
 
         $this->assertStringContainsString('still on a goshuin', $crawler->filter('main')->text(), 'The refusal is not stated.');
         $this->assertCount(0, $crawler->filter('main button'), 'A tag a goshuin bears offers to be deleted.');
@@ -309,9 +309,9 @@ class TagTest extends AppTestCase
         $confirmation = $this->client->request(Request::METHOD_GET, '/tag/'.$spare.'/delete');
         $forged = $confirmation->selectButton('delete_submit')->form()->getPhpValues();
 
-        $this->client->request(Request::METHOD_POST, '/tag/'.$slug.'/delete', $forged);
+        $this->client->request(Request::METHOD_POST, '/tag/'.$id.'/delete', $forged);
 
-        $this->assertResponseRedirects('/tag/'.$slug.'/delete');
+        $this->assertResponseRedirects('/tag/'.$id.'/delete');
         $this->manager()->clear();
         $this->assertNotNull(static::getContainer()->get(TagRepository::class)->find($id), 'A tag a goshuin bears was deleted anyway.');
     }

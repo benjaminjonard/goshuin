@@ -1,26 +1,26 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ goshuin.location.romanizedName }} · Goshuin{% endblock %}
+{% block title %}{{ goshuin.location.displayName(app.request.locale) }} · Goshuin{% endblock %}
 
 {% block bar %}
     {% embed 'App/_partials/_bar.html.twig' with {
         kicker: [
             {label: 'label.goshuincho'|trans, href: path('app_homepage')},
-            {label: goshuincho.title, href: path('app_goshuincho_show', {slug: goshuincho.slug})},
+            {label: goshuincho.title, href: path('app_goshuincho_show', {id: goshuincho.id})},
         ],
-        title: goshuin.location.romanizedName,
-        jp: goshuin.location.japaneseName,
+        title: goshuin.location.displayName(app.request.locale),
+        jp: goshuin.location.secondaryName(app.request.locale),
     } %}
         {% block tools %}
-            {{ include('App/Goshuin/_pager.html.twig', {slug: goshuincho.slug, position: goshuin.position, total: pages}) }}
+            {{ include('App/Goshuin/_pager.html.twig', {id: goshuincho.id, position: goshuin.position, total: pages}) }}
             {{ include('App/_partials/_button.html.twig', {
                 icon: 'edit',
-                href: path('app_goshuin_edit', {slug: goshuincho.slug, position: goshuin.position}),
+                href: path('app_goshuin_edit', {id: goshuincho.id, position: goshuin.position}),
                 aria: 'label.edit'|trans,
             }) }}
             {{ include('App/_partials/_button.html.twig', {
                 icon: 'trash',
-                href: path('app_goshuin_delete', {slug: goshuincho.slug, position: goshuin.position}),
+                href: path('app_goshuin_delete', {id: goshuincho.id, position: goshuin.position}),
                 aria: 'label.delete'|trans,
             }) }}
         {% endblock %}
@@ -35,7 +35,7 @@
         <div class="grid min-w-0 gap-[clamp(12px,1.4vw,18px)]" data-controller="lightbox">
             <section class="tile stage">
                 <img src="{{ goshuin.imageFull|image }}" class="image-page"
-                     alt="{{ 'label.goshuin_from'|trans({'location': place.romanizedName}) }}">
+                     alt="{{ 'label.goshuin_from'|trans({'location': place.displayName(app.request.locale)}) }}">
             </section>
 
             {% if goshuin.notes is not empty %}
@@ -56,12 +56,12 @@
         <div class="grid min-w-0 gap-[clamp(12px,1.4vw,18px)]">
             <section class="tile tile-pad">
                 <h2 class="text-[clamp(26px,3.2vw,34px)] font-bold leading-[1.15] tracking-[-0.01em]">
-                    <a href="{{ path('app_location_show', {slug: place.slug}) }}" class="text-fg no-underline hover:text-accent-text">
-                        {{- place.romanizedName -}}
+                    <a href="{{ path('app_location_show', {id: place.id}) }}" class="text-fg no-underline hover:text-accent-text">
+                        {{- place.displayName(app.request.locale) -}}
                     </a>
                 </h2>
 
-                {% set below = [place.japaneseName, place.city ? place.city.name : null]|filter(part => part is not empty)|join(' · ') %}
+                {% set below = [place.secondaryName(app.request.locale), place.city ? place.city.displayName(app.request.locale) : null]|filter(part => part is not empty)|join(' · ') %}
                 {% if below is not empty %}
                     <p class="mt-1 text-[14.5px] text-fg-2">{{ below }}</p>
                 {% endif %}
@@ -84,7 +84,7 @@
                             <div class="{{ record is not empty ? 'mt-4' }}">
                                 {{ include('App/_partials/_pills.html.twig', {pills: goshuin.tags|map(tag => {
                                     text: tag.name,
-                                    href: path('app_goshuin_index', {tag: tag.slug}),
+                                    href: path('app_goshuin_index', {tag: tag.id}),
                                 })}) }}
                             </div>
                         {% endif %}
@@ -104,11 +104,11 @@
                                  longitude: place.longitude,
                                  number: goshuin.position,
                                  hue: goshuincho.hue,
-                                 label: place.romanizedName,
+                                 label: place.displayName(app.request.locale),
                              }]|json_encode }}">
                             <div class="minimap h-[260px]" data-map-target="canvas"></div>
                             <ul class="sr">
-                                <li>{{ place.romanizedName }} · {{ coordinates }}</li>
+                                <li>{{ place.displayName(app.request.locale) }} · {{ coordinates }}</li>
                             </ul>
                         </div>
                     {% endblock %}

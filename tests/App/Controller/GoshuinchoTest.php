@@ -64,7 +64,7 @@ class GoshuinchoTest extends AppTestCase
     public function test_the_place_of_purchase_is_recorded_and_shown(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $location = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'japaneseName' => '清水寺']);
+        $location = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'kanjiName' => '清水寺']);
         $locationId = $location->getId();
         $this->client->request(Request::METHOD_GET, '/goshuincho/add');
 
@@ -80,7 +80,7 @@ class GoshuinchoTest extends AppTestCase
 
         $crawler = $this->client->followRedirect();
         $this->assertStringContainsString('Kiyomizu-dera', $crawler->filter('main dl')->text(), 'The place of purchase is not shown.');
-        $this->assertCount(1, $crawler->filter('main dl a[href="/location/'.$location->getSlug().'"]'), 'The place of purchase does not lead to its page.');
+        $this->assertCount(1, $crawler->filter('main dl a[href="/location/'.$location->getId().'"]'), 'The place of purchase does not lead to its page.');
     }
 
     public function test_the_place_of_purchase_stays_optional(): void
@@ -123,16 +123,16 @@ class GoshuinchoTest extends AppTestCase
         $this->client->submitForm('goshuincho_submit', ['goshuincho[title]' => 'Kumano Kodo']);
         $this->assertResponseRedirects();
 
-        $slugs = array_map(
-            static fn (Goshuincho $goshuincho): string => $goshuincho->getSlug(),
+        $ids = array_map(
+            static fn (Goshuincho $goshuincho): string => $goshuincho->getId(),
             $this->ignoringOwnership(),
         );
 
-        $this->assertCount(2, $slugs);
-        $this->assertSame(['kumano-kodo', 'kumano-kodo'], $slugs, 'The slug was scoped globally instead of per owner.');
+        $this->assertCount(2, $ids);
+        $this->assertNotSame($ids[0], $ids[1], 'Two owners naming a goshuincho the same thing shared one row.');
     }
 
-    public function test_one_user_naming_two_goshuincho_the_same_gets_distinct_slugs(): void
+    public function test_one_user_may_name_two_goshuincho_the_same_thing(): void
     {
         $this->client->loginUser(UserFactory::createOne());
 
@@ -142,13 +142,13 @@ class GoshuinchoTest extends AppTestCase
             $this->assertResponseRedirects();
         }
 
-        $slugs = array_map(
-            static fn (Goshuincho $goshuincho): string => $goshuincho->getSlug(),
+        $ids = array_map(
+            static fn (Goshuincho $goshuincho): string => $goshuincho->getId(),
             $this->ignoringOwnership(),
         );
 
-        $this->assertCount(2, $slugs);
-        $this->assertNotSame($slugs[0], $slugs[1], 'One owner ended up with two identical slugs.');
+        $this->assertCount(2, $ids);
+        $this->assertNotSame($ids[0], $ids[1], 'One owner ended up with a single row for two goshuincho.');
     }
 
     public function test_a_goshuincho_holding_no_goshuin_says_so(): void
@@ -157,7 +157,7 @@ class GoshuinchoTest extends AppTestCase
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Nothing in it']);
         $this->client->loginUser($user);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug());
+        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId());
 
         $this->assertResponseIsSuccessful();
         $this->assertStringContainsString('No goshuin yet', $crawler->filter('main')->text(), 'The empty state did not state itself.');
@@ -169,7 +169,7 @@ class GoshuinchoTest extends AppTestCase
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'price' => 1500, 'currency' => 'JPY']);
         $this->client->loginUser($user);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug());
+        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId());
 
         $this->assertStringContainsString('1,500', $crawler->filter('main')->text(), 'The price was not read back in minor units of yen.');
     }
@@ -178,9 +178,9 @@ class GoshuinchoTest extends AppTestCase
     {
         $user = UserFactory::createOne();
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Before']);
-        $slug = $goshuincho->getSlug();
+        $id = $goshuincho->getId();
         $this->client->loginUser($user);
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug.'/edit');
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$id.'/edit');
 
         $this->client->submitForm('goshuincho_submit', [
             'goshuincho[title]' => 'After',
@@ -201,27 +201,27 @@ class GoshuinchoTest extends AppTestCase
     {
         $user = UserFactory::createOne();
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
-        $slug = $goshuincho->getSlug();
+        $id = $goshuincho->getId();
         $this->client->loginUser($user);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug.'/delete');
+        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$id.'/delete');
         $this->assertCount(1, $crawler->filter('form[method="post"]'));
         $this->assertCount(1, $crawler->filter('form input[name$="[_token]"]'), 'The delete form carries no CSRF token.');
 
         $this->client->submitForm('delete_submit');
 
         $this->assertResponseRedirects();
-        $this->assertNull($this->repository()->findOneBy(['slug' => $slug]), 'The Goshuincho survived its deletion.');
+        $this->assertNull($this->repository()->find($id), 'The Goshuincho survived its deletion.');
     }
 
     public function test_another_users_goshuincho_is_not_found(): void
     {
         $theirs = GoshuinchoFactory::createOne();
-        $slug = $theirs->getSlug();
+        $id = $theirs->getId();
         $this->client->loginUser(UserFactory::createOne());
 
         foreach (['', '/edit', '/delete'] as $suffix) {
-            $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug.$suffix);
+            $this->client->request(Request::METHOD_GET, '/goshuincho/'.$id.$suffix);
             $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND, sprintf('%s exposed a foreign goshuincho.', $suffix ?: '/show'));
         }
     }
@@ -245,18 +245,18 @@ class GoshuinchoTest extends AppTestCase
         $user = UserFactory::createOne();
         $mine = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Mine', 'hue' => 10]);
         $other = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Other', 'hue' => 200]);
-        $mineSlug = $mine->getSlug();
+        $mineId = $mine->getId();
         $otherId = $other->getId();
         $this->client->loginUser($user);
 
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$mineSlug.'/edit');
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$mineId.'/edit');
         $this->client->submitForm('goshuincho_submit', [
             'goshuincho[title]' => 'Mine',
             'goshuincho[hue]' => '300',
         ]);
 
         $this->assertResponseRedirects();
-        $this->assertSame(300, $this->repository()->findOneBy(['slug' => $mineSlug])->getHue());
+        $this->assertSame(300, $this->repository()->find($mineId)->getHue());
         $this->assertSame(200, $this->repository()->find($otherId)->getHue(), 'Editing one hue moved another.');
     }
 
@@ -264,9 +264,9 @@ class GoshuinchoTest extends AppTestCase
     {
         $user = UserFactory::createOne();
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'With a cover']);
-        $slug = $goshuincho->getSlug();
+        $id = $goshuincho->getId();
         $this->client->loginUser($user);
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug.'/edit');
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$id.'/edit');
 
         $this->client->submitForm('goshuincho_submit', [
             'goshuincho[title]' => 'With a cover',
@@ -274,7 +274,7 @@ class GoshuinchoTest extends AppTestCase
         ]);
 
         $this->assertResponseRedirects();
-        $stored = $this->repository()->findOneBy(['slug' => $slug]);
+        $stored = $this->repository()->find($id);
         $this->assertNotNull($stored->getCoverFront(), 'The cover was not recorded on the goshuincho.');
 
         $root = $this->uploadsDir();
@@ -295,9 +295,9 @@ class GoshuinchoTest extends AppTestCase
     {
         $user = UserFactory::createOne();
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Untouched']);
-        $slug = $goshuincho->getSlug();
+        $id = $goshuincho->getId();
         $this->client->loginUser($user);
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug.'/edit');
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$id.'/edit');
 
         $crawler = $this->client->submitForm('goshuincho_submit', [
             'goshuincho[title]' => 'Renamed in the same submission',
@@ -308,7 +308,7 @@ class GoshuinchoTest extends AppTestCase
         $this->assertStringContainsString('JPEG, PNG and WebP', $crawler->filter('main')->text(), 'The refusal did not name what is accepted.');
         $this->assertSame('Renamed in the same submission', $crawler->filter('#goshuincho_title')->attr('value'), 'The other fields were lost with the refusal.');
 
-        $stored = $this->repository()->findOneBy(['slug' => $slug]);
+        $stored = $this->repository()->find($id);
         $this->assertNull($stored->getCoverFront(), 'A refused upload was recorded.');
         $this->assertSame('Untouched', $stored->getTitle(), 'A refused submission was persisted anyway.');
     }
@@ -324,9 +324,9 @@ class GoshuinchoTest extends AppTestCase
             'coverBack' => 'ab/cd/back.jpg',
             'coverBackCard' => 'ab/cd/back-384.jpg',
         ]);
-        $slug = $goshuincho->getSlug();
+        $id = $goshuincho->getId();
         $this->client->loginUser($user);
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug.'/edit');
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$id.'/edit');
 
         $this->client->submitForm('goshuincho_submit', [
             'goshuincho[title]' => 'Two covers',
@@ -334,7 +334,7 @@ class GoshuinchoTest extends AppTestCase
         ]);
 
         $this->assertResponseRedirects();
-        $stored = $this->repository()->findOneBy(['slug' => $slug]);
+        $stored = $this->repository()->find($id);
         $this->assertNull($stored->getCoverFront(), 'The front cover was not removed.');
         $this->assertNull($stored->getCoverFrontCard(), 'The removed cover kept a derivative column.');
         $this->assertSame('ab/cd/back.jpg', $stored->getCoverBack(), 'Removing one cover took the other with it.');
@@ -347,7 +347,7 @@ class GoshuinchoTest extends AppTestCase
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'coverFront' => 'ab/cd/front.jpg', 'coverFrontFull' => 'ab/cd/front-1200.jpg']);
         $this->client->loginUser($user);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug());
+        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId());
 
         $this->assertStringContainsString('/uploads/ab/cd/front-1200.jpg', $crawler->filter('main figure img')->attr('src'), 'The cover is not served from its derivative.');
     }
@@ -358,10 +358,10 @@ class GoshuinchoTest extends AppTestCase
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $this->client->loginUser($user);
 
-        $kanagawa = PrefectureFactory::createOne(['name' => 'Kanagawa']);
-        $kamakura = CityFactory::createOne(['name' => 'Kamakura', 'prefecture' => $kanagawa]);
-        $kyoto = PrefectureFactory::createOne(['name' => 'Kyōto']);
-        $kyotoCity = CityFactory::createOne(['name' => 'Kyōto', 'prefecture' => $kyoto]);
+        $kanagawa = PrefectureFactory::createOne(['romanizedName' => 'Kanagawa']);
+        $kamakura = CityFactory::createOne(['romanizedName' => 'Kamakura', 'prefecture' => $kanagawa]);
+        $kyoto = PrefectureFactory::createOne(['romanizedName' => 'Kyōto']);
+        $kyotoCity = CityFactory::createOne(['romanizedName' => 'Kyōto', 'prefecture' => $kyoto]);
 
         foreach ([1, 2] as $page) {
             GoshuinFactory::new()->in($goshuincho, $page)->on('2025-03-1'.$page)->create([
@@ -373,11 +373,11 @@ class GoshuinchoTest extends AppTestCase
             'location' => LocationFactory::new(['romanizedName' => 'Kiyomizu-dera', 'city' => $kyotoCity, 'prefecture' => $kyoto]),
         ]);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug());
+        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId());
 
-        $this->assertCount(1, $crawler->filter('main a[href="/city/'.$kamakura->getSlug().'"]'), 'A city visited twice is named twice, or does not lead to its page.');
-        $this->assertCount(1, $crawler->filter('main a[href="/city/'.$kyotoCity->getSlug().'"]'));
-        $this->assertCount(1, $crawler->filter('main a[href="/prefecture/'.$kanagawa->getSlug().'"]'), 'A prefecture visited twice is named twice, or does not lead to its page.');
+        $this->assertCount(1, $crawler->filter('main a[href="/city/'.$kamakura->getId().'"]'), 'A city visited twice is named twice, or does not lead to its page.');
+        $this->assertCount(1, $crawler->filter('main a[href="/city/'.$kyotoCity->getId().'"]'));
+        $this->assertCount(1, $crawler->filter('main a[href="/prefecture/'.$kanagawa->getId().'"]'), 'A prefecture visited twice is named twice, or does not lead to its page.');
 
     }
 
@@ -392,7 +392,7 @@ class GoshuinchoTest extends AppTestCase
         GoshuinFactory::new()->in($goshuincho, 2)->on('2025-04-02')
             ->create(['location' => LocationFactory::new(['romanizedName' => 'Kiyomizu-dera'])]);
 
-        $rows = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/edit')
+        $rows = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/edit')
             ->filter('[data-order-target="row"]');
 
         $this->assertCount(2, $rows);
@@ -411,7 +411,7 @@ class GoshuinchoTest extends AppTestCase
         GoshuinFactory::new()->in($goshuincho, 2)
             ->create(['location' => LocationFactory::new(['romanizedName' => 'Dated'])]);
 
-        $rows = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/edit')
+        $rows = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/edit')
             ->filter('[data-order-target="row"]');
 
         $this->assertStringContainsString('Undated', $rows->eq(0)->text(), 'A goshuin with no day fell out of the order.');
@@ -421,7 +421,7 @@ class GoshuinchoTest extends AppTestCase
     {
         $user = UserFactory::createOne();
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kansai']);
-        $slug = (string) $goshuincho->getSlug();
+        $id = (string) $goshuincho->getId();
         $this->client->loginUser($user);
 
         $spot = 0;
@@ -431,7 +431,7 @@ class GoshuinchoTest extends AppTestCase
                 ->create(['location' => LocationFactory::new(['romanizedName' => $name])]);
         }
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug.'/edit');
+        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$id.'/edit');
         $rows = $crawler->filter('[data-order-target="row"]');
 
         $this->assertCount(3, $rows, 'The form does not list the goshuin to order.');
@@ -448,7 +448,7 @@ class GoshuinchoTest extends AppTestCase
 
         $this->client->request(Request::METHOD_POST, $form->getUri(), $sent, $form->getPhpFiles());
 
-        $this->assertResponseRedirects('/goshuincho/'.$slug);
+        $this->assertResponseRedirects('/goshuincho/'.$id);
         $this->assertSame(
             ['Gamma', 'Alpha', 'Beta'],
             $this->client->followRedirect()->filter('main ol li img')->each(static fn (Crawler $image): string => (string) $image->attr('alt')),
@@ -456,7 +456,7 @@ class GoshuinchoTest extends AppTestCase
         );
 
         $goshuins = static::getContainer()->get(GoshuinRepository::class)->positions(
-            $this->manager()->getRepository(Goshuincho::class)->findOneBy(['slug' => $slug]),
+            $this->manager()->getRepository(Goshuincho::class)->find($id),
         );
         $this->assertSame([1, 2, 3], $goshuins, 'Reordering left the numbering broken.');
     }
@@ -466,12 +466,12 @@ class GoshuinchoTest extends AppTestCase
         $user = UserFactory::createOne();
         $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
-        $slug = (string) $goshuincho->getSlug();
+        $id = (string) $goshuincho->getId();
         $place = LocationFactory::createOne();
 
         GoshuinFactory::new()->in($goshuincho)->create(['location' => $place]);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug.'/edit');
+        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$id.'/edit');
 
         $this->assertCount(0, $crawler->filter('[data-order-target="row"]'), 'A goshuincho with one goshuin offered to reorder it.');
     }
@@ -480,7 +480,7 @@ class GoshuinchoTest extends AppTestCase
     {
         $user = UserFactory::createOne();
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kansai']);
-        $slug = (string) $goshuincho->getSlug();
+        $id = (string) $goshuincho->getId();
         $this->client->loginUser($user);
 
         $spot = 0;
@@ -501,7 +501,7 @@ class GoshuinchoTest extends AppTestCase
             ]);
         }
 
-        $main = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$slug)->filter('main');
+        $main = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$id)->filter('main');
         $text = $main->text();
 
         $this->assertStringContainsString('3', $text, 'The goshuin are not counted.');
@@ -539,7 +539,7 @@ class GoshuinchoTest extends AppTestCase
             ]),
         ]);
 
-        $map = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug())->filter('main [data-controller="map"]');
+        $map = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId())->filter('main [data-controller="map"]');
         $markers = json_decode((string) $map->attr('data-map-markers-value'), true);
 
         $this->assertSame(210, $markers[0]['hue'], 'The pin does not carry the colour chosen for the goshuincho.');
@@ -557,7 +557,7 @@ class GoshuinchoTest extends AppTestCase
         $this->assertResponseIsSuccessful();
         $cards = $crawler->filter('main ul li a');
         $this->assertCount(2, $cards, 'The index does not list every goshuincho.');
-        $this->assertSame('/goshuincho/'.$kansai->getSlug(), $cards->first()->attr('href'), 'A goshuincho does not open its own page.');
+        $this->assertSame('/goshuincho/'.$kansai->getId(), $cards->first()->attr('href'), 'A goshuincho does not open its own page.');
     }
 
     public function test_the_index_holds_no_other_collectors_goshuincho(): void

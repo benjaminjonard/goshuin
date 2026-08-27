@@ -13,11 +13,11 @@
         nothing: 'label.no_prefecture_yet',
         noun: 'label.prefectures',
         cards: prefectures|map(prefecture => {
-            href: path('app_prefecture_show', {slug: prefecture.slug}),
+            href: path('app_prefecture_show', {id: prefecture.id}),
             image: prefecture.photographCard,
             crop: true,
             icon: 'prefecture',
-            title: prefecture.name,
+            title: prefecture.displayName(app.request.locale),
         }),
     }) }}
 {% endblock %}

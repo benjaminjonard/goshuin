@@ -46,14 +46,14 @@
                                         data-action="live#action"
                                         data-live-action-param="usePlace"
                                         data-live-place-name-param="{{ place.name }}"
-                                        data-live-japanese-name-param="{{ place.japaneseName }}"
+                                        data-live-kanji-name-param="{{ place.kanjiName }}"
                                         data-live-city-param="{{ place.locality }}"
                                         data-live-prefecture-param="{{ place.prefecture }}"
                                         data-live-address-param="{{ place.address }}"
                                         data-live-latitude-param="{{ place.latitude }}"
                                         data-live-longitude-param="{{ place.longitude }}">
                                     <span class="truncate text-sm font-semibold text-fg">{{ place.name }}</span>
-                                    <span class="truncate text-xs text-fg-3"><span class="font-jp">{{ place.japaneseName }}</span>{{ place.japaneseName and place.address ? ' · ' }}{{ place.address }}</span>
+                                    <span class="truncate text-xs text-fg-3"><span class="font-jp">{{ place.kanjiName }}</span>{{ place.kanjiName and place.address ? ' · ' }}{{ place.address }}</span>
                                 </button>
                             {% endfor %}
                             {% endif %}
@@ -63,7 +63,9 @@
                 </div>
             {% endif %}
 
-            {{ form_row(form.romanizedName, {attr: {'data-model': 'debounce(400)|' ~ form.romanizedName.vars.full_name}}) }}
+            {% for field in form|filter(child => child.vars.name in ['romanizedName', 'kanjiName', 'kanaName']) %}
+                {{ form_row(field, {attr: {'data-model': (loop.first ? 'debounce(400)|' : 'norender|') ~ field.vars.full_name}}) }}
+            {% endfor %}
 
             {% if this.duplicates is not empty %}
                 <p class="flex items-start gap-2.5 rounded-xl border border-accent-line bg-accent-soft px-3.5 py-3 text-[12.5px] leading-relaxed text-accent-text" role="alert">
@@ -73,7 +75,6 @@
             {% endif %}
 
             <div class="grid items-start gap-3.5 sm:grid-cols-2">
-                {{ form_row(form.japaneseName, {attr: {'data-model': 'norender|' ~ form.japaneseName.vars.full_name}}) }}
                 {{ form_row(form.type, {attr: {'data-model': 'norender|' ~ form.type.vars.full_name}}) }}
             </div>
 

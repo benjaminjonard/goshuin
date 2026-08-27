@@ -46,6 +46,16 @@ class GoshuinchoRepository extends ServiceEntityRepository
         return $this->pagesOf($this->listing($term));
     }
 
+    public function findById(string $id): ?Goshuincho
+    {
+        return $this->createQueryBuilder('g')
+            ->andWhere('g.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
     private function listing(?string $term): QueryBuilder
     {
         $builder = $this->createQueryBuilder('g');
@@ -116,7 +126,7 @@ class GoshuinchoRepository extends ServiceEntityRepository
         ;
     }
 
-    public function summary(Goshuincho $goshuincho): Summary
+    public function summary(Goshuincho $goshuincho, string $locale): Summary
     {
         $row = $this->createQueryBuilder('g')
             ->select(
@@ -135,8 +145,8 @@ class GoshuinchoRepository extends ServiceEntityRepository
         return new Summary(
             goshuin: (int) $row['held'],
             locations: (int) $row['places'],
-            cities: $this->places($goshuincho, City::class, 'city'),
-            prefectures: $this->places($goshuincho, Prefecture::class, 'prefecture'),
+            cities: $this->places($goshuincho, City::class, 'city', $locale),
+            prefectures: $this->places($goshuincho, Prefecture::class, 'prefecture', $locale),
             first: $this->day($row['first']),
             last: $this->day($row['last']),
         );
@@ -147,7 +157,7 @@ class GoshuinchoRepository extends ServiceEntityRepository
      *
      * @return list<City|Prefecture>
      */
-    private function places(Goshuincho $goshuincho, string $class, string $association): array
+    private function places(Goshuincho $goshuincho, string $class, string $association, string $locale): array
     {
         return $this->getEntityManager()->createQueryBuilder()
             ->select('DISTINCT place')
@@ -156,7 +166,11 @@ class GoshuinchoRepository extends ServiceEntityRepository
             ->innerJoin(Goshuin::class, 'goshuin', Join::WITH, 'goshuin.location = location')
             ->andWhere('goshuin.goshuincho = :goshuincho')
             ->setParameter('goshuincho', $goshuincho)
-            ->orderBy('place.name', 'ASC')
+            ->addSelect(sprintf('COALESCE(%s) AS HIDDEN name_order', implode(', ', array_map(
+                static fn (string $field): string => sprintf("NULLIF(place.%s, '')", $field),
+                $class::orderFields($locale),
+            ))))
+            ->orderBy('name_order', 'ASC')
             ->getQuery()
             ->getResult()
         ;
@@ -167,14 +181,14 @@ class GoshuinchoRepository extends ServiceEntityRepository
         return $day === null ? null : new \DateTimeImmutable($day);
     }
 
-    public function withGoshuins(string $slug): ?Goshuincho
+    public function withGoshuins(string $id): ?Goshuincho
     {
         return $this->createQueryBuilder('g')
             ->addSelect('goshuin', 'location')
             ->leftJoin('g.goshuins', 'goshuin')
             ->leftJoin('goshuin.location', 'location')
-            ->andWhere('g.slug = :slug')
-            ->setParameter('slug', $slug)
+            ->andWhere('g.id = :id')
+            ->setParameter('id', $id)
             ->orderBy('goshuin.position', 'ASC')
             ->getQuery()
             ->getOneOrNullResult();

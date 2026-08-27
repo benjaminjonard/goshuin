@@ -1,18 +1,18 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ goshuin.location.romanizedName }} · Goshuin{% endblock %}
+{% block title %}{{ goshuin.location.displayName(app.request.locale) }} · Goshuin{% endblock %}
 
 {% block bar %}
     {{ include('App/_partials/_bar.html.twig', {
         kicker: [
             {label: 'label.goshuincho'|trans, href: path('app_homepage')},
-            {label: goshuincho.title, href: path('app_goshuincho_show', {slug: goshuincho.slug})},
+            {label: goshuincho.title, href: path('app_goshuincho_show', {id: goshuincho.id})},
         ],
-        title: goshuin.location.romanizedName,
-        jp: goshuin.location.japaneseName,
+        title: goshuin.location.displayName(app.request.locale),
+        jp: goshuin.location.secondaryName(app.request.locale),
     }) }}
 {% endblock %}
 
 {% block body %}
-    {{ include('App/Goshuin/_form.html.twig', {cancel: path('app_goshuin_show', {slug: goshuincho.slug, position: goshuin.position})}) }}
+    {{ include('App/Goshuin/_form.html.twig', {cancel: path('app_goshuin_show', {id: goshuincho.id, position: goshuin.position})}) }}
 {% endblock %}

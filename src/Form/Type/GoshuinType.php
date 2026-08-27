@@ -17,6 +17,7 @@ use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -24,6 +25,7 @@ class GoshuinType extends AbstractType
 {
     public function __construct(
         private readonly TagNames $tags,
+        private readonly RequestStack $requests,
     ) {
     }
 
@@ -39,7 +41,7 @@ class GoshuinType extends AbstractType
             ->add('location', EntityType::class, [
                 'label' => 'label.received_at',
                 'class' => Location::class,
-                'choice_label' => 'romanizedName',
+                'choice_label' => fn (Location $location): string => (string) $location->getDisplayName($this->locale()),
                 'block_prefix' => 'location',
             ])
             ->add('receivedOn', DateType::class, [
@@ -97,5 +99,9 @@ class GoshuinType extends AbstractType
                 return ['Default', 'goshuin:create'];
             },
         ]);
+    }
+    private function locale(): string
+    {
+        return $this->requests->getCurrentRequest()?->getLocale() ?? 'en';
     }
 }

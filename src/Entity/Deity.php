@@ -4,37 +4,29 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\Entity\Interface\Sluggable;
+use App\Entity\Interface\Identified;
+use App\Entity\Interface\Named;
+use App\Entity\Trait\HasNames;
 use App\Entity\Trait\HasPhotograph;
 use App\Repository\DeityRepository;
+use App\Validator\AtLeastOneName;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: DeityRepository::class)]
 #[ORM\Table(name: 'gos_deity')]
-#[ORM\UniqueConstraint(name: 'un_deity_name', columns: ['owner_id', 'name'])]
-#[ORM\UniqueConstraint(name: 'un_deity_slug', columns: ['owner_id', 'slug'])]
-#[UniqueEntity(fields: ['name'], message: 'error.deity.not_unique')]
-class Deity implements Sluggable
+#[AtLeastOneName]
+class Deity implements Named, Identified
 {
+    use HasNames;
     use HasPhotograph;
 
     #[ORM\Id]
     #[ORM\Column(type: Types::STRING, length: 36, unique: true, options: ['fixed' => true])]
     private string $id;
-
-    #[ORM\Column(type: Types::STRING)]
-    #[Assert\NotBlank]
-    #[Assert\Length(max: 255)]
-    private ?string $name = null;
-
-    #[ORM\Column(type: Types::STRING, length: 255)]
-    #[Gedmo\Slug(fields: ['name'], unique: true, unique_base: 'owner')]
-    private ?string $slug = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
@@ -57,18 +49,6 @@ class Deity implements Sluggable
         $this->id = Uuid::v7()->toRfc4122();
     }
 
-    public function getSlug(): ?string
-    {
-        return $this->slug;
-    }
-
-    public function setSlug(?string $slug): Deity
-    {
-        $this->slug = $slug;
-
-        return $this;
-    }
-
     public function getId(): string
     {
         return $this->id;
@@ -82,18 +62,6 @@ class Deity implements Sluggable
     public function setOwner(?User $owner): Deity
     {
         $this->owner = $owner;
-
-        return $this;
-    }
-
-    public function getName(): ?string
-    {
-        return $this->name;
-    }
-
-    public function setName(?string $name): Deity
-    {
-        $this->name = $name;
 
         return $this;
     }

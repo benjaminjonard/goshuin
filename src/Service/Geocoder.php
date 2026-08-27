@@ -36,7 +36,7 @@ final readonly class Geocoder
     }
 
     /**
-     * @return list<array{name: string, japaneseName: string, locality: string, prefecture: string, address: string, latitude: float, longitude: float}>
+     * @return list<array{name: string, kanjiName: string, locality: string, prefecture: string, address: string, latitude: float, longitude: float}>
      */
     public function search(string $query, int $limit = 5): array
     {
@@ -73,7 +73,7 @@ final readonly class Geocoder
             foreach ($romanised as $id => $feature) {
                 $places[] = [
                     'name' => $feature['name'],
-                    'japaneseName' => $local[$id]['name'] ?? '',
+                    'kanjiName' => $local[$id]['name'] ?? '',
                     'locality' => $feature['locality'],
                     'prefecture' => $feature['prefecture'],
                     'address' => $feature['address'],

@@ -35,7 +35,7 @@ class LocationComboboxTest extends AppTestCase
 
     public function test_it_offers_nothing_before_anything_is_typed(): void
     {
-        LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'japaneseName' => '清水寺']);
+        LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'kanjiName' => '清水寺']);
 
         $rendered = $this->combobox()->render()->toString();
 
@@ -45,7 +45,7 @@ class LocationComboboxTest extends AppTestCase
 
     public function test_typing_offers_the_matching_locations(): void
     {
-        LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'japaneseName' => '清水寺', 'city' => CityFactory::createOne(['name' => 'Kyōto'])]);
+        LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'kanjiName' => '清水寺', 'city' => CityFactory::createOne(['romanizedName' => 'Kyōto'])]);
         LocationFactory::createOne(['romanizedName' => 'Byodo-in']);
 
         $rendered = $this->combobox()->set('term', 'kiyomizu')->render()->toString();
@@ -58,8 +58,8 @@ class LocationComboboxTest extends AppTestCase
 
     public function test_it_searches_on_either_name(): void
     {
-        LocationFactory::createOne(['romanizedName' => 'Fushimi Inari-taisha', 'japaneseName' => '伏見稲荷大社']);
-        LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'japaneseName' => '清水寺']);
+        LocationFactory::createOne(['romanizedName' => 'Fushimi Inari-taisha', 'kanjiName' => '伏見稲荷大社']);
+        LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'kanjiName' => '清水寺']);
         $component = $this->combobox();
 
         $this->assertStringContainsString('Fushimi Inari-taisha', $component->set('term', '伏見')->render()->toString(), 'The Japanese name was not searched.');
@@ -68,7 +68,7 @@ class LocationComboboxTest extends AppTestCase
 
     public function test_it_says_so_only_when_it_found_nothing(): void
     {
-        LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'japaneseName' => '清水寺']);
+        LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'kanjiName' => '清水寺']);
         $component = $this->combobox();
 
         $found = $component->set('term', 'kiyomizu')->render()->toString();
@@ -80,21 +80,29 @@ class LocationComboboxTest extends AppTestCase
 
     public function test_a_term_that_matches_nothing_offers_to_create_it(): void
     {
-        LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'japaneseName' => '清水寺']);
+        LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'kanjiName' => '清水寺']);
 
         $this->assertSame('伏見稲荷大社', $this->combobox()->set('term', '伏見稲荷大社')->component()->getCreatable());
     }
 
     public function test_an_exact_match_is_not_offered_for_creation(): void
     {
-        LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'japaneseName' => '清水寺']);
+        LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'kanjiName' => '清水寺']);
 
         $this->assertNull($this->combobox()->set('term', 'Kiyomizu-dera')->component()->getCreatable(), 'An existing location was offered for creation.');
     }
 
+    public function test_an_exact_match_on_a_japanese_name_is_not_offered_for_creation(): void
+    {
+        LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'kanjiName' => '清水寺', 'kanaName' => 'きよみずでら']);
+
+        $this->assertNull($this->combobox()->set('term', '清水寺')->component()->getCreatable(), 'A location named in kanji was offered for creation.');
+        $this->assertNull($this->combobox()->set('term', 'きよみずでら')->component()->getCreatable(), 'A location named in kana was offered for creation.');
+    }
+
     public function test_choosing_a_location_puts_its_id_in_the_form_field(): void
     {
-        $location = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'japaneseName' => '清水寺']);
+        $location = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'kanjiName' => '清水寺']);
         $id = $location->getId();
 
         $component = $this->combobox()
@@ -164,7 +172,7 @@ class LocationComboboxTest extends AppTestCase
 
     public function test_clearing_releases_the_choice(): void
     {
-        $location = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'japaneseName' => '清水寺']);
+        $location = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'kanjiName' => '清水寺']);
 
         $component = $this->combobox(['selected' => $location->getId()])->call('clear');
 

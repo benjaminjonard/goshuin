@@ -2,7 +2,7 @@
 
 <div class="flex items-center gap-1">
     {% if position > 1 %}
-        <a href="{{ path('app_goshuin_show', {slug: slug, position: position - 1}) }}" class="{{ step }}" aria-label="{{ 'label.previous_page'|trans }}">
+        <a href="{{ path('app_goshuin_show', {id: id, position: position - 1}) }}" class="{{ step }}" aria-label="{{ 'label.previous_page'|trans }}">
             {{- include('App/_partials/_icon.html.twig', {name: 'back', small: true}) -}}
         </a>
     {% endif %}
@@ -12,7 +12,7 @@
     </span>
 
     {% if position < total %}
-        <a href="{{ path('app_goshuin_show', {slug: slug, position: position + 1}) }}" class="{{ step }}" aria-label="{{ 'label.next_page'|trans }}">
+        <a href="{{ path('app_goshuin_show', {id: id, position: position + 1}) }}" class="{{ step }}" aria-label="{{ 'label.next_page'|trans }}">
             {{- include('App/_partials/_icon.html.twig', {name: 'right', small: true}) -}}
         </a>
     {% endif %}

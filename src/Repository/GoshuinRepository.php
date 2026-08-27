@@ -7,6 +7,7 @@ namespace App\Repository;
 use App\Entity\City;
 use App\Entity\Goshuin;
 use App\Entity\Goshuincho;
+use App\Entity\Location;
 use App\Entity\Prefecture;
 use App\Entity\Tag;
 use App\Model\Pin;
@@ -85,7 +86,7 @@ class GoshuinRepository extends ServiceEntityRepository
 
         if ($term !== null && $term !== '') {
             $builder
-                ->andWhere('LOWER(location.romanizedName) LIKE :term OR LOWER(location.japaneseName) LIKE :term OR LOWER(goshuincho.title) LIKE :term')
+                ->andWhere('LOWER(location.romanizedName) LIKE :term OR LOWER(location.kanjiName) LIKE :term OR LOWER(location.kanaName) LIKE :term OR LOWER(goshuincho.title) LIKE :term')
                 ->setParameter('term', '%'.mb_strtolower($term).'%')
             ;
         }
@@ -94,17 +95,36 @@ class GoshuinRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param array<string, mixed> $row
+     * @param list<string>         $fields
+     */
+    private function displayed(array $row, array $fields): string
+    {
+        foreach ($fields as $field) {
+            $name = trim((string) ($row[$field] ?? ''));
+
+            if ($name !== '') {
+                return $name;
+            }
+        }
+
+        return '';
+    }
+
+    /**
      * @return list<Pin>
      */
-    public function pins(): array
+    public function pins(string $locale): array
     {
         $rows = $this->createQueryBuilder('g')
-            ->select('location.romanizedName AS name')
+            ->select('location.romanizedName AS romanizedName')
+            ->addSelect('location.kanjiName AS kanjiName')
+            ->addSelect('location.kanaName AS kanaName')
             ->addSelect('location.latitude AS latitude')
             ->addSelect('location.longitude AS longitude')
             ->addSelect('g.position AS position')
             ->addSelect('goshuincho.title AS title')
-            ->addSelect('goshuincho.slug AS slug')
+            ->addSelect('goshuincho.id AS goshuinchoId')
             ->addSelect('goshuincho.hue AS hue')
             ->innerJoin('g.location', 'location')
             ->innerJoin('g.goshuincho', 'goshuincho')
@@ -116,14 +136,16 @@ class GoshuinRepository extends ServiceEntityRepository
             ->getArrayResult()
         ;
 
+        $fields = Location::displayFields($locale);
+
         return array_map(
-            static fn (array $row): Pin => new Pin(
-                name: (string) $row['name'],
+            fn (array $row): Pin => new Pin(
+                name: $this->displayed($row, $fields),
                 latitude: (float) $row['latitude'],
                 longitude: (float) $row['longitude'],
                 position: (int) $row['position'],
                 title: (string) $row['title'],
-                slug: (string) $row['slug'],
+                id: (string) $row['goshuinchoId'],
                 hue: $row['hue'] === null ? null : (int) $row['hue'],
             ),
             $rows,

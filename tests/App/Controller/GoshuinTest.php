@@ -46,14 +46,14 @@ class GoshuinTest extends AppTestCase
         $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne(['romanizedName' => 'Fushimi Inari-taisha']);
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/add');
 
         $this->client->submitForm('goshuin_submit', [
             'goshuin[location]' => $place->getId(),
             'goshuin[imageFile]' => $this->image(),
         ]);
 
-        $this->assertResponseRedirects('/goshuincho/'.$goshuincho->getSlug());
+        $this->assertResponseRedirects('/goshuincho/'.$goshuincho->getId());
 
         $created = $this->repository()->findOneBy(['location' => $place->getId()]);
         $this->assertNotNull($created, 'Two fields were not enough.');
@@ -71,7 +71,7 @@ class GoshuinTest extends AppTestCase
         $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne();
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/add');
 
         $this->client->submitForm('goshuin_submit', [
             'goshuin[location]' => $place->getId(),
@@ -98,7 +98,7 @@ class GoshuinTest extends AppTestCase
         $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne();
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/add');
 
         $crawler = $this->client->submitForm('goshuin_submit', [
             'goshuin[location]' => $place->getId(),
@@ -115,7 +115,7 @@ class GoshuinTest extends AppTestCase
         $user = UserFactory::createOne();
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $this->client->loginUser($user);
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/add');
 
         $crawler = $this->client->submitForm('goshuin_submit', [
             'goshuin[imageFile]' => $this->image(),
@@ -133,7 +133,7 @@ class GoshuinTest extends AppTestCase
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne();
         $tomorrow = new \DateTimeImmutable('tomorrow');
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/add');
 
         $this->client->submitForm('goshuin_submit', [
             'goshuin[location]' => $place->getId(),
@@ -156,7 +156,7 @@ class GoshuinTest extends AppTestCase
         $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne(['romanizedName' => 'Fushimi Inari-taisha']);
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/add');
         $this->client->submitForm('goshuin_submit', [
             'goshuin[location]' => $place->getId(),
             'goshuin[imageFile]' => $this->image(),
@@ -184,7 +184,7 @@ class GoshuinTest extends AppTestCase
         $other = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Somewhere else']);
         $place = LocationFactory::createOne();
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/add');
 
         $selected = $crawler->filter('#goshuin_goshuincho option[selected]');
         $this->assertCount(1, $selected, 'The goshuincho was asked for rather than taken from the context.');
@@ -197,7 +197,7 @@ class GoshuinTest extends AppTestCase
             'goshuin[imageFile]' => $this->image(),
         ]);
 
-        $this->assertResponseRedirects('/goshuincho/'.$other->getSlug(), Response::HTTP_FOUND, 'The context goshuincho could not be changed.');
+        $this->assertResponseRedirects('/goshuincho/'.$other->getId(), Response::HTTP_FOUND, 'The context goshuincho could not be changed.');
 
         $created = $this->repository()->findOneBy(['location' => $place->getId()]);
         $this->assertSame($other->getId(), $created->getGoshuincho()->getId());
@@ -211,7 +211,7 @@ class GoshuinTest extends AppTestCase
         $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne();
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/add');
 
         $this->client->submitForm('goshuin_submit', [
             'goshuin[location]' => $place->getId(),
@@ -242,8 +242,8 @@ class GoshuinTest extends AppTestCase
         $this->client->loginUser($user);
         $goshuin = $this->collect($goshuincho, LocationFactory::createOne([
             'romanizedName' => 'Fushimi Inari-taisha',
-            'japaneseName' => '伏見稲荷大社',
-            'city' => CityFactory::createOne(['name' => 'Fushimi-ku, Kyōto']),
+            'kanjiName' => '伏見稲荷大社',
+            'city' => CityFactory::createOne(['romanizedName' => 'Fushimi-ku, Kyōto']),
             'latitude' => 34.9671,
             'longitude' => 135.7727,
         ]));
@@ -281,7 +281,7 @@ class GoshuinTest extends AppTestCase
         $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne(['romanizedName' => 'Fushimi Inari-taisha']);
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/add');
 
         $this->client->submitForm('goshuin_submit', [
             'goshuin[location]' => $place->getId(),
@@ -311,10 +311,10 @@ class GoshuinTest extends AppTestCase
         $user = UserFactory::createOne();
         $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
-        $inari = DeityFactory::createOne(['name' => 'Inari', 'additionalNames' => ['稲荷大明神']]);
+        $inari = DeityFactory::createOne(['romanizedName' => 'Inari', 'additionalNames' => ['稲荷大明神']]);
         GoshuinFactory::new()->in($goshuincho)->create(['notes' => 'Given at the 稲荷大明神 hall, below Inari itself.']);
 
-        $notes = $this->client->request(Request::METHOD_GET, $this->page($goshuincho, 1))->filter('main a[href="/deity/'.$inari->getSlug().'"]');
+        $notes = $this->client->request(Request::METHOD_GET, $this->page($goshuincho, 1))->filter('main a[href="/deity/'.$inari->getId().'"]');
 
         $this->assertCount(2, $notes, 'The names in the notes do not lead to the deity.');
         $this->assertSame('稲荷大明神', $notes->first()->text(), 'The additional name was not read as the deity.');
@@ -475,7 +475,7 @@ class GoshuinTest extends AppTestCase
         $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne();
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/add');
         $this->client->submitForm('goshuin_submit', [
             'goshuin[location]' => $place->getId(),
             'goshuin[imageFile]' => $this->createImage(1400, 900),
@@ -521,7 +521,7 @@ class GoshuinTest extends AppTestCase
         $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne(['romanizedName' => 'Fushimi Inari-taisha']);
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/add');
 
         $this->client->submitForm('goshuin_again', [
             'goshuin[location]' => $place->getId(),
@@ -531,7 +531,7 @@ class GoshuinTest extends AppTestCase
             'goshuin[imageFile]' => $this->image(),
         ]);
 
-        $this->assertResponseRedirects('/goshuincho/'.$goshuincho->getSlug().'/goshuin/add', Response::HTTP_FOUND, 'Saving and adding another left the form.');
+        $this->assertResponseRedirects('/goshuincho/'.$goshuincho->getId().'/goshuin/add', Response::HTTP_FOUND, 'Saving and adding another left the form.');
 
         $created = $this->repository()->findOneBy(['location' => $place->getId()]);
         $this->assertNotNull($created, 'Saving and adding another did not save.');
@@ -555,7 +555,7 @@ class GoshuinTest extends AppTestCase
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $other = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne();
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/add');
 
         $this->client->submitForm('goshuin_again', [
             'goshuin[goshuincho]' => $other->getId(),
@@ -563,7 +563,7 @@ class GoshuinTest extends AppTestCase
             'goshuin[imageFile]' => $this->image(),
         ]);
 
-        $this->assertResponseRedirects('/goshuincho/'.$other->getSlug().'/goshuin/add', Response::HTTP_FOUND, 'The next form was opened on the wrong goshuincho.');
+        $this->assertResponseRedirects('/goshuincho/'.$other->getId().'/goshuin/add', Response::HTTP_FOUND, 'The next form was opened on the wrong goshuincho.');
 
         $this->discard($this->repository()->findOneBy(['location' => $place->getId()]));
     }
@@ -575,7 +575,7 @@ class GoshuinTest extends AppTestCase
         $this->client->loginUser($user);
         $goshuin = $this->collect($goshuincho);
 
-        $add = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+        $add = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/add');
         $this->assertCount(1, $add->filter('button[name="goshuin_again"]'), 'The add form does not offer to add another.');
 
         $edit = $this->client->request(Request::METHOD_GET, $this->page($goshuincho, 1).'/edit');
@@ -642,7 +642,7 @@ class GoshuinTest extends AppTestCase
         $this->client->request(Request::METHOD_GET, $this->page($goshuincho, 2).'/delete');
         $this->client->submitForm('delete_submit');
 
-        $this->assertResponseRedirects('/goshuincho/'.$goshuincho->getSlug());
+        $this->assertResponseRedirects('/goshuincho/'.$goshuincho->getId());
         $this->assertSame(['Alpha', 'Gamma'], $this->order($goshuincho), 'The goshuincho page still shows the deleted goshuin.');
         $this->assertSame([1, 2], $this->positions($goshuincho), 'Deleting left a hole in the numbering.');
 
@@ -737,7 +737,7 @@ class GoshuinTest extends AppTestCase
         $goshuincho = GoshuinchoFactory::createOne(['owner' => UserFactory::createOne()]);
         $this->client->loginUser(UserFactory::createOne());
 
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/add');
 
         $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND, 'A foreign goshuincho was reachable.');
     }
@@ -745,7 +745,7 @@ class GoshuinTest extends AppTestCase
     private function upload(Goshuincho $goshuincho, ?Location $place = null): Goshuin
     {
         $place ??= LocationFactory::createOne();
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/add');
         $this->client->submitForm('goshuin_submit', [
             'goshuin[location]' => $place->getId(),
             'goshuin[receivedOn]' => '2025-03-15',
@@ -783,14 +783,14 @@ class GoshuinTest extends AppTestCase
      */
     private function order(Goshuincho $goshuincho): array
     {
-        return $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug())
+        return $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId())
             ->filter('main ol li img')
             ->each(static fn (Crawler $image): string => (string) $image->attr('alt'));
     }
 
     private function create(Goshuincho $goshuincho, Location $place, array $extra): void
     {
-        $form = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add')
+        $form = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/add')
             ->selectButton('goshuin_submit')
             ->form()
         ;
@@ -891,7 +891,7 @@ class GoshuinTest extends AppTestCase
 
     private function page(Goshuincho $goshuincho, int $position): string
     {
-        return '/goshuincho/'.$goshuincho->getSlug().'/goshuin/'.$position;
+        return '/goshuincho/'.$goshuincho->getId().'/goshuin/'.$position;
     }
 
     public function test_the_map_pin_takes_the_colour_of_the_goshuincho_holding_it(): void
@@ -908,7 +908,7 @@ class GoshuinTest extends AppTestCase
             ]),
         ]);
 
-        $map = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/1')
+        $map = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/1')
             ->filter('main [data-controller="map"]')
         ;
         $markers = json_decode((string) $map->attr('data-map-markers-value'), true);
@@ -930,7 +930,7 @@ class GoshuinTest extends AppTestCase
         $this->assertResponseIsSuccessful();
         $cards = $crawler->filter('main ul li a');
         $this->assertCount(2, $cards, 'The index does not list every goshuin.');
-        $this->assertSame('/goshuincho/'.$kanto->getSlug().'/goshuin/1', $cards->first()->attr('href'), 'The index is not led by the latest goshuin.');
+        $this->assertSame('/goshuincho/'.$kanto->getId().'/goshuin/1', $cards->first()->attr('href'), 'The index is not led by the latest goshuin.');
         $this->assertStringContainsString('Kantō', $cards->first()->text(), 'The index does not say which goshuincho holds the goshuin.');
     }
 
@@ -953,7 +953,7 @@ class GoshuinTest extends AppTestCase
         $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne();
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/add');
 
         $this->client->submitForm('goshuin_submit', [
             'goshuin[location]' => $place->getId(),
@@ -982,7 +982,7 @@ class GoshuinTest extends AppTestCase
         $place = LocationFactory::createOne();
         $held = TagFactory::createOne(['name' => 'dog', 'owner' => $user]);
         $id = $held->getId();
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/add');
 
         $this->client->submitForm('goshuin_submit', [
             'goshuin[location]' => $place->getId(),
@@ -1005,7 +1005,7 @@ class GoshuinTest extends AppTestCase
         $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $place = LocationFactory::createOne();
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/add');
 
         $this->client->submitForm('goshuin_submit', [
             'goshuin[location]' => $place->getId(),
@@ -1044,11 +1044,11 @@ class GoshuinTest extends AppTestCase
         $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $tag = TagFactory::createOne(['name' => 'dog', 'owner' => $user]);
-        $slug = $tag->getSlug();
+        $id = $tag->getId();
         GoshuinFactory::new()->in($goshuincho)->create(['tags' => [$tag]]);
 
         $main = $this->client->request(Request::METHOD_GET, $this->page($goshuincho, 1))->filter('main');
-        $pill = $main->filter('a[href="/goshuin?tag='.$slug.'"]');
+        $pill = $main->filter('a[href="/goshuin?tag='.$id.'"]');
 
         $this->assertCount(1, $pill, 'A tag on the page does not lead to the goshuin bearing it.');
         $this->assertSame('dog', trim($pill->text()));
@@ -1078,7 +1078,7 @@ class GoshuinTest extends AppTestCase
         $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $tag = TagFactory::createOne(['name' => 'dog', 'owner' => $user]);
-        $slug = $tag->getSlug();
+        $id = $tag->getId();
 
         GoshuinFactory::new()->in($goshuincho, 1)->create([
             'location' => LocationFactory::createOne(['romanizedName' => 'Gōtoku-ji']),
@@ -1088,7 +1088,7 @@ class GoshuinTest extends AppTestCase
             'location' => LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']),
         ]);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/goshuin?tag='.$slug);
+        $crawler = $this->client->request(Request::METHOD_GET, '/goshuin?tag='.$id);
         $listed = $crawler->filter('main ul li')->text();
 
         $this->assertResponseIsSuccessful();
@@ -1104,7 +1104,7 @@ class GoshuinTest extends AppTestCase
         $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $tag = TagFactory::createOne(['name' => 'dog', 'owner' => $user]);
-        $slug = $tag->getSlug();
+        $id = $tag->getId();
 
         foreach (range(1, 25) as $rank) {
             GoshuinFactory::new()->in($goshuincho, $rank)->create([
@@ -1118,7 +1118,7 @@ class GoshuinTest extends AppTestCase
             'tags' => [$tag],
         ]);
 
-        $first = $this->client->request(Request::METHOD_GET, '/goshuin?tag='.$slug.'&q=g%C5%8Dtoku');
+        $first = $this->client->request(Request::METHOD_GET, '/goshuin?tag='.$id.'&q=g%C5%8Dtoku');
 
         $this->assertCount(24, $first->filter('main ul li'), 'The search inside a narrowing does not fill a page.');
 

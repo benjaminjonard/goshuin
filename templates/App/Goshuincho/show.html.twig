@@ -9,10 +9,10 @@
                 label: 'label.add_goshuin'|trans,
                 icon: 'plus',
                 variant: 'primary',
-                href: path('app_goshuin_add', {slug: goshuincho.slug}),
+                href: path('app_goshuin_add', {id: goshuincho.id}),
             }) }}
-            {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_goshuincho_edit', {slug: goshuincho.slug}), aria: 'label.edit'|trans}) }}
-            {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_goshuincho_delete', {slug: goshuincho.slug}), aria: 'label.delete'|trans}) }}
+            {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_goshuincho_edit', {id: goshuincho.id}), aria: 'label.edit'|trans}) }}
+            {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_goshuincho_delete', {id: goshuincho.id}), aria: 'label.delete'|trans}) }}
         {% endblock %}
     {% endembed %}
 {% endblock %}
@@ -48,8 +48,8 @@
                         {{ include('App/_partials/_kvs.html.twig', {rows: [
                             {
                                 label: 'label.origin'|trans,
-                                value: origin ? [origin.romanizedName, origin.japaneseName]|filter(part => part)|join(' · ') : null,
-                                href: origin ? path('app_location_show', {slug: origin.slug}) : null,
+                                value: origin ? [origin.displayName(app.request.locale), origin.secondaryName(app.request.locale)]|filter(part => part)|join(' · ') : null,
+                                href: origin ? path('app_location_show', {id: origin.id}) : null,
                             },
                             {label: 'label.purchased_on'|trans, value: goshuincho.purchasedAt ? goshuincho.purchasedAt|format_date('long') : null},
                             {label: 'label.price_paid'|trans, value: goshuincho.price|money(goshuincho.currency)},
@@ -62,7 +62,7 @@
                             <div class="grid gap-1.5">
                                 <span class="text-[12.5px] font-semibold text-fg-2">{{ places.label|trans }}</span>
                                 {{ include('App/_partials/_pills.html.twig', {
-                                    pills: places.held|map(place => {text: place.name, href: path(places.route, {slug: place.slug})}),
+                                    pills: places.held|map(place => {text: place.displayName(app.request.locale), href: path(places.route, {id: place.id})}),
                                 }) }}
                             </div>
                         {% endfor %}
@@ -80,10 +80,10 @@
                         <ol class="gallery">
                             {% for goshuin in goshuincho.goshuins %}
                                 <li class="card" data-index="{{ goshuin.position }}">
-                                    <a href="{{ path('app_goshuin_show', {slug: goshuincho.slug, position: goshuin.position}) }}" class="grid gap-1.5 no-underline">
-                                        <img src="{{ goshuin.imageCard|image }}" alt="{{ goshuin.location.romanizedName }}" class="image-frame"
+                                    <a href="{{ path('app_goshuin_show', {id: goshuincho.id, position: goshuin.position}) }}" class="grid gap-1.5 no-underline">
+                                        <img src="{{ goshuin.imageCard|image }}" alt="{{ goshuin.location.displayName(app.request.locale) }}" class="image-frame"
                                              {% if goshuin.imageWidth and goshuin.imageHeight %}width="{{ goshuin.imageWidth }}" height="{{ goshuin.imageHeight }}"{% endif %}>
-                                        <span class="block w-0 min-w-full text-center text-[13px] font-semibold text-fg">{{ goshuin.location.romanizedName }}</span>
+                                        <span class="block w-0 min-w-full text-center text-[13px] font-semibold text-fg">{{ goshuin.location.displayName(app.request.locale) }}</span>
                                         {% if goshuin.receivedOn %}
                                             <span class="block w-0 min-w-full text-center text-xs tabular-nums text-fg-3">{{ goshuin.receivedOn|format_date('long') }}</span>
                                         {% endif %}
@@ -120,13 +120,13 @@
                                  number: goshuin.position,
                                  index: goshuin.position,
                                  hue: goshuincho.hue,
-                                 label: goshuin.location.romanizedName,
-                                 href: path('app_goshuin_show', {slug: goshuincho.slug, position: goshuin.position}),
+                                 label: goshuin.location.displayName(app.request.locale),
+                                 href: path('app_goshuin_show', {id: goshuincho.id, position: goshuin.position}),
                              })|json_encode }}">
                             <div class="minimap h-[clamp(260px,42vh,420px)]" data-map-target="canvas"></div>
                             <ul class="sr">
                                 {% for goshuin in pinned %}
-                                    <li>{{ goshuin.position }}. {{ goshuin.location.romanizedName }}{{ goshuin.receivedOn ? ' · ' ~ goshuin.receivedOn|format_date('long') }}</li>
+                                    <li>{{ goshuin.position }}. {{ goshuin.location.displayName(app.request.locale) }}{{ goshuin.receivedOn ? ' · ' ~ goshuin.receivedOn|format_date('long') }}</li>
                                 {% endfor %}
                             </ul>
                         </div>
@@ -159,17 +159,17 @@
                                     <ol class="grid gap-0">
                                         {% for goshuin in day.goshuins %}
                                             <li>
-                                                <a href="{{ path('app_goshuin_show', {slug: goshuincho.slug, position: goshuin.position}) }}"
+                                                <a href="{{ path('app_goshuin_show', {id: goshuincho.id, position: goshuin.position}) }}"
                                                    class="flex items-baseline gap-3 rounded-xl px-2 py-1.5 no-underline"
                                                    data-index="{{ goshuin.position }}">
                                                     <span class="grid size-[26px] shrink-0 place-items-center rounded-full bg-tile-2 text-[12px] font-bold tabular-nums text-fg-2">{{ goshuin.position }}</span>
                                                     <span class="min-w-0 flex-auto">
                                                         <span class="block truncate text-[14.5px] font-semibold text-fg">
-                                                            {{- goshuin.location.romanizedName -}}
+                                                            {{- goshuin.location.displayName(app.request.locale) -}}
                                                         </span>
                                                         {% set below = [
-                                                            goshuin.location.japaneseName,
-                                                            goshuin.location.city ? goshuin.location.city.name : null,
+                                                            goshuin.location.secondaryName(app.request.locale),
+                                                            goshuin.location.city ? goshuin.location.city.displayName(app.request.locale) : null,
                                                         ]|filter(part => part)|join(' · ') %}
                                                         {% if below is not empty %}
                                                             <span class="block truncate text-xs text-fg-3">{{ below }}</span>

@@ -35,7 +35,7 @@ class DeityFormTest extends AppTestCase
     {
         $rendered = $this->form(DeityFactory::createOne())->render()->toString();
 
-        foreach (['name', 'description', 'photographFile', 'removePhotograph'] as $field) {
+        foreach (['romanizedName', 'description', 'photographFile', 'removePhotograph'] as $field) {
             $this->assertStringContainsString('deity['.$field.']', $rendered, $field.' is missing from the form.');
         }
     }
@@ -51,7 +51,7 @@ class DeityFormTest extends AppTestCase
 
     public function test_the_form_starts_from_the_stored_names(): void
     {
-        $deity = DeityFactory::createOne(['name' => 'Inari', 'additionalNames' => ['稲荷大明神', 'Oinari-san']]);
+        $deity = DeityFactory::createOne(['romanizedName' => 'Inari', 'additionalNames' => ['稲荷大明神', 'Oinari-san']]);
 
         $rendered = $this->form($deity)->render()->toString();
 

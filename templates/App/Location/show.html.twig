@@ -1,16 +1,16 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ location.romanizedName }} · Goshuin{% endblock %}
+{% block title %}{{ location.displayName(app.request.locale) }} · Goshuin{% endblock %}
 
 {% block bar %}
     {% embed 'App/_partials/_bar.html.twig' with {
-        title: location.romanizedName,
-        jp: location.japaneseName,
+        title: location.displayName(app.request.locale),
+        jp: location.secondaryName(app.request.locale),
         kicker: [{label: 'label.locations'|trans, href: path('app_location_index')}],
     } %}
         {% block tools %}
-            {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_location_edit', {slug: location.slug}), aria: 'label.edit'|trans}) }}
-            {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_location_delete', {slug: location.slug}), aria: 'label.delete'|trans}) }}
+            {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_location_edit', {id: location.id}), aria: 'label.edit'|trans}) }}
+            {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_location_delete', {id: location.id}), aria: 'label.delete'|trans}) }}
         {% endblock %}
     {% endembed %}
 {% endblock %}
@@ -19,28 +19,29 @@
     {% set coordinates = location.hasCoordinates ? '%.4f, %.4f'|format(location.latitude, location.longitude) : null %}
 
     {% set deities %}
-        {%- for deity in location.deities -%}
+        {%- for deity in enshrined -%}
             {%- if not loop.first %} · {% endif -%}
-            <a href="{{ path('app_deity_show', {slug: deity.slug}) }}" class="text-fg no-underline hover:text-accent-text">{{ deity.name }}</a>
+            <a href="{{ path('app_deity_show', {id: deity.id}) }}" class="text-fg no-underline hover:text-accent-text">{{ deity.displayName(app.request.locale) }}</a>
         {%- endfor -%}
     {% endset %}
 
     <main class="page stack" data-controller="lightbox">
         {% set record = [
             {label: 'label.romanized_name'|trans, value: location.romanizedName},
-            {label: 'label.japanese_name'|trans, value: location.japaneseName, jp: true},
+            {label: 'label.kanji_name'|trans, value: location.kanjiName, jp: true},
+            {label: 'label.kana_name'|trans, value: location.kanaName, jp: true},
             {label: 'label.location_type'|trans, value: location.type ? ('label.' ~ location.type.value)|trans : null},
             {label: 'label.deities'|trans, value: deities},
             {label: 'label.foundation'|trans, value: location.foundation},
             {
                 label: 'label.city'|trans,
-                value: location.city ? location.city.name : null,
-                href: location.city ? path('app_city_show', {slug: location.city.slug}) : null,
+                value: location.city ? location.city.displayName(app.request.locale) : null,
+                href: location.city ? path('app_city_show', {id: location.city.id}) : null,
             },
             {
                 label: 'label.prefecture'|trans,
-                value: location.prefecture ? location.prefecture.name : null,
-                href: location.prefecture ? path('app_prefecture_show', {slug: location.prefecture.slug}) : null,
+                value: location.prefecture ? location.prefecture.displayName(app.request.locale) : null,
+                href: location.prefecture ? path('app_prefecture_show', {id: location.prefecture.id}) : null,
             },
             {label: 'label.address'|trans, value: location.address},
             {label: 'label.coordinates'|trans, value: coordinates},
@@ -51,7 +52,7 @@
                 {% if location.photographFull %}
                     <section class="tile stage">
                         <a href="{{ location.photograph|image }}" class="block" data-action="lightbox#open">
-                            <img src="{{ location.photographFull|image }}" alt="{{ location.romanizedName }}"
+                            <img src="{{ location.photographFull|image }}" alt="{{ location.displayName(app.request.locale) }}"
                                  class="photograph">
                         </a>
                     </section>
@@ -77,11 +78,11 @@
                          data-map-markers-value="{{ [{
                              latitude: location.latitude,
                              longitude: location.longitude,
-                             label: location.romanizedName,
+                             label: location.displayName(app.request.locale),
                          }]|json_encode }}">
                         <div class="minimap h-[260px]" data-map-target="canvas"></div>
                         <ul class="sr">
-                            <li>{{ location.romanizedName }} · {{ coordinates }}</li>
+                            <li>{{ location.displayName(app.request.locale) }} · {{ coordinates }}</li>
                         </ul>
                     </div>
                 {% endblock %}

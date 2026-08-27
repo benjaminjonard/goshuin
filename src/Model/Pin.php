@@ -12,7 +12,7 @@ final readonly class Pin
         public float $longitude,
         public int $position,
         public string $title,
-        public string $slug,
+        public string $id,
         public ?int $hue,
     ) {
     }

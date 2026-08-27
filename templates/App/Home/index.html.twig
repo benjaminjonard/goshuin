@@ -81,7 +81,7 @@
                                  number: pin.position,
                                  hue: pin.hue,
                                  label: pin.name,
-                                 href: path('app_goshuin_show', {slug: pin.slug, position: pin.position}),
+                                 href: path('app_goshuin_show', {id: pin.id, position: pin.position}),
                              })|json_encode }}">
                             <div class="minimap h-[clamp(280px,46vh,460px)]" data-map-target="canvas"></div>
                             <ul class="sr">

@@ -14,15 +14,15 @@
         noun: 'label.locations',
         back: 'label.all_locations',
         cards: locations|map(location => {
-            href: path('app_location_show', {slug: location.slug}),
+            href: path('app_location_show', {id: location.id}),
             image: location.photographCard,
             crop: true,
             icon: 'pin',
-            title: location.romanizedName,
+            title: location.displayName(app.request.locale),
             below: [
-                location.japaneseName,
-                location.city ? location.city.name : null,
-                location.prefecture ? location.prefecture.name : null,
+                location.secondaryName(app.request.locale),
+                location.city ? location.city.displayName(app.request.locale) : null,
+                location.prefecture ? location.prefecture.displayName(app.request.locale) : null,
             ]|filter(part => part is not empty)|join(' · '),
         }),
     }) }}

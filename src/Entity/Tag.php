@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\Entity\Interface\Sluggable;
+use App\Entity\Interface\Identified;
 use App\Repository\TagRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -16,9 +16,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: TagRepository::class)]
 #[ORM\Table(name: 'gos_tag')]
 #[ORM\UniqueConstraint(name: 'un_tag_name', columns: ['owner_id', 'name'])]
-#[ORM\UniqueConstraint(name: 'un_tag_slug', columns: ['owner_id', 'slug'])]
 #[UniqueEntity(fields: ['name'], message: 'error.tag.not_unique')]
-class Tag implements Sluggable
+class Tag implements Identified
 {
     #[ORM\Id]
     #[ORM\Column(type: Types::STRING, length: 36, unique: true, options: ['fixed' => true])]
@@ -28,10 +27,6 @@ class Tag implements Sluggable
     #[Assert\NotBlank]
     #[Assert\Length(max: 255)]
     private ?string $name = null;
-
-    #[ORM\Column(type: Types::STRING, length: 255)]
-    #[Gedmo\Slug(fields: ['name'], unique: true, unique_base: 'owner')]
-    private ?string $slug = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
@@ -49,18 +44,6 @@ class Tag implements Sluggable
     public function getId(): string
     {
         return $this->id;
-    }
-
-    public function getSlug(): ?string
-    {
-        return $this->slug;
-    }
-
-    public function setSlug(?string $slug): Tag
-    {
-        $this->slug = $slug;
-
-        return $this;
     }
 
     public function getName(): ?string

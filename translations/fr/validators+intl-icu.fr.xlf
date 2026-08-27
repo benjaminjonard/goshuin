@@ -7,28 +7,10 @@
         <target>Un compte utilise déjà cette adresse.</target>
       </segment>
     </unit>
-    <unit id="wvxmrl_" name="error.deity.not_unique">
-      <segment state="translated">
-        <source>A deity already bears that name.</source>
-        <target>Une divinité porte déjà ce nom.</target>
-      </segment>
-    </unit>
     <unit id="G.Ajok3" name="error.tag.not_unique">
       <segment state="translated">
         <source>A tag already bears that name.</source>
         <target>Un tag porte déjà ce nom.</target>
-      </segment>
-    </unit>
-    <unit id="rMOY5KM" name="error.city.not_unique">
-      <segment state="translated">
-        <source>A city already bears that name.</source>
-        <target>Une ville porte déjà ce nom.</target>
-      </segment>
-    </unit>
-    <unit id="05CZgk3" name="error.prefecture.not_unique">
-      <segment state="translated">
-        <source>A prefecture already bears that name.</source>
-        <target>Une préfecture porte déjà ce nom.</target>
       </segment>
     </unit>
     <unit id="cuCspgt" name="error.location_required">
@@ -65,6 +47,12 @@
       <segment state="translated">
         <source>The current password does not match.</source>
         <target>Le mot de passe actuel ne correspond pas.</target>
+      </segment>
+    </unit>
+    <unit id="C0WLPnz" name="error.name_required">
+      <segment state="translated">
+        <source>At least one name is required.</source>
+        <target>Au moins un nom est requis.</target>
       </segment>
     </unit>
   </file>

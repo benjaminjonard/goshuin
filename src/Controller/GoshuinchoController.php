@@ -54,7 +54,7 @@ class GoshuinchoController extends AbstractController
             $this->entityManager->persist($goshuincho);
             $this->entityManager->flush();
 
-            return $this->redirectToRoute('app_goshuincho_show', ['slug' => $goshuincho->getSlug()]);
+            return $this->redirectToRoute('app_goshuincho_show', ['id' => $goshuincho->getId()]);
         }
 
         return $this->render('App/Goshuincho/add.html.twig', [
@@ -62,17 +62,17 @@ class GoshuinchoController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/{slug}', name: 'app_goshuincho_show', methods: ['GET'])]
-    public function show(string $slug): Response
+    #[Route(path: '/{id}', name: 'app_goshuincho_show', methods: ['GET'])]
+    public function show(Request $request, string $id): Response
     {
-        $goshuincho = $this->goshuinchos->withGoshuins($slug);
+        $goshuincho = $this->goshuinchos->withGoshuins($id);
         if ($goshuincho === null) {
             throw $this->createNotFoundException();
         }
 
         return $this->render('App/Goshuincho/show.html.twig', [
             'goshuincho' => $goshuincho,
-            'summary' => $this->goshuinchos->summary($goshuincho),
+            'summary' => $this->goshuinchos->summary($goshuincho, $request->getLocale()),
             'days' => $this->trip->days($goshuincho->getGoshuins()),
             'pinned' => array_values(array_filter(
                 iterator_to_array($goshuincho->getGoshuins()),
@@ -81,8 +81,8 @@ class GoshuinchoController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/{slug}/edit', name: 'app_goshuincho_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Goshuincho $goshuincho): Response
+    #[Route(path: '/{id}/edit', name: 'app_goshuincho_edit', methods: ['GET', 'POST'])]
+    public function edit(Request $request, #[MapEntity(expr: 'repository.findById(id)')] Goshuincho $goshuincho): Response
     {
         $form = $this->createForm(GoshuinchoType::class, $goshuincho);
         $form->handleRequest($request);
@@ -96,7 +96,7 @@ class GoshuinchoController extends AbstractController
                 $this->positioner->order($goshuincho, $order);
             }
 
-            return $this->redirectToRoute('app_goshuincho_show', ['slug' => $goshuincho->getSlug()]);
+            return $this->redirectToRoute('app_goshuincho_show', ['id' => $goshuincho->getId()]);
         }
 
         return $this->render('App/Goshuincho/edit.html.twig', [
@@ -105,10 +105,10 @@ class GoshuinchoController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/{slug}/delete', name: 'app_goshuincho_delete', methods: ['GET', 'POST'])]
-    public function delete(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Goshuincho $goshuincho): Response
+    #[Route(path: '/{id}/delete', name: 'app_goshuincho_delete', methods: ['GET', 'POST'])]
+    public function delete(Request $request, #[MapEntity(expr: 'repository.findById(id)')] Goshuincho $goshuincho): Response
     {
-        $form = $this->createDeleteForm('app_goshuincho_delete', ['slug' => $goshuincho->getSlug()]);
+        $form = $this->createDeleteForm('app_goshuincho_delete', ['id' => $goshuincho->getId()]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

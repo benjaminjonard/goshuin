@@ -13,7 +13,7 @@
         nothing: 'label.home_empty',
         noun: 'label.goshuincho',
         cards: goshuinchos|map(goshuincho => {
-            href: path('app_goshuincho_show', {slug: goshuincho.slug}),
+            href: path('app_goshuincho_show', {id: goshuincho.id}),
             image: goshuincho.coverFrontCard,
             icon: 'goshuincho',
             title: goshuincho.title,

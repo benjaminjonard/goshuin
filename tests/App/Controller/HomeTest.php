@@ -83,10 +83,10 @@ class HomeTest extends AppTestCase
             'purchasedAt' => new \DateTimeImmutable('2025-03-12'),
             'boughtAt' => LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']),
         ]);
-        $kyoto = PrefectureFactory::createOne(['name' => 'Kyōto']);
-        $this->fill($goshuincho, ['Fushimi Inari-taisha', 'Kiyomizu-dera'], '2025-03-14', CityFactory::createOne(['name' => 'Kyōto', 'prefecture' => $kyoto]), $kyoto);
+        $kyoto = PrefectureFactory::createOne(['romanizedName' => 'Kyōto']);
+        $this->fill($goshuincho, ['Fushimi Inari-taisha', 'Kiyomizu-dera'], '2025-03-14', CityFactory::createOne(['romanizedName' => 'Kyōto', 'prefecture' => $kyoto]), $kyoto);
 
-        $card = $this->client->request(Request::METHOD_GET, '/')->filter('main a[href="/goshuincho/'.$goshuincho->getSlug().'"]');
+        $card = $this->client->request(Request::METHOD_GET, '/')->filter('main a[href="/goshuincho/'.$goshuincho->getId().'"]');
 
         $this->assertCount(1, $card, 'The goshuincho has no card, or more than one.');
         $this->assertSame('Kansai, spring 2025', trim($card->text()), 'The card states more than the name of its goshuincho.');
@@ -129,7 +129,7 @@ class HomeTest extends AppTestCase
         $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Nothing in it yet']);
 
-        $card = $this->client->request(Request::METHOD_GET, '/')->filter('main a[href="/goshuincho/'.$goshuincho->getSlug().'"]');
+        $card = $this->client->request(Request::METHOD_GET, '/')->filter('main a[href="/goshuincho/'.$goshuincho->getId().'"]');
 
         $this->assertCount(1, $card, 'A goshuincho holding nothing lost its card.');
         $this->assertSame('Nothing in it yet', trim($card->text()), 'A count or a period was invented for a goshuincho holding nothing.');
@@ -169,10 +169,10 @@ class HomeTest extends AppTestCase
         $this->client->loginUser($user);
         $kansai = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kansai']);
         $kanto = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kantō']);
-        $kyoto = PrefectureFactory::createOne(['name' => 'Kyōto']);
+        $kyoto = PrefectureFactory::createOne(['romanizedName' => 'Kyōto']);
         $shared = LocationFactory::createOne([
             'romanizedName' => 'Twice over',
-            'city' => CityFactory::createOne(['name' => 'Kyōto', 'prefecture' => $kyoto]),
+            'city' => CityFactory::createOne(['romanizedName' => 'Kyōto', 'prefecture' => $kyoto]),
             'prefecture' => $kyoto,
         ]);
 
@@ -180,8 +180,8 @@ class HomeTest extends AppTestCase
         $this->collect($kansai, $shared, '2025-03-15');
         $this->collect($kanto, LocationFactory::createOne([
             'romanizedName' => 'Elsewhere',
-            'city' => CityFactory::createOne(['name' => 'Kamakura']),
-            'prefecture' => PrefectureFactory::createOne(['name' => 'Kanagawa']),
+            'city' => CityFactory::createOne(['romanizedName' => 'Kamakura']),
+            'prefecture' => PrefectureFactory::createOne(['romanizedName' => 'Kanagawa']),
         ]), '2025-04-01');
 
         $totals = $this->client->request(Request::METHOD_GET, '/')->filter('main .tile.flex');
@@ -201,11 +201,11 @@ class HomeTest extends AppTestCase
         $user = UserFactory::createOne();
         $this->client->loginUser($user);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kansai']);
-        $kyoto = PrefectureFactory::createOne(['name' => 'Kyōto']);
+        $kyoto = PrefectureFactory::createOne(['romanizedName' => 'Kyōto']);
 
         $this->collect($goshuincho, LocationFactory::createOne([
             'romanizedName' => 'Kiyomizu-dera',
-            'city' => CityFactory::createOne(['name' => 'Kyōto', 'prefecture' => $kyoto]),
+            'city' => CityFactory::createOne(['romanizedName' => 'Kyōto', 'prefecture' => $kyoto]),
             'prefecture' => $kyoto,
         ]), '2025-03-14');
 
@@ -227,8 +227,8 @@ class HomeTest extends AppTestCase
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kansai']);
         $this->collect($goshuincho, LocationFactory::createOne([
             'romanizedName' => 'Somewhere',
-            'city' => CityFactory::createOne(['name' => 'Kyōto']),
-            'prefecture' => PrefectureFactory::createOne(['name' => 'Kyōto']),
+            'city' => CityFactory::createOne(['romanizedName' => 'Kyōto']),
+            'prefecture' => PrefectureFactory::createOne(['romanizedName' => 'Kyōto']),
         ]), '2025-03-14');
 
         $links = $this->client->request(Request::METHOD_GET, '/')
@@ -252,11 +252,11 @@ class HomeTest extends AppTestCase
 
         $user = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'user@example.com']);
         $kansai = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kansai']);
-        $kyoto = PrefectureFactory::createOne(['name' => 'Kyōto']);
+        $kyoto = PrefectureFactory::createOne(['romanizedName' => 'Kyōto']);
 
         $this->collect($kansai, LocationFactory::createOne([
             'romanizedName' => 'Kiyomizu-dera',
-            'city' => CityFactory::createOne(['name' => 'Kyōto', 'prefecture' => $kyoto]),
+            'city' => CityFactory::createOne(['romanizedName' => 'Kyōto', 'prefecture' => $kyoto]),
             'prefecture' => $kyoto,
         ]), '2025-03-14');
 
@@ -267,11 +267,11 @@ class HomeTest extends AppTestCase
         );
 
         $kanto = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kantō']);
-        $kanagawa = PrefectureFactory::createOne(['name' => 'Kanagawa']);
+        $kanagawa = PrefectureFactory::createOne(['romanizedName' => 'Kanagawa']);
 
         $this->collect($kanto, LocationFactory::createOne([
             'romanizedName' => 'Tsurugaoka Hachimangū',
-            'city' => CityFactory::createOne(['name' => 'Kamakura', 'prefecture' => $kanagawa]),
+            'city' => CityFactory::createOne(['romanizedName' => 'Kamakura', 'prefecture' => $kanagawa]),
             'prefecture' => $kanagawa,
         ]), '2025-04-01');
 
@@ -331,7 +331,7 @@ class HomeTest extends AppTestCase
         $this->assertSame([1, 2, 3], array_column($markers, 'number'), 'The markers are not numbered after the page each goshuin sits on.');
         $this->assertSame(12, $markers[0]['hue'], 'The marker does not carry the colour of the goshuincho it belongs to.');
         $this->assertSame(
-            '/goshuincho/'.$kansai->getSlug().'/goshuin/1',
+            '/goshuincho/'.$kansai->getId().'/goshuin/1',
             $markers[0]['href'],
             'The marker does not lead to the goshuin it stands for.',
         );
@@ -363,7 +363,7 @@ class HomeTest extends AppTestCase
         $this->assertCount(2, $markers, 'A place two goshuincho share does not carry a marker for each goshuin.');
         $this->assertSame([12, 210], array_column($markers, 'hue'), 'The markers do not each take the colour of their own goshuincho.');
         $this->assertSame(
-            ['/goshuincho/'.$kansai->getSlug().'/goshuin/1', '/goshuincho/'.$kanto->getSlug().'/goshuin/1'],
+            ['/goshuincho/'.$kansai->getId().'/goshuin/1', '/goshuincho/'.$kanto->getId().'/goshuin/1'],
             array_column($markers, 'href'),
             'The markers do not each lead to their own goshuin.',
         );

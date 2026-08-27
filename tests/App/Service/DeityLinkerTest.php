@@ -27,7 +27,7 @@ class DeityLinkerTest extends AppTestCase
 
     public function test_a_name_becomes_a_link_to_the_deity(): void
     {
-        $inari = DeityFactory::createOne(['name' => 'Inari']);
+        $inari = DeityFactory::createOne(['romanizedName' => 'Inari']);
 
         $this->assertSame(
             'Received at a shrine to '.$this->anchor($inari, 'Inari').'.',
@@ -35,9 +35,33 @@ class DeityLinkerTest extends AppTestCase
         );
     }
 
+    public function test_each_of_the_three_names_reaches_the_deity(): void
+    {
+        $inari = DeityFactory::createOne([
+            'romanizedName' => 'Inari',
+            'kanjiName' => '稲荷',
+            'kanaName' => 'いなり',
+        ]);
+
+        foreach (['Inari', '稲荷', 'いなり'] as $name) {
+            $this->assertSame(
+                $this->anchor($inari, $name),
+                $this->link($name),
+                sprintf('The deity is not reached from "%s".', $name),
+            );
+        }
+    }
+
+    public function test_a_deity_named_in_one_script_alone_is_still_reached(): void
+    {
+        $hachiman = DeityFactory::createOne(['romanizedName' => null, 'kanjiName' => '八幡神', 'kanaName' => null]);
+
+        $this->assertSame($this->anchor($hachiman, '八幡神'), $this->link('八幡神'));
+    }
+
     public function test_any_of_the_names_reaches_the_same_deity(): void
     {
-        $inari = DeityFactory::createOne(['name' => 'Inari', 'additionalNames' => ['稲荷大明神', 'Oinari-san']]);
+        $inari = DeityFactory::createOne(['romanizedName' => 'Inari', 'additionalNames' => ['稲荷大明神', 'Oinari-san']]);
 
         $this->assertSame($this->anchor($inari, '稲荷大明神'), $this->link('稲荷大明神'));
         $this->assertSame($this->anchor($inari, 'Oinari-san'), $this->link('Oinari-san'));
@@ -45,7 +69,7 @@ class DeityLinkerTest extends AppTestCase
 
     public function test_a_name_is_read_whatever_its_case(): void
     {
-        $inari = DeityFactory::createOne(['name' => 'Inari']);
+        $inari = DeityFactory::createOne(['romanizedName' => 'Inari']);
 
         $this->assertSame($this->anchor($inari, 'INARI'), $this->link('INARI'));
         $this->assertSame($this->anchor($inari, 'inari'), $this->link('inari'));
@@ -53,8 +77,8 @@ class DeityLinkerTest extends AppTestCase
 
     public function test_the_fullest_name_wins_where_two_overlap(): void
     {
-        $short = DeityFactory::createOne(['name' => '稲荷']);
-        $full = DeityFactory::createOne(['name' => '稲荷大明神']);
+        $short = DeityFactory::createOne(['romanizedName' => '稲荷']);
+        $full = DeityFactory::createOne(['romanizedName' => '稲荷大明神']);
 
         $this->assertSame($this->anchor($full, '稲荷大明神'), $this->link('稲荷大明神'));
         $this->assertSame($this->anchor($short, '稲荷'), $this->link('稲荷'));
@@ -62,15 +86,15 @@ class DeityLinkerTest extends AppTestCase
 
     public function test_a_latin_name_must_stand_on_its_own(): void
     {
-        DeityFactory::createOne(['name' => 'Inari']);
+        DeityFactory::createOne(['romanizedName' => 'Inari']);
 
         $this->assertSame('Inarite', $this->link('Inarite'), 'A name was read inside a longer word.');
         $this->assertSame('Kitsune-Inarism', $this->link('Kitsune-Inarism'));
     }
 
-    public function test_a_japanese_name_is_read_inside_the_words_around_it(): void
+    public function test_a_kanji_name_is_read_inside_the_words_around_it(): void
     {
-        $deity = DeityFactory::createOne(['name' => '八幡神']);
+        $deity = DeityFactory::createOne(['romanizedName' => '八幡神']);
 
         $this->assertSame(
             '鎌倉の'.$this->anchor($deity, '八幡神').'を祀る',
@@ -80,8 +104,8 @@ class DeityLinkerTest extends AppTestCase
 
     public function test_a_deity_is_not_linked_to_the_page_it_is_already_on(): void
     {
-        $inari = DeityFactory::createOne(['name' => 'Inari']);
-        $hachiman = DeityFactory::createOne(['name' => '八幡神']);
+        $inari = DeityFactory::createOne(['romanizedName' => 'Inari']);
+        $hachiman = DeityFactory::createOne(['romanizedName' => '八幡神']);
 
         $this->assertSame(
             'Inari and '.$this->anchor($hachiman, '八幡神'),
@@ -92,10 +116,10 @@ class DeityLinkerTest extends AppTestCase
     public function test_a_deity_past_the_first_page_is_still_linked(): void
     {
         for ($at = 1; $at <= 24; ++$at) {
-            DeityFactory::createOne(['name' => sprintf('Aaa %02d', $at)]);
+            DeityFactory::createOne(['romanizedName' => sprintf('Aaa %02d', $at)]);
         }
 
-        $late = DeityFactory::createOne(['name' => 'Zzz Inari']);
+        $late = DeityFactory::createOne(['romanizedName' => 'Zzz Inari']);
 
         $this->assertSame(
             $this->anchor($late, 'Zzz Inari'),
@@ -106,14 +130,14 @@ class DeityLinkerTest extends AppTestCase
 
     public function test_a_note_naming_nobody_is_left_alone(): void
     {
-        DeityFactory::createOne(['name' => 'Inari']);
+        DeityFactory::createOne(['romanizedName' => 'Inari']);
 
         $this->assertSame('A quiet morning.', $this->link('A quiet morning.'));
     }
 
     public function test_a_note_is_escaped_and_its_line_breaks_kept(): void
     {
-        $inari = DeityFactory::createOne(['name' => 'Inari']);
+        $inari = DeityFactory::createOne(['romanizedName' => 'Inari']);
 
         $this->assertSame(
             '&lt;script&gt;'.$this->anchor($inari, 'Inari').' &amp; foxes&lt;/script&gt;',
@@ -126,7 +150,7 @@ class DeityLinkerTest extends AppTestCase
 
     public function test_an_empty_note_says_nothing(): void
     {
-        DeityFactory::createOne(['name' => 'Inari']);
+        DeityFactory::createOne(['romanizedName' => 'Inari']);
 
         $this->assertSame('', $this->link(null));
         $this->assertSame('', $this->link('   '));
@@ -141,7 +165,7 @@ class DeityLinkerTest extends AppTestCase
     {
         return sprintf(
             '<a href="/deity/%s" class="font-semibold text-accent-text no-underline hover:underline">%s</a>',
-            $deity->getSlug(),
+            $deity->getId(),
             $text,
         );
     }

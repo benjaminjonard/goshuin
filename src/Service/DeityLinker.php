@@ -39,7 +39,7 @@ final readonly class DeityLinker
 
             $html .= $deity === null
                 ? $this->escaped($part)
-                : sprintf(self::ANCHOR, $this->escaped($this->urls->generate('app_deity_show', ['slug' => $deity->getSlug()])), $this->escaped($part));
+                : sprintf(self::ANCHOR, $this->escaped($this->urls->generate('app_deity_show', ['id' => $deity->getId()])), $this->escaped($part));
         }
 
         return nl2br($html);
@@ -54,12 +54,12 @@ final readonly class DeityLinker
     {
         $named = [];
 
-        foreach ($this->deities->findBy([], ['name' => 'ASC']) as $deity) {
+        foreach ($this->deities->findBy([], ['romanizedName' => 'ASC']) as $deity) {
             if ($except !== null && $deity->getId() === $except->getId()) {
                 continue;
             }
 
-            foreach ([$deity->getName(), ...$deity->getAdditionalNames()] as $name) {
+            foreach ([$deity->getRomanizedName(), $deity->getKanjiName(), $deity->getKanaName(), ...$deity->getAdditionalNames()] as $name) {
                 $name = trim((string) $name);
 
                 if ($name !== '') {

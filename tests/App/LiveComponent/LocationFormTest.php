@@ -20,6 +20,7 @@ use App\Twig\Components\LocationForm;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\UX\LiveComponent\Test\InteractsWithLiveComponents;
 use Symfony\UX\LiveComponent\Test\TestLiveComponent;
@@ -49,7 +50,7 @@ class LocationFormTest extends AppTestCase
     {
         $rendered = $this->form()->render()->toString();
 
-        foreach (['romanizedName', 'japaneseName', 'type', 'city', 'prefecture', 'address', 'latitude', 'longitude'] as $field) {
+        foreach (['romanizedName', 'kanjiName', 'type', 'city', 'prefecture', 'address', 'latitude', 'longitude'] as $field) {
             $this->assertStringContainsString('location['.$field.']', $rendered, $field.' is missing from the creation form.');
         }
 
@@ -61,7 +62,7 @@ class LocationFormTest extends AppTestCase
     {
         $rendered = $this->form(['location' => LocationFactory::createOne()])->render()->toString();
 
-        $bound = ['romanizedName', 'japaneseName', 'type', 'city', 'prefecture', 'address', 'latitude', 'longitude', 'foundation', 'notes'];
+        $bound = ['romanizedName', 'kanjiName', 'type', 'city', 'prefecture', 'address', 'latitude', 'longitude', 'foundation', 'notes'];
 
         foreach ($bound as $field) {
             $this->assertMatchesRegularExpression(
@@ -201,7 +202,7 @@ class LocationFormTest extends AppTestCase
 
     public function test_editing_starts_from_what_is_stored(): void
     {
-        $location = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'japaneseName' => '清水寺', 'city' => CityFactory::createOne(['name' => 'Kyōto'])]);
+        $location = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'kanjiName' => '清水寺', 'city' => CityFactory::createOne(['romanizedName' => 'Kyōto'])]);
 
         $rendered = $this->form(['location' => $location])->render()->toString();
 
@@ -214,7 +215,7 @@ class LocationFormTest extends AppTestCase
     {
         $component = $this->form()->call('usePlace', [
             'placeName' => 'Kiyomizu-dera',
-            'japaneseName' => '清水寺',
+            'kanjiName' => '清水寺',
             'city' => 'Kyoto',
             'prefecture' => 'Kyoto',
             'address' => 'Kiyomizu Slope, Kyoto, Japan',
@@ -225,7 +226,7 @@ class LocationFormTest extends AppTestCase
         $values = $component->component()->formValues;
 
         $this->assertSame('Kiyomizu-dera', $values['romanizedName']);
-        $this->assertSame('清水寺', $values['japaneseName']);
+        $this->assertSame('清水寺', $values['kanjiName']);
         $this->assertSame('Kyoto', $values['city']);
         $this->assertSame('Kyoto', $values['prefecture']);
         $this->assertSame('Kiyomizu Slope, Kyoto, Japan', $values['address']);
@@ -236,11 +237,11 @@ class LocationFormTest extends AppTestCase
 
     public function test_a_chosen_place_overwrites_what_was_already_there(): void
     {
-        $location = LocationFactory::createOne(['romanizedName' => 'Typed by hand', 'city' => CityFactory::createOne(['name' => 'Somewhere'])]);
+        $location = LocationFactory::createOne(['romanizedName' => 'Typed by hand', 'city' => CityFactory::createOne(['romanizedName' => 'Somewhere'])]);
 
         $values = $this->form(['location' => $location])->call('usePlace', [
             'placeName' => 'Kiyomizu-dera',
-            'japaneseName' => '',
+            'kanjiName' => '',
             'city' => 'Kyoto',
             'prefecture' => 'Kyoto',
             'address' => '',
@@ -250,14 +251,14 @@ class LocationFormTest extends AppTestCase
 
         $this->assertSame('Kiyomizu-dera', $values['romanizedName'], 'A hand-typed name survived a chosen result.');
         $this->assertSame('Kyoto', $values['city']);
-        $this->assertSame('', $values['japaneseName'], 'A value the geocoder does not know was left behind.');
+        $this->assertSame('', $values['kanjiName'], 'A value the geocoder does not know was left behind.');
     }
 
     public function test_a_place_whose_name_infers_no_type_leaves_it_unrecorded(): void
     {
         $values = $this->form()->call('usePlace', [
             'placeName' => 'Some Place',
-            'japaneseName' => '',
+            'kanjiName' => '',
             'city' => '',
             'prefecture' => '',
             'address' => '',
@@ -273,7 +274,7 @@ class LocationFormTest extends AppTestCase
         $component = $this->form()
             ->set('location', [
                 'romanizedName' => 'Kiyomizu-dera',
-                'japaneseName' => '清水寺',
+                'kanjiName' => '清水寺',
                 'type' => 'temple',
                 'city' => 'Kyōto',
                 'prefecture' => 'Kyōto',
@@ -289,7 +290,7 @@ class LocationFormTest extends AppTestCase
 
         $this->assertNotNull($created, 'Nothing was created.');
         $this->assertSame(Kind::Temple, $created->getType());
-        $this->assertSame('清水寺', $created->getJapaneseName());
+        $this->assertSame('清水寺', $created->getKanjiName());
         $this->assertSame(34.9949, $created->getLatitude());
         $this->assertNotNull($component);
     }
@@ -312,6 +313,49 @@ class LocationFormTest extends AppTestCase
 
         $this->assertStringNotContainsString('Find the place', $rendered, 'The address search appeared without a geocoder.');
         $this->assertStringContainsString('location[romanizedName]', $rendered, 'The manual fields disappeared with it.');
+    }
+
+    public function test_the_leading_name_drives_the_place_search_and_the_others_do_not(): void
+    {
+        $rendered = $this->form()->render()->toString();
+
+        $this->assertMatchesRegularExpression(
+            '/data-model="debounce\(400\)\|location\[romanizedName\]"/',
+            $rendered,
+            'The romanized name does not drive the search in a latin locale.',
+        );
+
+        foreach (['kanjiName', 'kanaName'] as $field) {
+            $this->assertMatchesRegularExpression(
+                '/data-model="norender\|location\['.$field.'\]"/',
+                $rendered,
+                $field.' searches the geocoder although it does not lead.',
+            );
+        }
+    }
+
+    public function test_a_duplicate_is_noticed_whatever_the_script_it_was_stored_in(): void
+    {
+        LocationFactory::createOne(['romanizedName' => null, 'kanjiName' => '清水寺', 'kanaName' => 'きよみずでら']);
+
+        foreach (['清水寺', 'きよみずでら'] as $typed) {
+            $component = $this->form()->set('location', ['romanizedName' => $typed]);
+
+            $this->assertCount(
+                1,
+                $component->component()->getDuplicates(),
+                sprintf('A location stored in another script was not noticed from "%s".', $typed),
+            );
+        }
+    }
+
+    public function test_a_name_no_location_bears_is_not_taken_for_a_duplicate(): void
+    {
+        LocationFactory::createOne(['romanizedName' => null, 'kanjiName' => '清水寺']);
+
+        $component = $this->form()->set('location', ['romanizedName' => '伏見稲荷大社']);
+
+        $this->assertCount(0, $component->component()->getDuplicates(), 'An unrelated name was taken for a duplicate.');
     }
 
     public function test_a_probable_duplicate_is_warned_about_without_blocking(): void
@@ -480,6 +524,7 @@ class LocationFormTest extends AppTestCase
             new LocationTypeGuesser(),
             new Geocoder($client ?? new MockHttpClient($responses), 'https://photon.example', new PrefectureNamer()),
             $container->get(EntityManagerInterface::class),
+            $container->get(RequestStack::class),
         );
     }
 
@@ -499,7 +544,7 @@ class LocationFormTest extends AppTestCase
     private function store(string $name): Deity
     {
         $manager = static::getContainer()->get(EntityManagerInterface::class);
-        $deity = new Deity()->setName($name);
+        $deity = new Deity()->setRomanizedName($name);
 
         $manager->persist($deity);
         $manager->flush();

@@ -29,7 +29,7 @@ class CityTest extends AppTestCase
     {
         $city = CityFactory::createOne(['owner' => UserFactory::createOne()]);
 
-        foreach (['/cities', '/city/'.$city->getSlug(), '/city/'.$city->getSlug().'/edit', '/city/'.$city->getSlug().'/delete'] as $url) {
+        foreach (['/cities', '/city/'.$city->getId(), '/city/'.$city->getId().'/edit', '/city/'.$city->getId().'/delete'] as $url) {
             $this->client->request(Request::METHOD_GET, $url);
 
             $this->assertResponseRedirects();
@@ -41,11 +41,11 @@ class CityTest extends AppTestCase
     public function test_a_city_another_collector_keeps_is_out_of_reach(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $slug = CityFactory::createOne()->getSlug();
+        $id = CityFactory::createOne()->getId();
 
         $this->client->loginUser(UserFactory::createOne());
 
-        foreach (['/city/'.$slug, '/city/'.$slug.'/edit', '/city/'.$slug.'/delete'] as $url) {
+        foreach (['/city/'.$id, '/city/'.$id.'/edit', '/city/'.$id.'/delete'] as $url) {
             $this->client->request(Request::METHOD_GET, $url);
 
             $this->assertResponseStatusCodeSame(404, sprintf('%s answered for a city kept by another collector.', $url));
@@ -55,8 +55,8 @@ class CityTest extends AppTestCase
     public function test_the_index_lists_the_cities_and_opens_each_one(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        CityFactory::createOne(['name' => 'Nara']);
-        $kamakura = CityFactory::createOne(['name' => 'Kamakura', 'prefecture' => PrefectureFactory::createOne(['name' => 'Kanagawa'])]);
+        CityFactory::createOne(['romanizedName' => 'Nara']);
+        $kamakura = CityFactory::createOne(['romanizedName' => 'Kamakura', 'prefecture' => PrefectureFactory::createOne(['romanizedName' => 'Kanagawa'])]);
 
         $crawler = $this->client->request(Request::METHOD_GET, '/cities');
 
@@ -64,9 +64,36 @@ class CityTest extends AppTestCase
         $this->assertCount(2, $crawler->filter('main ul li a'), 'The index does not list every city.');
 
         $first = $crawler->filter('main ul li a')->first();
-        $this->assertSame('/city/'.$kamakura->getSlug(), $first->attr('href'), 'A city does not open its own page.');
+        $this->assertSame('/city/'.$kamakura->getId(), $first->attr('href'), 'A city does not open its own page.');
         $this->assertStringContainsString('Kamakura', $first->text());
         $this->assertStringContainsString('Kanagawa', $first->text(), 'The index does not say which prefecture holds the city.');
+    }
+
+    public function test_the_index_is_ordered_by_the_reading_when_it_is_read_in_japanese(): void
+    {
+        UserFactory::createOne(['email' => 'user@example.com', 'locale' => 'ja']);
+
+        $login = $this->client->request(Request::METHOD_GET, '/login');
+        $this->client->submit($login->filter('form')->form(), [
+            '_username' => 'user@example.com',
+            '_password' => 'a-long-enough-password',
+        ]);
+        $this->client->followRedirect();
+
+        foreach ([
+            ['romanizedName' => 'Yokohama', 'kanjiName' => '横浜市', 'kanaName' => 'よこはま'],
+            ['romanizedName' => 'Kamakura', 'kanjiName' => '鎌倉市', 'kanaName' => 'かまくら'],
+            ['romanizedName' => 'Nara', 'kanjiName' => '奈良市', 'kanaName' => 'なら'],
+        ] as $names) {
+            CityFactory::createOne($names);
+        }
+
+        $named = $this->client->request(Request::METHOD_GET, '/cities')
+            ->filter('main ul li a')
+            ->each(static fn (Crawler $row): string => trim($row->text()))
+        ;
+
+        $this->assertSame(['鎌倉市', '奈良市', '横浜市'], $named, 'The index is not ordered by the kana reading.');
     }
 
     public function test_the_index_is_ordered_by_the_name(): void
@@ -74,7 +101,7 @@ class CityTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
 
         foreach (['Yokohama', 'Kamakura', 'Nara'] as $name) {
-            CityFactory::createOne(['name' => $name]);
+            CityFactory::createOne(['romanizedName' => $name]);
         }
 
         $names = $this->client->request(Request::METHOD_GET, '/cities')
@@ -90,7 +117,7 @@ class CityTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
 
         foreach (range(1, 26) as $rank) {
-            CityFactory::createOne(['name' => sprintf('Machi %02d', $rank)]);
+            CityFactory::createOne(['romanizedName' => sprintf('Machi %02d', $rank)]);
         }
 
         $first = $this->client->request(Request::METHOD_GET, '/cities');
@@ -128,8 +155,8 @@ class CityTest extends AppTestCase
     public function test_the_search_matches_any_part_of_a_name(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        CityFactory::createOne(['name' => 'Nara']);
-        CityFactory::createOne(['name' => 'Kamakura']);
+        CityFactory::createOne(['romanizedName' => 'Nara']);
+        CityFactory::createOne(['romanizedName' => 'Kamakura']);
 
         foreach (['makur' => 'Kamakura', 'KAMA' => 'Kamakura', 'nar' => 'Nara'] as $term => $expected) {
             $rows = $this->client->request(Request::METHOD_GET, '/cities?q='.urlencode((string) $term))->filter('main ul li a');
@@ -142,7 +169,7 @@ class CityTest extends AppTestCase
     public function test_a_search_matching_nothing_says_so_and_leads_back(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        CityFactory::createOne(['name' => 'Nara']);
+        CityFactory::createOne(['romanizedName' => 'Nara']);
 
         $crawler = $this->client->request(Request::METHOD_GET, '/cities?q=nobody');
 
@@ -154,13 +181,13 @@ class CityTest extends AppTestCase
     public function test_a_city_page_names_it_counts_its_locations_and_leads_to_them(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $kanagawa = PrefectureFactory::createOne(['name' => 'Kanagawa']);
-        $kamakura = CityFactory::createOne(['name' => 'Kamakura', 'prefecture' => $kanagawa]);
+        $kanagawa = PrefectureFactory::createOne(['romanizedName' => 'Kanagawa']);
+        $kamakura = CityFactory::createOne(['romanizedName' => 'Kamakura', 'prefecture' => $kanagawa]);
         LocationFactory::createOne(['romanizedName' => 'Tsurugaoka Hachimangū', 'city' => $kamakura]);
         LocationFactory::createOne(['romanizedName' => 'Hase-dera', 'city' => $kamakura]);
         LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$kamakura->getSlug());
+        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$kamakura->getId());
 
         $this->assertResponseIsSuccessful();
         $this->assertSame('Kamakura', trim($crawler->filter('h1')->text()), 'The page does not name the city.');
@@ -169,17 +196,17 @@ class CityTest extends AppTestCase
         );
 
         $this->assertSame([
-            ['/prefecture/'.$kanagawa->getSlug(), 'Kanagawa Prefecture'],
-            ['/locations?city='.$kamakura->getSlug(), '2 locations'],
+            ['/prefecture/'.$kanagawa->getId(), 'Kanagawa Prefecture'],
+            ['/locations?city='.$kamakura->getId(), '2 locations'],
         ], $tiles, 'The page does not name its prefecture and count its locations, nor lead to either.');
     }
 
     public function test_a_city_holding_no_location_counts_nothing(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $city = CityFactory::createOne(['name' => 'Nara']);
+        $city = CityFactory::createOne(['romanizedName' => 'Nara']);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$city->getSlug());
+        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$city->getId());
 
         $this->assertResponseIsSuccessful();
         $this->assertCount(0, $crawler->filter('main a.tile'), 'A count was invented for a city holding nothing.');
@@ -188,11 +215,11 @@ class CityTest extends AppTestCase
     public function test_the_locations_of_a_city_are_listed_on_their_own_page(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $kamakura = CityFactory::createOne(['name' => 'Kamakura']);
+        $kamakura = CityFactory::createOne(['romanizedName' => 'Kamakura']);
         LocationFactory::createOne(['romanizedName' => 'Hase-dera', 'city' => $kamakura]);
         LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/locations?city='.$kamakura->getSlug());
+        $crawler = $this->client->request(Request::METHOD_GET, '/locations?city='.$kamakura->getId());
 
         $this->assertResponseIsSuccessful();
         $this->assertCount(1, $crawler->filter('main ul li a'), 'The list is not narrowed to the locations of the city.');
@@ -223,7 +250,7 @@ class CityTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
         $city = CityFactory::createOne(['notes' => 'The old capital.']);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$city->getSlug());
+        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$city->getId());
 
         $this->assertResponseIsSuccessful();
         $this->assertCount(0, $crawler->filter('main form'), 'A collector was offered something to change.');
@@ -233,68 +260,67 @@ class CityTest extends AppTestCase
     public function test_a_city_is_renamed_and_moved_to_another_prefecture(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        PrefectureFactory::createOne(['name' => 'Kyōto']);
-        $kanagawa = PrefectureFactory::createOne(['name' => 'Kanagawa']);
-        $city = CityFactory::createOne(['name' => 'Kamakura']);
+        PrefectureFactory::createOne(['romanizedName' => 'Kyōto']);
+        $kanagawa = PrefectureFactory::createOne(['romanizedName' => 'Kanagawa']);
+        $city = CityFactory::createOne(['romanizedName' => 'Kamakura']);
         $location = LocationFactory::createOne(['romanizedName' => 'Hase-dera', 'city' => $city]);
 
-        $this->client->request(Request::METHOD_GET, '/city/'.$city->getSlug().'/edit');
+        $this->client->request(Request::METHOD_GET, '/city/'.$city->getId().'/edit');
         $this->client->submitForm('city_submit', [
-            'city[name]' => 'Kamakura-shi',
+            'city[romanizedName]' => 'Kamakura-shi',
             'city[prefecture]' => $kanagawa->getId(),
             'city[notes]' => 'Seat of the shogunate.',
         ]);
 
-        $this->assertResponseRedirects('/city/'.$city->getSlug());
+        $this->assertResponseRedirects('/city/'.$city->getId());
 
         $this->manager()->clear();
         $stored = static::getContainer()->get(CityRepository::class)->find($city->getId());
 
-        $this->assertSame('Kamakura-shi', $stored->getName(), 'The new name was not stored.');
-        $this->assertSame('Kanagawa', $stored->getPrefecture()->getName(), 'The city was not moved.');
+        $this->assertSame('Kamakura-shi', $stored->getRomanizedName(), 'The new name was not stored.');
+        $this->assertSame('Kanagawa', $stored->getPrefecture()->getRomanizedName(), 'The city was not moved.');
         $this->assertSame('Seat of the shogunate.', $stored->getNotes(), 'The notes were not stored.');
 
-        $page = $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug())->filter('main')->text();
+        $page = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId())->filter('main')->text();
         $this->assertStringContainsString('Kamakura-shi', $page, 'The renamed city did not reach the location sitting in it.');
     }
 
     public function test_the_form_refuses_a_city_with_no_name(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $city = CityFactory::createOne(['name' => 'Kamakura']);
+        $city = CityFactory::createOne(['romanizedName' => 'Kamakura']);
 
-        $this->client->request(Request::METHOD_GET, '/city/'.$city->getSlug().'/edit');
-        $this->client->submitForm('city_submit', ['city[name]' => '']);
+        $this->client->request(Request::METHOD_GET, '/city/'.$city->getId().'/edit');
+        $this->client->submitForm('city_submit', ['city[romanizedName]' => '']);
 
         $this->assertResponseStatusCodeSame(422);
 
         $this->manager()->clear();
-        $this->assertSame('Kamakura', static::getContainer()->get(CityRepository::class)->find($city->getId())->getName(), 'A refused submission still wrote the city away without a name.');
+        $this->assertSame('Kamakura', static::getContainer()->get(CityRepository::class)->find($city->getId())->getRomanizedName(), 'A refused submission still wrote the city away without a name.');
     }
 
-    public function test_the_form_refuses_a_name_another_city_already_bears(): void
+    public function test_a_name_another_city_already_bears_is_accepted(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        CityFactory::createOne(['name' => 'Nara']);
-        $kamakura = CityFactory::createOne(['name' => 'Kamakura']);
+        CityFactory::createOne(['romanizedName' => 'Nara']);
+        $subject = CityFactory::createOne(['romanizedName' => 'Kamakura']);
 
-        $this->client->request(Request::METHOD_GET, '/city/'.$kamakura->getSlug().'/edit');
-        $crawler = $this->client->submitForm('city_submit', ['city[name]' => 'Nara']);
+        $this->client->request(Request::METHOD_GET, '/city/'.$subject->getId().'/edit');
+        $this->client->submitForm('city_submit', ['city[romanizedName]' => 'Nara']);
 
-        $this->assertResponseStatusCodeSame(422);
-        $this->assertStringContainsString('already bears that name', $crawler->filter('main')->text(), 'The collision is not stated.');
+        $this->assertResponseRedirects();
 
         $this->manager()->clear();
-        $this->assertSame('Kamakura', static::getContainer()->get(CityRepository::class)->find($kamakura->getId())->getName(), 'The colliding name was stored anyway.');
+        $this->assertSame('Nara', static::getContainer()->get(CityRepository::class)->find($subject->getId())->getRomanizedName(), 'A name another row already bears was refused.');
     }
 
     public function test_a_city_still_holding_a_location_cannot_be_deleted(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $city = CityFactory::createOne(['name' => 'Kamakura']);
+        $city = CityFactory::createOne(['romanizedName' => 'Kamakura']);
         LocationFactory::createOne(['romanizedName' => 'Hase-dera', 'city' => $city]);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$city->getSlug().'/delete');
+        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$city->getId().'/delete');
 
         $this->assertStringContainsString('still holds a location', $crawler->filter('main')->text(), 'The refusal is not stated.');
         $this->assertCount(0, $crawler->filter('main form'), 'A city still in use was offered for deletion anyway.');
@@ -306,11 +332,11 @@ class CityTest extends AppTestCase
     public function test_a_city_no_location_holds_is_deleted(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $city = CityFactory::createOne(['name' => 'Kamakura']);
+        $city = CityFactory::createOne(['romanizedName' => 'Kamakura']);
         $id = $city->getId();
-        $slug = $city->getSlug();
+        $id = $city->getId();
 
-        $this->client->request(Request::METHOD_GET, '/city/'.$slug.'/delete');
+        $this->client->request(Request::METHOD_GET, '/city/'.$id.'/delete');
         $this->client->submitForm('delete_submit');
 
         $this->assertResponseRedirects('/cities');
@@ -322,7 +348,7 @@ class CityTest extends AppTestCase
     public function test_a_city_carries_a_main_photograph_and_a_gallery(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $city = CityFactory::createOne(['name' => 'Kamakura']);
+        $city = CityFactory::createOne(['romanizedName' => 'Kamakura']);
 
         $this->correct($city, [
             'photo_add' => ['city' => [$this->createImage(900, 600), $this->createImage(900, 600)]],
@@ -337,7 +363,7 @@ class CityTest extends AppTestCase
         $this->assertSame([1, 2], $photos->map(static fn (CityPhoto $p): ?int => $p->getPosition())->toArray(), 'The gallery is not numbered from one.');
         $this->assertSame(['The great buddha', null], $photos->map(static fn (CityPhoto $p): ?string => $p->getLabel())->toArray(), 'A blank label was stored as a string.');
 
-        $page = $this->client->request(Request::METHOD_GET, '/city/'.$city->getSlug());
+        $page = $this->client->request(Request::METHOD_GET, '/city/'.$city->getId());
         $this->assertCount(1, $page->filter('main .stage img'), 'The page does not show the main photograph.');
         $this->assertCount(2, $page->filter('main .gallery img'), 'The page does not show the gallery.');
 
@@ -347,7 +373,7 @@ class CityTest extends AppTestCase
     public function test_a_photograph_that_is_not_an_image_is_refused_without_taking_the_others_down(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $city = CityFactory::createOne(['name' => 'Kamakura']);
+        $city = CityFactory::createOne(['romanizedName' => 'Kamakura']);
 
         $this->correct($city, [
             'photo_add' => ['city' => [$this->createTextFile(), $this->createImage(900, 600)]],
@@ -363,7 +389,7 @@ class CityTest extends AppTestCase
      */
     private function correct(City $city, array $photographs): void
     {
-        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$city->getSlug().'/edit');
+        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$city->getId().'/edit');
         $form = $crawler->selectButton('city_submit')->form();
 
         $added = $photographs['photo_add'] ?? [];
@@ -387,38 +413,38 @@ class CityTest extends AppTestCase
     {
         $user = UserFactory::createOne();
         $this->client->loginUser($user);
-        $kyoto = CityFactory::createOne(['name' => 'Kyōto']);
+        $kyoto = CityFactory::createOne(['romanizedName' => 'Kyōto']);
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kansai']);
         GoshuinFactory::new()->in($goshuincho)->create(['location' => LocationFactory::createOne([
             'romanizedName' => 'Kiyomizu-dera',
             'city' => $kyoto,
         ])]);
         GoshuinFactory::new()->in(GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kantō']))->create([
-            'location' => LocationFactory::createOne(['romanizedName' => 'Sensō-ji', 'city' => CityFactory::createOne(['name' => 'Tōkyō'])]),
+            'location' => LocationFactory::createOne(['romanizedName' => 'Sensō-ji', 'city' => CityFactory::createOne(['romanizedName' => 'Tōkyō'])]),
         ]);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$kyoto->getSlug());
+        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$kyoto->getId());
 
         $this->assertResponseIsSuccessful();
         $body = $crawler->filter('main')->text();
         $this->assertStringContainsString('Kansai', $body, 'The page does not name the goshuincho the city was collected in.');
         $this->assertStringNotContainsString('Kantō', $body, 'A goshuincho naming another city reached the page.');
-        $this->assertCount(1, $crawler->filter('main a[href="/goshuincho/'.$goshuincho->getSlug().'/goshuin/1"]'), 'The page does not show the goshuin received in the city.');
+        $this->assertCount(1, $crawler->filter('main a[href="/goshuincho/'.$goshuincho->getId().'/goshuin/1"]'), 'The page does not show the goshuin received in the city.');
     }
 
     public function test_the_page_holds_no_other_collectors_goshuin(): void
     {
         $owner = UserFactory::createOne();
         $this->client->loginUser($owner);
-        $theirs = CityFactory::createOne(['name' => 'Kyōto']);
+        $theirs = CityFactory::createOne(['romanizedName' => 'Kyōto']);
         GoshuinFactory::new()->in(GoshuinchoFactory::createOne(['owner' => $owner, 'title' => 'Not yours']))->create([
             'location' => LocationFactory::createOne(['romanizedName' => 'Hidden away', 'city' => $theirs]),
         ]);
 
         $this->client->loginUser(UserFactory::createOne());
-        $mine = CityFactory::createOne(['name' => 'Kyōto']);
+        $mine = CityFactory::createOne(['romanizedName' => 'Kyōto']);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$mine->getSlug());
+        $crawler = $this->client->request(Request::METHOD_GET, '/city/'.$mine->getId());
 
         $this->assertStringNotContainsString('Not yours', $crawler->filter('main')->text(), 'A foreign goshuincho reached the city page.');
         $this->assertCount(0, $crawler->filter('main a[href*="/goshuin/"]'), 'A foreign goshuin reached the city page.');

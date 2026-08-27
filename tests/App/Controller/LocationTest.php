@@ -47,11 +47,11 @@ class LocationTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
         $kiyomizu = LocationFactory::createOne([
             'romanizedName' => 'Kiyomizu-dera',
-            'japaneseName' => '清水寺',
-            'city' => CityFactory::createOne(['name' => 'Kyōto']),
-            'prefecture' => PrefectureFactory::createOne(['name' => 'Kyōto']),
+            'kanjiName' => '清水寺',
+            'city' => CityFactory::createOne(['romanizedName' => 'Kyōto']),
+            'prefecture' => PrefectureFactory::createOne(['romanizedName' => 'Kyōto']),
         ]);
-        LocationFactory::createOne(['romanizedName' => 'Sensō-ji', 'japaneseName' => null]);
+        LocationFactory::createOne(['romanizedName' => 'Sensō-ji', 'kanjiName' => null]);
 
         $crawler = $this->client->request(Request::METHOD_GET, '/locations');
 
@@ -59,7 +59,7 @@ class LocationTest extends AppTestCase
         $this->assertCount(2, $crawler->filter('main ul li a'), 'The index does not list every location.');
 
         $first = $crawler->filter('main ul li a')->first();
-        $this->assertSame('/location/'.$kiyomizu->getSlug(), $first->attr('href'), 'A location does not open its own page.');
+        $this->assertSame('/location/'.$kiyomizu->getId(), $first->attr('href'), 'A location does not open its own page.');
         $this->assertStringContainsString('清水寺', $first->text());
         $this->assertStringContainsString('Kiyomizu-dera', $first->text(), 'The index drops the romanized name when a Japanese one exists.');
         $this->assertStringContainsString('Kyōto', $first->text(), 'The index does not say where the location is.');
@@ -80,8 +80,8 @@ class LocationTest extends AppTestCase
     public function test_the_search_matches_any_part_of_a_name_in_any_script(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'japaneseName' => '清水寺']);
-        LocationFactory::createOne(['romanizedName' => 'Sensō-ji', 'japaneseName' => '浅草寺']);
+        LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'kanjiName' => '清水寺']);
+        LocationFactory::createOne(['romanizedName' => 'Sensō-ji', 'kanjiName' => '浅草寺']);
 
         foreach (['mizu' => 'Kiyomizu-dera', 'KIYO' => 'Kiyomizu-dera', '清水' => 'Kiyomizu-dera', '浅草' => 'Sensō-ji'] as $term => $expected) {
             $crawler = $this->client->request(Request::METHOD_GET, '/locations?q='.urlencode((string) $term));
@@ -112,9 +112,9 @@ class LocationTest extends AppTestCase
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user, 'title' => 'Kansai, spring 2025']);
         $location = LocationFactory::createOne([
             'romanizedName' => 'Kiyomizu-dera',
-            'japaneseName' => '清水寺',
-            'city' => CityFactory::createOne(['name' => 'Kyōto']),
-            'prefecture' => PrefectureFactory::createOne(['name' => 'Kyōto']),
+            'kanjiName' => '清水寺',
+            'city' => CityFactory::createOne(['romanizedName' => 'Kyōto']),
+            'prefecture' => PrefectureFactory::createOne(['romanizedName' => 'Kyōto']),
             'address' => 'Higashiyama-ku, Kyōto',
             'latitude' => 34.9948,
             'longitude' => 135.7850,
@@ -122,7 +122,7 @@ class LocationTest extends AppTestCase
 
         $this->collect($goshuincho, $location, '2025-03-14');
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug());
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId());
 
         $this->assertResponseIsSuccessful();
         $this->assertSame('Kiyomizu-dera 清水寺', preg_replace('/\s+/', ' ', trim($crawler->filter('h1')->text())), 'The page does not name the location in both scripts.');
@@ -142,12 +142,12 @@ class LocationTest extends AppTestCase
     public function test_a_location_another_collector_keeps_is_out_of_reach(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $slug = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera'])->getSlug();
+        $id = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera'])->getId();
 
         $this->client->loginUser(UserFactory::createOne());
 
         foreach (['', '/edit', '/delete'] as $tail) {
-            $this->client->request(Request::METHOD_GET, '/location/'.$slug.$tail);
+            $this->client->request(Request::METHOD_GET, '/location/'.$id.$tail);
 
             $this->assertResponseStatusCodeSame(404, sprintf('A location kept by another collector answered on %s.', $tail === '' ? 'its page' : $tail));
         }
@@ -161,7 +161,7 @@ class LocationTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
         $location = LocationFactory::createOne(['romanizedName' => 'Somewhere', 'latitude' => null, 'longitude' => null]);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug());
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId());
 
         $this->assertResponseIsSuccessful();
         $this->assertCount(0, $crawler->filter('[data-controller="map"]'), 'A location with no coordinates was still put on a map.');
@@ -173,7 +173,7 @@ class LocationTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
 
         foreach (['Zzz-dera', 'Aaa-jinja', 'Mmm-ji'] as $name) {
-            LocationFactory::createOne(['romanizedName' => $name, 'japaneseName' => null]);
+            LocationFactory::createOne(['romanizedName' => $name, 'kanjiName' => null]);
         }
 
         $names = $this->client->request(Request::METHOD_GET, '/locations')
@@ -189,7 +189,7 @@ class LocationTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
 
         foreach (range(1, 26) as $rank) {
-            LocationFactory::createOne(['romanizedName' => sprintf('Place %02d', $rank), 'japaneseName' => null]);
+            LocationFactory::createOne(['romanizedName' => sprintf('Place %02d', $rank), 'kanjiName' => null]);
         }
 
         $first = $this->client->request(Request::METHOD_GET, '/locations');
@@ -222,10 +222,10 @@ class LocationTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
 
         foreach (range(1, 25) as $rank) {
-            LocationFactory::createOne(['romanizedName' => sprintf('Kyōto place %02d', $rank), 'japaneseName' => null]);
+            LocationFactory::createOne(['romanizedName' => sprintf('Kyōto place %02d', $rank), 'kanjiName' => null]);
         }
 
-        LocationFactory::createOne(['romanizedName' => 'Sensō-ji', 'japaneseName' => null]);
+        LocationFactory::createOne(['romanizedName' => 'Sensō-ji', 'kanjiName' => null]);
 
         $first = $this->client->request(Request::METHOD_GET, '/locations?q='.urlencode('Kyōto'));
         $this->assertCount(24, $first->filter('main ul li a'), 'The search does not fill a page.');
@@ -256,11 +256,11 @@ class LocationTest extends AppTestCase
 
         $this->collect($goshuincho, $location, '2025-03-14');
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/1');
+        $crawler = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/1');
 
         $this->assertCount(
             1,
-            $crawler->filter('main a[href="/location/'.$location->getSlug().'"]'),
+            $crawler->filter('main a[href="/location/'.$location->getId().'"]'),
             'The goshuin does not lead to the location it came from.',
         );
 
@@ -322,7 +322,7 @@ class LocationTest extends AppTestCase
             'photo_add_label' => ['place' => ['The gate']],
         ]);
 
-        $main = $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug())->filter('main');
+        $main = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId())->filter('main');
 
         $this->assertCount(1, $main->filter('.gallery img'), 'The photograph never reached the page.');
         $this->assertSame('The gate', trim($main->filter('figcaption')->text()), 'The label does not caption the photograph.');
@@ -340,9 +340,9 @@ class LocationTest extends AppTestCase
         $photo = $this->gallery($location)[0];
         $paths = [$photo->getImage(), $photo->getImageMini(), $photo->getImageCard(), $photo->getImageFull()];
         $id = $location->getId();
-        $slug = $location->getSlug();
+        $id = $location->getId();
 
-        $confirmation = $this->client->request(Request::METHOD_GET, '/location/'.$slug.'/delete');
+        $confirmation = $this->client->request(Request::METHOD_GET, '/location/'.$id.'/delete');
         $this->client->submit($confirmation->selectButton('delete_submit')->form());
 
         $this->assertNull(static::getContainer()->get(LocationRepository::class)->find($id), 'The location survived.');
@@ -357,7 +357,7 @@ class LocationTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
         $location = LocationFactory::createOne();
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug());
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId());
 
         $this->assertResponseIsSuccessful();
         $this->assertCount(0, $crawler->filter('input[name^="photo_add"]'), 'A collector was offered a way to add photographs.');
@@ -368,7 +368,7 @@ class LocationTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
         $location = LocationFactory::createOne(['romanizedName' => 'Goryo-jinja']);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug().'/edit');
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
         $form = $crawler->selectButton('location_submit')->form();
         $values = $form->getPhpValues();
         $values['location']['deities'] = ['鎌倉権五郎景政', '福禄寿'];
@@ -383,7 +383,7 @@ class LocationTest extends AppTestCase
         $this->assertSame(['福禄寿', '鎌倉権五郎景政'], $this->named($stored), 'The deities were not all kept.');
         $this->assertSame('Fin de l\'époque de Heian', $stored->getFoundation());
 
-        $text = $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug())->filter('main')->text();
+        $text = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId())->filter('main')->text();
 
         $this->assertStringContainsString('鎌倉権五郎景政', $text, 'The page does not name the deities.');
         $this->assertStringContainsString('福禄寿', $text);
@@ -395,7 +395,7 @@ class LocationTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
         $location = LocationFactory::createOne(['romanizedName' => 'Goryo-jinja']);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug().'/edit');
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
         $form = $crawler->selectButton('location_submit')->form();
         $values = $form->getPhpValues();
         $values['location']['deities'] = ['八幡神', '福禄寿'];
@@ -406,13 +406,13 @@ class LocationTest extends AppTestCase
         $deities = static::getContainer()->get(DeityRepository::class)->findAll();
         $this->assertCount(2, $deities);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug());
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId());
 
         foreach ($deities as $deity) {
-            $link = $crawler->filter('main dd a[href="/deity/'.$deity->getSlug().'"]');
+            $link = $crawler->filter('main dd a[href="/deity/'.$deity->getId().'"]');
 
-            $this->assertCount(1, $link, 'The deity '.$deity->getName().' is named without leading anywhere.');
-            $this->assertSame($deity->getName(), $link->text(), 'The link does not carry the name of the deity.');
+            $this->assertCount(1, $link, 'The deity '.$deity->getRomanizedName().' is named without leading anywhere.');
+            $this->assertSame($deity->getRomanizedName(), $link->text(), 'The link does not carry the name of the deity.');
         }
 
         $this->client->click($crawler->filter('main dd a')->first()->link());
@@ -426,7 +426,7 @@ class LocationTest extends AppTestCase
         $second = LocationFactory::createOne(['romanizedName' => 'Usa Jingu']);
 
         foreach ([$first, $second] as $location) {
-            $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug().'/edit');
+            $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
             $form = $crawler->selectButton('location_submit')->form();
             $values = $form->getPhpValues();
             $values['location']['deities'] = ['八幡神'];
@@ -450,7 +450,7 @@ class LocationTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
         $location = LocationFactory::createOne();
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug().'/edit');
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
         $form = $crawler->selectButton('location_submit')->form();
         $values = $form->getPhpValues();
         $values['location']['deities'] = ['八幡神', '   ', ''];
@@ -468,7 +468,7 @@ class LocationTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
         $location = LocationFactory::createOne();
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug());
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId());
 
         $this->assertResponseIsSuccessful();
         $this->assertCount(1, $crawler->filter('a[href$="/edit"]'), 'The collector lost the way in.');
@@ -489,7 +489,7 @@ class LocationTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
         $location = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']);
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug().'/edit');
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
 
         $this->assertResponseIsSuccessful();
         $this->assertCount(1, $crawler->filter('[data-live-name-value="LocationForm"]'), 'The edit page does not render the shared location form.');
@@ -502,7 +502,7 @@ class LocationTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
         $location = LocationFactory::createOne();
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug().'/edit');
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
 
         $this->assertResponseIsSuccessful();
         $this->assertCount(0, $crawler->filter('[data-model="debounce(1000)|address"]'), 'The address search appeared without a geocoder configured.');
@@ -516,7 +516,7 @@ class LocationTest extends AppTestCase
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $user]);
         $location = LocationFactory::createOne([
             'romanizedName' => 'Kiyomizudera',
-            'japaneseName' => null,
+            'kanjiName' => null,
             'city' => null,
             'prefecture' => null,
             'latitude' => null,
@@ -525,10 +525,10 @@ class LocationTest extends AppTestCase
 
         $this->collect($goshuincho, $location, '2025-03-14');
 
-        $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug().'/edit');
+        $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
         $this->client->submitForm('location_submit', [
             'location[romanizedName]' => 'Kiyomizu-dera',
-            'location[japaneseName]' => '清水寺',
+            'location[kanjiName]' => '清水寺',
             'location[type]' => 'temple',
             'location[city]' => 'Kyōto',
             'location[prefecture]' => 'Kyōto',
@@ -537,7 +537,7 @@ class LocationTest extends AppTestCase
             'location[notes]' => 'Reached by the Chawan-zaka slope.',
         ]);
 
-        $this->assertResponseRedirects('/location/'.$location->getSlug());
+        $this->assertResponseRedirects('/location/'.$location->getId());
         $page = $this->client->followRedirect()->filter('main')->text();
 
         $this->assertStringContainsString('清水寺', $this->client->getResponse()->getContent());
@@ -546,7 +546,7 @@ class LocationTest extends AppTestCase
         $this->assertStringContainsString('34.9948, 135.7850', $page, 'The coordinates given by hand do not read back.');
         $this->assertStringContainsString('Chawan-zaka', $page, 'The notes do not read back.');
 
-        $goshuin = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/1');
+        $goshuin = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/1');
         $this->assertStringContainsString('Kiyomizu-dera', $goshuin->filter('main')->text(), 'The corrected name did not reach the goshuin that came from there.');
 
         $this->emptyUploads();
@@ -561,16 +561,16 @@ class LocationTest extends AppTestCase
 
         $stored = $this->reread($location);
 
-        $this->assertSame('Kamakura', $stored->getCity()->getName(), 'The typed city was not created.');
-        $this->assertSame('Kanagawa', $stored->getPrefecture()->getName(), 'The typed prefecture was not created.');
-        $this->assertSame('Kanagawa', $stored->getCity()->getPrefecture()->getName(), 'The new city was not tied to the prefecture typed beside it.');
+        $this->assertSame('Kamakura', $stored->getCity()->getRomanizedName(), 'The typed city was not created.');
+        $this->assertSame('Kanagawa', $stored->getPrefecture()->getRomanizedName(), 'The typed prefecture was not created.');
+        $this->assertSame('Kanagawa', $stored->getCity()->getPrefecture()->getRomanizedName(), 'The new city was not tied to the prefecture typed beside it.');
     }
 
     public function test_a_typed_city_matches_what_is_stored_whatever_the_casing(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $kamakura = CityFactory::createOne(['name' => 'Kamakura']);
-        $kanagawa = PrefectureFactory::createOne(['name' => 'Kanagawa']);
+        $kamakura = CityFactory::createOne(['romanizedName' => 'Kamakura']);
+        $kanagawa = PrefectureFactory::createOne(['romanizedName' => 'Kanagawa']);
         $location = LocationFactory::createOne(['romanizedName' => 'Hase-dera', 'city' => null, 'prefecture' => null]);
 
         $this->place($location, '  kAmAkUrA  ', 'KANAGAWA');
@@ -586,23 +586,23 @@ class LocationTest extends AppTestCase
     public function test_a_city_already_tied_to_a_prefecture_keeps_it(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $kanagawa = PrefectureFactory::createOne(['name' => 'Kanagawa']);
-        CityFactory::createOne(['name' => 'Fuchū', 'prefecture' => $kanagawa]);
-        PrefectureFactory::createOne(['name' => 'Tokyo']);
+        $kanagawa = PrefectureFactory::createOne(['romanizedName' => 'Kanagawa']);
+        CityFactory::createOne(['romanizedName' => 'Fuchū', 'prefecture' => $kanagawa]);
+        PrefectureFactory::createOne(['romanizedName' => 'Tokyo']);
         $location = LocationFactory::createOne(['romanizedName' => 'Ōkunitama Jinja', 'city' => null, 'prefecture' => null]);
 
         $this->place($location, 'Fuchū', 'Tokyo');
 
         $stored = $this->reread($location);
 
-        $this->assertSame('Tokyo', $stored->getPrefecture()->getName(), 'The prefecture typed on the location was not kept.');
-        $this->assertSame('Kanagawa', $stored->getCity()->getPrefecture()->getName(), 'A stored city was moved by a prefecture typed beside it.');
+        $this->assertSame('Tokyo', $stored->getPrefecture()->getRomanizedName(), 'The prefecture typed on the location was not kept.');
+        $this->assertSame('Kanagawa', $stored->getCity()->getPrefecture()->getRomanizedName(), 'A stored city was moved by a prefecture typed beside it.');
     }
 
     public function test_clearing_the_city_lets_go_of_it_without_removing_it(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $kamakura = CityFactory::createOne(['name' => 'Kamakura']);
+        $kamakura = CityFactory::createOne(['romanizedName' => 'Kamakura']);
         $location = LocationFactory::createOne(['romanizedName' => 'Hase-dera', 'city' => $kamakura, 'prefecture' => null]);
 
         $this->place($location, '', '');
@@ -626,35 +626,131 @@ class LocationTest extends AppTestCase
         $this->assertCount(0, static::getContainer()->get(PrefectureRepository::class)->findAll(), 'A prefecture row was written anyway.');
     }
 
-    public function test_a_location_is_addressed_by_a_slug_read_from_its_name(): void
+    public function test_a_location_is_found_by_any_of_its_three_names(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+        LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'kanjiName' => '清水寺', 'kanaName' => 'きよみずでら']);
+
+        foreach (['kiyo', '清水', 'きよ'] as $term) {
+            $listed = $this->client->request(Request::METHOD_GET, '/locations?q='.urlencode($term))->filter('main ul')->text();
+
+            $this->assertStringContainsString('Kiyomizu-dera', $listed, sprintf('Searching "%s" did not find the location.', $term));
+        }
+    }
+
+    public function test_a_location_may_carry_a_kanji_name_alone(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+        $location = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera', 'kanjiName' => '清水寺']);
+
+        $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
+        $this->client->submitForm('location_submit', [
+            'location[romanizedName]' => '',
+            'location[kanjiName]' => '清水寺',
+            'location[kanaName]' => '',
+        ]);
+
+        $this->assertResponseRedirects();
+
+        $this->manager()->clear();
+        $stored = static::getContainer()->get(LocationRepository::class)->find($location->getId());
+        $this->assertNull($stored->getRomanizedName(), 'The romanized name was not let go of.');
+        $this->assertSame('清水寺', $stored->getDisplayName('en'), 'A location named in kanji alone shows nothing.');
+    }
+
+    public function test_the_deities_of_a_location_follow_the_language_they_are_read_in(): void
+    {
+        $user = UserFactory::createOne(['email' => 'user@example.com', 'locale' => 'ja']);
+        $location = LocationFactory::createOne([
+            'romanizedName' => 'Kiyomizu-dera',
+            'owner' => $user,
+            'deities' => [
+                DeityFactory::createOne(['romanizedName' => 'Hachiman', 'kanjiName' => '八幡', 'kanaName' => 'はちまん', 'owner' => $user]),
+                DeityFactory::createOne(['romanizedName' => 'Inari', 'kanjiName' => '稲荷', 'kanaName' => 'いなり', 'owner' => $user]),
+                DeityFactory::createOne(['romanizedName' => 'Amaterasu', 'kanjiName' => '天照', 'kanaName' => 'あまてらす', 'owner' => $user]),
+            ],
+        ]);
+
+        $login = $this->client->request(Request::METHOD_GET, '/login');
+        $this->client->submit($login->filter('form')->form(), [
+            '_username' => 'user@example.com',
+            '_password' => 'a-long-enough-password',
+        ]);
+        $this->client->followRedirect();
+
+        $named = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId())->filter('main a[href^="/deity/"]');
+
+        $this->assertCount(3, $named, 'The deities are not listed.');
+        $this->assertSame(['天照', '稲荷', '八幡'], $named->each(static fn ($node): string => trim($node->text())), 'The deities are not read in Japanese, or not ordered by their reading.');
+    }
+
+    public function test_the_name_fields_follow_the_language_they_are_typed_in(): void
+    {
+        $user = UserFactory::createOne(['email' => 'user@example.com', 'locale' => 'ja']);
+        $location = LocationFactory::createOne(['owner' => $user]);
+
+        $login = $this->client->request(Request::METHOD_GET, '/login');
+        $this->client->submit($login->filter('form')->form(), [
+            '_username' => 'user@example.com',
+            '_password' => 'a-long-enough-password',
+        ]);
+        $this->client->followRedirect();
+
+        $ordered = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit')
+            ->filter('input[name^="location["]')
+            ->each(static fn (Crawler $input): string => (string) $input->attr('name'))
+        ;
+
+        $named = array_values(array_filter(
+            $ordered,
+            static fn (string $name): bool => \in_array($name, ['location[romanizedName]', 'location[kanjiName]', 'location[kanaName]'], true),
+        ));
+
+        $this->assertSame(
+            ['location[kanjiName]', 'location[kanaName]', 'location[romanizedName]'],
+            $named,
+            'The form does not lead with the name a japanese reader writes first.',
+        );
+    }
+
+    public function test_a_location_is_addressed_by_its_identifier(): void
     {
         $this->client->loginUser(UserFactory::createOne());
         $location = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']);
 
-        $this->assertSame('kiyomizu-dera', $location->getSlug(), 'The slug is not read from the name.');
+        $this->client->request(Request::METHOD_GET, '/location/'.$location->getId());
+
+        $this->assertResponseIsSuccessful('The location is not reachable under its identifier.');
+    }
+
+    public function test_a_name_read_as_a_path_leads_nowhere(): void
+    {
+        $this->client->loginUser(UserFactory::createOne());
+        LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']);
 
         $this->client->request(Request::METHOD_GET, '/location/kiyomizu-dera');
 
-        $this->assertResponseIsSuccessful('The location is not reachable under its slug.');
+        $this->assertResponseStatusCodeSame(404, 'A name still addressed a location.');
     }
 
-    public function test_two_locations_sharing_a_name_get_distinct_slugs(): void
+    public function test_two_locations_may_share_a_name(): void
     {
         $this->client->loginUser(UserFactory::createOne());
         LocationFactory::createOne(['romanizedName' => 'Hachiman-gū']);
         LocationFactory::createOne(['romanizedName' => 'Hachiman-gū']);
 
-        $slugs = array_map(
-            static fn (Location $location): string => $location->getSlug(),
+        $ids = array_map(
+            static fn (Location $location): string => $location->getId(),
             $this->unfiltered()->getRepository(Location::class)->findBy([], ['createdAt' => 'ASC']),
         );
 
-        $this->assertSame(['hachiman-gu', 'hachiman-gu-1'], $slugs, 'Two locations of the same name collided on one slug.');
+        $this->assertCount(2, $ids);
+        $this->assertNotSame($ids[0], $ids[1], 'Two locations of the same name collided on one row.');
     }
 
     private function place(Location $location, string $city, string $prefecture): void
     {
-        $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug().'/edit');
+        $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
         $this->client->submitForm('location_submit', [
             'location[romanizedName]' => $location->getRomanizedName(),
             'location[city]' => $city,
@@ -673,11 +769,11 @@ class LocationTest extends AppTestCase
     public function test_a_deity_named_in_the_notes_of_a_location_leads_to_its_page(): void
     {
         $this->client->loginUser(UserFactory::createOne());
-        $inari = DeityFactory::createOne(['name' => 'Inari', 'additionalNames' => ['Oinari-san']]);
+        $inari = DeityFactory::createOne(['romanizedName' => 'Inari', 'additionalNames' => ['Oinari-san']]);
         $location = LocationFactory::createOne(['notes' => 'Oinari-san watches the slope. Inarite is a word, not a deity.']);
 
-        $notes = $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug())
-            ->filter('main a[href="/deity/'.$inari->getSlug().'"]')
+        $notes = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId())
+            ->filter('main a[href="/deity/'.$inari->getId().'"]')
         ;
 
         $this->assertCount(1, $notes, 'The name in the notes does not lead to the deity.');
@@ -689,7 +785,7 @@ class LocationTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
         $location = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']);
 
-        $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug().'/edit');
+        $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
         $this->client->submitForm('location_submit', [
             'location[romanizedName]' => 'Kiyomizu-dera',
             'location[photographFile]' => $this->createImage(1600, 1100),
@@ -715,20 +811,20 @@ class LocationTest extends AppTestCase
         $goshuincho = GoshuinchoFactory::createOne(['owner' => $owner]);
         $this->collect($goshuincho, $location, '2025-03-14');
         $id = $location->getId();
-        $slug = $location->getSlug();
+        $id = $location->getId();
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$slug.'/delete');
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$id.'/delete');
 
         $this->assertStringContainsString('still in use', $crawler->filter('main')->text(), 'The refusal is not stated.');
         $this->assertCount(0, $crawler->filter('main button'), 'A location in use still offers to be deleted.');
 
         $unused = LocationFactory::createOne(['romanizedName' => 'Unused']);
-        $confirmation = $this->client->request(Request::METHOD_GET, '/location/'.$unused->getSlug().'/delete');
+        $confirmation = $this->client->request(Request::METHOD_GET, '/location/'.$unused->getId().'/delete');
         $forged = $confirmation->selectButton('delete_submit')->form()->getPhpValues();
 
-        $this->client->request(Request::METHOD_POST, '/location/'.$slug.'/delete', $forged);
+        $this->client->request(Request::METHOD_POST, '/location/'.$id.'/delete', $forged);
 
-        $this->assertResponseRedirects('/location/'.$slug);
+        $this->assertResponseRedirects('/location/'.$id);
         $this->assertNotNull(static::getContainer()->get(LocationRepository::class)->find($id), 'A location in use was deleted anyway.');
 
         $this->emptyUploads();
@@ -739,9 +835,9 @@ class LocationTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
         $location = LocationFactory::createOne(['romanizedName' => 'Never used']);
         $id = $location->getId();
-        $slug = $location->getSlug();
+        $id = $location->getId();
 
-        $this->client->request(Request::METHOD_GET, '/location/'.$slug.'/delete');
+        $this->client->request(Request::METHOD_GET, '/location/'.$id.'/delete');
         $this->client->submitForm('delete_submit');
 
         $this->assertResponseRedirects('/locations');
@@ -756,7 +852,7 @@ class LocationTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
         $location = LocationFactory::createOne(['romanizedName' => 'Kiyomizu-dera']);
 
-        $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug().'/edit');
+        $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
         $this->client->submitForm('location_submit', ['location[romanizedName]' => '']);
 
         $this->assertResponseStatusCodeSame(422);
@@ -775,7 +871,7 @@ class LocationTest extends AppTestCase
         $this->client->loginUser(UserFactory::createOne());
         $location = LocationFactory::createOne();
 
-        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug().'/edit');
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
 
         $this->assertCount(
             0,
@@ -786,7 +882,7 @@ class LocationTest extends AppTestCase
 
     private function collect(Goshuincho $goshuincho, Location $location, string $day): void
     {
-        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add');
+        $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/add');
         $this->client->submitForm('goshuin_submit', [
             'goshuin[location]' => $location->getId(),
             'goshuin[receivedOn]' => $day,
@@ -800,7 +896,7 @@ class LocationTest extends AppTestCase
      */
     private function named(Location $location): array
     {
-        $names = array_map(static fn (Deity $deity): string => (string) $deity->getName(), $location->getDeities()->toArray());
+        $names = array_map(static fn (Deity $deity): string => (string) $deity->getRomanizedName(), $location->getDeities()->toArray());
         sort($names);
 
         return array_values($names);
@@ -811,7 +907,7 @@ class LocationTest extends AppTestCase
      */
     private function correct(Location $location, array $photographs): void
     {
-        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getSlug().'/edit');
+        $crawler = $this->client->request(Request::METHOD_GET, '/location/'.$location->getId().'/edit');
         $form = $crawler->selectButton('location_submit')->form();
 
         $added = $photographs['photo_add'] ?? [];

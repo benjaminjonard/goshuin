@@ -44,8 +44,8 @@ class TagController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/tag/{slug}/edit', name: 'app_tag_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Tag $tag): Response
+    #[Route(path: '/tag/{id}/edit', name: 'app_tag_edit', methods: ['GET', 'POST'])]
+    public function edit(Request $request, #[MapEntity(expr: 'repository.findById(id)')] Tag $tag): Response
     {
         $form = $this->createForm(TagType::class, $tag);
         $form->handleRequest($request);
@@ -62,9 +62,9 @@ class TagController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/tag/{slug}/delete', name: 'app_tag_delete', methods: ['GET', 'POST'])]
-    public function delete(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Tag $tag): Response
+    #[Route(path: '/tag/{id}/delete', name: 'app_tag_delete', methods: ['GET', 'POST'])]
+    public function delete(Request $request, #[MapEntity(expr: 'repository.findById(id)')] Tag $tag): Response
     {
-        return $this->deleteSluggable($request, $tag, 'tag', $this->uses->of($tag), 'app_tag_delete');
+        return $this->deleteSubject($request, $tag, 'tag', $this->uses->of($tag), 'app_tag_delete');
     }
 }

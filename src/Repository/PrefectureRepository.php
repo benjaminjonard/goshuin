@@ -27,10 +27,9 @@ class PrefectureRepository extends ServiceEntityRepository
     /**
      * @return list<Prefecture>
      */
-    public function browse(?string $term = null, int $page = 1): array
+    public function browse(string $locale, ?string $term = null, int $page = 1): array
     {
-        return $this->paginate($this->listing($term), $page)
-            ->orderBy('p.name', 'ASC')
+        return $this->orderedByName($this->paginate($this->listing($term), $page), 'p', $locale)
             ->getQuery()
             ->getResult()
         ;
@@ -46,15 +45,22 @@ class PrefectureRepository extends ServiceEntityRepository
         return $this->oneNamed($name);
     }
 
+    public function findById(string $id): ?Prefecture
+    {
+        return $this->createQueryBuilder('p')
+            ->andWhere('p.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
     private function listing(?string $term): QueryBuilder
     {
         $builder = $this->createQueryBuilder('p');
 
         if ($term !== null && $term !== '') {
-            $builder
-                ->andWhere('LOWER(p.name) LIKE :term')
-                ->setParameter('term', '%'.mb_strtolower($term).'%')
-            ;
+            $this->matchingName($builder, 'p', $term);
         }
 
         return $builder;

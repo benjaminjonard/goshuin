@@ -49,12 +49,6 @@
         <target>場所を検索</target>
       </segment>
     </unit>
-    <unit id="ht09dJH" name="label.japanese_name">
-      <segment state="translated">
-        <source>Japanese name</source>
-        <target>日本語名</target>
-      </segment>
-    </unit>
     <unit id="FjQuuzf" name="label.romanized_name">
       <segment state="translated">
         <source>Romanized name</source>
@@ -377,12 +371,6 @@
       <segment state="translated">
         <source>Colour</source>
         <target>色</target>
-      </segment>
-    </unit>
-    <unit id="mq_phuo" name="label.purchase">
-      <segment state="translated">
-        <source>Purchase</source>
-        <target>購入</target>
       </segment>
     </unit>
     <unit id="LsGVnZM" name="label.purchased_on">
@@ -775,12 +763,6 @@
         <target>メイン写真</target>
       </segment>
     </unit>
-    <unit id="wp3TJvh" name="label.photograph">
-      <segment state="translated">
-        <source>Photograph</source>
-        <target>写真</target>
-      </segment>
-    </unit>
     <unit id="nDFUjB1" name="label.delete_location">
       <segment state="translated">
         <source>Delete {name}?</source>
@@ -1091,6 +1073,18 @@
       <segment state="translated">
         <source>This prefecture still holds a city or a location, so it cannot be deleted.</source>
         <target>この都道府県はまだ市区町村または場所を含むため、削除できません。</target>
+      </segment>
+    </unit>
+    <unit id="tnvOwVx" name="label.kanji_name">
+      <segment state="translated">
+        <source>Kanji name</source>
+        <target>漢字名</target>
+      </segment>
+    </unit>
+    <unit id="I.0rAzt" name="label.kana_name">
+      <segment state="translated">
+        <source>Kana name</source>
+        <target>かな名</target>
       </segment>
     </unit>
   </file>

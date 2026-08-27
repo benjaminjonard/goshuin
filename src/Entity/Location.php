@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Entity\Interface\Identified;
+use App\Entity\Interface\Named;
 use App\Entity\Interface\Photographed;
-use App\Entity\Interface\Sluggable;
+use App\Entity\Trait\HasNames;
 use App\Entity\Trait\HasPhotograph;
 use App\Enum\LocationType;
 use App\Repository\LocationRepository;
+use App\Validator\AtLeastOneName;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection as DoctrineCollection;
 use Doctrine\DBAL\Types\Types;
@@ -19,31 +22,19 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: LocationRepository::class)]
 #[ORM\Table(name: 'gos_location')]
-#[ORM\UniqueConstraint(name: 'un_location_slug', columns: ['owner_id', 'slug'])]
-class Location implements Photographed, Sluggable
+#[AtLeastOneName]
+class Location implements Named, Identified, Photographed
 {
+    use HasNames;
     use HasPhotograph;
 
     #[ORM\Id]
     #[ORM\Column(type: Types::STRING, length: 36, unique: true, options: ['fixed' => true])]
     private string $id;
 
-    #[ORM\Column(type: Types::STRING)]
-    #[Assert\NotBlank]
-    #[Assert\Length(max: 255)]
-    private ?string $romanizedName = null;
-
-    #[ORM\Column(type: Types::STRING, length: 255)]
-    #[Gedmo\Slug(fields: ['romanizedName'], unique: true, unique_base: 'owner')]
-    private ?string $slug = null;
-
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $owner = null;
-
-    #[ORM\Column(type: Types::STRING, nullable: true)]
-    #[Assert\Length(max: 255)]
-    private ?string $japaneseName = null;
 
     #[ORM\Column(type: Types::STRING, length: 8, enumType: LocationType::class, nullable: true)]
     private ?LocationType $type = null;
@@ -53,7 +44,6 @@ class Location implements Photographed, Sluggable
      */
     #[ORM\ManyToMany(targetEntity: Deity::class, cascade: ['persist'])]
     #[ORM\JoinTable(name: 'gos_location_deity')]
-    #[ORM\OrderBy(['name' => 'ASC'])]
     private DoctrineCollection $deities;
 
     #[ORM\Column(type: Types::STRING, nullable: true)]
@@ -120,18 +110,6 @@ class Location implements Photographed, Sluggable
         return $this->photos;
     }
 
-    public function getSlug(): ?string
-    {
-        return $this->slug;
-    }
-
-    public function setSlug(?string $slug): Location
-    {
-        $this->slug = $slug;
-
-        return $this;
-    }
-
     #[\Override]
     public function getId(): string
     {
@@ -146,30 +124,6 @@ class Location implements Photographed, Sluggable
     public function setOwner(?User $owner): Location
     {
         $this->owner = $owner;
-
-        return $this;
-    }
-
-    public function getRomanizedName(): ?string
-    {
-        return $this->romanizedName;
-    }
-
-    public function setRomanizedName(?string $romanizedName): Location
-    {
-        $this->romanizedName = $romanizedName;
-
-        return $this;
-    }
-
-    public function getJapaneseName(): ?string
-    {
-        return $this->japaneseName;
-    }
-
-    public function setJapaneseName(?string $japaneseName): Location
-    {
-        $this->japaneseName = $japaneseName;
 
         return $this;
     }

@@ -31,7 +31,7 @@
                             <input type="hidden" name="goshuin_order[]" value="{{ goshuin.id }}">
                             <img src="{{ goshuin.imageMini|image }}" alt="" class="size-9 shrink-0 rounded-md object-cover">
                             <span class="min-w-0 flex-auto">
-                                <span class="block truncate text-[13.5px] font-semibold">{{ goshuin.location.romanizedName }}</span>
+                                <span class="block truncate text-[13.5px] font-semibold">{{ goshuin.location.displayName(app.request.locale) }}</span>
                                 {% if goshuin.receivedOn %}
                                     <span class="block truncate text-xs tabular-nums text-fg-3">{{ goshuin.receivedOn|format_date('long') }}</span>
                                 {% endif %}

@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Entity\Location;
 use App\Form\Type\LocationType;
 use App\Repository\CityRepository;
+use App\Repository\DeityRepository;
 use App\Repository\LocationRepository;
 use App\Repository\PrefectureRepository;
 use App\Service\PhotoSet;
@@ -22,6 +23,7 @@ class LocationController extends AbstractController
         private readonly LocationRepository $locations,
         private readonly CityRepository $cities,
         private readonly PrefectureRepository $prefectures,
+        private readonly DeityRepository $deities,
         private readonly Uses $uses,
         private readonly PhotoSet $set,
     ) {
@@ -42,7 +44,7 @@ class LocationController extends AbstractController
         }
 
         return $this->render('App/Location/index.html.twig', [
-            'locations' => $this->locations->browse($term, $page, $scope?->subject),
+            'locations' => $this->locations->browse($request->getLocale(), $term, $page, $scope?->subject),
             'scope' => $scope,
             'term' => $term,
             'page' => $page,
@@ -50,16 +52,17 @@ class LocationController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/location/{slug}', name: 'app_location_show', methods: ['GET'])]
-    public function show(#[MapEntity(mapping: ['slug' => 'slug'])] Location $location): Response
+    #[Route(path: '/location/{id}', name: 'app_location_show', methods: ['GET'])]
+    public function show(Request $request, #[MapEntity(expr: 'repository.findById(id)')] Location $location): Response
     {
         return $this->render('App/Location/show.html.twig', [
+            'enshrined' => $this->deities->enshrinedIn($location, $request->getLocale()),
             'location' => $location,
         ]);
     }
 
-    #[Route(path: '/location/{slug}/edit', name: 'app_location_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Location $location): Response
+    #[Route(path: '/location/{id}/edit', name: 'app_location_edit', methods: ['GET', 'POST'])]
+    public function edit(Request $request, #[MapEntity(expr: 'repository.findById(id)')] Location $location): Response
     {
         $form = $this->createForm(LocationType::class, $location);
         $form->handleRequest($request);
@@ -68,7 +71,7 @@ class LocationController extends AbstractController
             $this->entityManager->flush();
             $this->set->applyFrom($request, $location, 'place');
 
-            return $this->redirectToRoute('app_location_show', ['slug' => $location->getSlug()]);
+            return $this->redirectToRoute('app_location_show', ['id' => $location->getId()]);
         }
 
         return $this->render('App/Location/edit.html.twig', [
@@ -77,9 +80,9 @@ class LocationController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/location/{slug}/delete', name: 'app_location_delete', methods: ['GET', 'POST'])]
-    public function delete(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Location $location): Response
+    #[Route(path: '/location/{id}/delete', name: 'app_location_delete', methods: ['GET', 'POST'])]
+    public function delete(Request $request, #[MapEntity(expr: 'repository.findById(id)')] Location $location): Response
     {
-        return $this->deleteSluggable($request, $location, 'location', $this->uses->of($location));
+        return $this->deleteSubject($request, $location, 'location', $this->uses->of($location));
     }
 }

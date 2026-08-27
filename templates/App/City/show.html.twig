@@ -1,15 +1,15 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ city.name }} · Goshuin{% endblock %}
+{% block title %}{{ city.displayName(app.request.locale) }} · Goshuin{% endblock %}
 
 {% block bar %}
     {% embed 'App/_partials/_bar.html.twig' with {
-        title: city.name,
+        title: city.displayName(app.request.locale),
         kicker: [{label: 'label.cities'|trans, href: path('app_city_index')}],
     } %}
         {% block tools %}
-            {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_city_edit', {slug: city.slug}), aria: 'label.edit'|trans}) }}
-            {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_city_delete', {slug: city.slug}), aria: 'label.delete'|trans}) }}
+            {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_city_edit', {id: city.id}), aria: 'label.edit'|trans}) }}
+            {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_city_delete', {id: city.id}), aria: 'label.delete'|trans}) }}
         {% endblock %}
     {% endembed %}
 {% endblock %}
@@ -20,7 +20,7 @@
             {% if city.photographFull %}
                 <section class="tile stage">
                     <a href="{{ city.photograph|image }}" class="block" data-action="lightbox#open">
-                        <img src="{{ city.photographFull|image }}" alt="{{ city.name }}" class="photograph">
+                        <img src="{{ city.photographFull|image }}" alt="{{ city.displayName(app.request.locale) }}" class="photograph">
                     </a>
                 </section>
             {% endif %}
@@ -30,12 +30,12 @@
                     {{ include('App/_partials/_totals.html.twig', {totals: [
                         {
                             icon: 'prefecture',
-                            value: city.prefecture ? city.prefecture.name : null,
+                            value: city.prefecture ? city.prefecture.displayName(app.request.locale) : null,
                             text: true,
                             label: 'label.prefecture',
-                            href: city.prefecture ? path('app_prefecture_show', {slug: city.prefecture.slug}) : null,
+                            href: city.prefecture ? path('app_prefecture_show', {id: city.prefecture.id}) : null,
                         },
-                        {icon: 'pin', value: locations, label: 'label.stat_locations', href: path('app_location_index', {city: city.slug})},
+                        {icon: 'pin', value: locations, label: 'label.stat_locations', href: path('app_location_index', {city: city.id})},
                     ]}) }}
 
                     {% if city.notes is not empty %}

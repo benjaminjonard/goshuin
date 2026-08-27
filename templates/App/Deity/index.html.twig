@@ -13,10 +13,10 @@
         nothing: 'label.no_deity_yet',
         noun: 'label.deities',
         cards: deities|map(deity => {
-            href: path('app_deity_show', {slug: deity.slug}),
+            href: path('app_deity_show', {id: deity.id}),
             image: deity.photographCard,
             icon: 'deity',
-            title: deity.name,
+            title: deity.displayName(app.request.locale),
             below: deity.additionalNames|join(' · '),
         }),
     }) }}

@@ -15,10 +15,16 @@ use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class GoshuinchoType extends AbstractType
 {
+    public function __construct(
+        private readonly RequestStack $requests,
+    ) {
+    }
+
     #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
@@ -30,7 +36,7 @@ class GoshuinchoType extends AbstractType
             ->add('boughtAt', EntityType::class, [
                 'label' => 'label.bought_at',
                 'class' => Location::class,
-                'choice_label' => 'romanizedName',
+                'choice_label' => fn (Location $location): string => (string) $location->getDisplayName($this->locale()),
                 'required' => false,
                 'block_prefix' => 'location',
             ])
@@ -87,5 +93,9 @@ class GoshuinchoType extends AbstractType
             ])
             ->setAllowedTypes('with_hue', 'bool')
         ;
+    }
+    private function locale(): string
+    {
+        return $this->requests->getCurrentRequest()?->getLocale() ?? 'en';
     }
 }

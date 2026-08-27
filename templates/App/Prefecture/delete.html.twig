@@ -5,14 +5,14 @@
 {% block bar %}
     {{ include('App/_partials/_bar.html.twig', {
         kicker: [{label: 'label.prefectures'|trans, href: path('app_prefecture_index')}],
-        title: prefecture.name,
+        title: prefecture.displayName(app.request.locale),
     }) }}
 {% endblock %}
 
 {% block body %}
     {{ include('App/_partials/_delete.html.twig', {
-        subject: prefecture.name,
-        back: path('app_prefecture_show', {slug: prefecture.slug}),
+        subject: prefecture.displayName(app.request.locale),
+        back: path('app_prefecture_show', {id: prefecture.id}),
         referenced: 'error.prefecture_referenced',
         confirm: 'label.delete_prefecture',
     }) }}

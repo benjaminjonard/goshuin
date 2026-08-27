@@ -6,6 +6,7 @@ namespace App\Twig\Components;
 
 use App\Entity\Location;
 use App\Repository\LocationRepository;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveArg;
@@ -38,6 +39,7 @@ class LocationCombobox
 
     public function __construct(
         private readonly LocationRepository $locations,
+        private readonly RequestStack $requests,
     ) {
     }
 
@@ -87,7 +89,7 @@ class LocationCombobox
             return [];
         }
 
-        return $this->locations->search(trim($this->term));
+        return $this->locations->search(trim($this->term), $this->locale());
     }
 
     public function getChosen(): ?Location
@@ -103,9 +105,13 @@ class LocationCombobox
             return null;
         }
 
+        $sought = mb_strtolower($term);
+
         foreach ($this->getResults() as $location) {
-            if (mb_strtolower((string) $location->getRomanizedName()) === mb_strtolower($term)) {
-                return null;
+            foreach ([$location->getRomanizedName(), $location->getKanjiName(), $location->getKanaName()] as $name) {
+                if (mb_strtolower(trim((string) $name)) === $sought) {
+                    return null;
+                }
             }
         }
 
@@ -116,5 +122,9 @@ class LocationCombobox
     {
         $this->creating = false;
         $this->named = '';
+    }
+    private function locale(): string
+    {
+        return $this->requests->getCurrentRequest()?->getLocale() ?? 'en';
     }
 }

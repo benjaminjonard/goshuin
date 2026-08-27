@@ -5,14 +5,14 @@
 {% block bar %}
     {{ include('App/_partials/_bar.html.twig', {
         kicker: [{label: 'label.locations'|trans, href: path('app_location_index')}],
-        title: location.romanizedName,
+        title: location.displayName(app.request.locale),
     }) }}
 {% endblock %}
 
 {% block body %}
     {{ include('App/_partials/_delete.html.twig', {
-        subject: location.romanizedName,
-        back: path('app_location_show', {slug: location.slug}),
+        subject: location.displayName(app.request.locale),
+        back: path('app_location_show', {id: location.id}),
         referenced: 'error.location_referenced',
         confirm: 'label.delete_location',
     }) }}

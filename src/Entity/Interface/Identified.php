@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity\Interface;
 
-interface Sluggable
+interface Identified
 {
-    public function getSlug(): ?string;
+    public function getId(): string;
 }

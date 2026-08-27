@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Tag;
-use App\Repository\Trait\FindsByName;
 use App\Repository\Trait\Paginates;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
@@ -16,7 +15,6 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class TagRepository extends ServiceEntityRepository
 {
-    use FindsByName;
     use Paginates;
 
     public function __construct(ManagerRegistry $registry)
@@ -43,7 +41,23 @@ class TagRepository extends ServiceEntityRepository
 
     public function namedExactly(string $name): ?Tag
     {
-        return $this->oneNamed($name);
+        return $this->createQueryBuilder('t')
+            ->andWhere('LOWER(t.name) = :name')
+            ->setParameter('name', mb_strtolower($name))
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
+    public function findById(string $id): ?Tag
+    {
+        return $this->createQueryBuilder('t')
+            ->andWhere('t.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
     }
 
     private function listing(?string $term): QueryBuilder

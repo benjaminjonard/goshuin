@@ -375,7 +375,7 @@ class UserTest extends AppTestCase
 
     private function receive(Goshuincho $goshuincho, Location $place, bool $photographed): void
     {
-        $form = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getSlug().'/goshuin/add')
+        $form = $this->client->request(Request::METHOD_GET, '/goshuincho/'.$goshuincho->getId().'/goshuin/add')
             ->selectButton('goshuin_submit')
             ->form()
         ;

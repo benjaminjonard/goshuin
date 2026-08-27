@@ -90,7 +90,7 @@ class GeocoderTest extends TestCase
 
         $this->assertCount(1, $places);
         $this->assertSame('Kiyomizu-dera', $places[0]['name']);
-        $this->assertSame('清水寺', $places[0]['japaneseName'], 'The local name was not paired with the romanised one.');
+        $this->assertSame('清水寺', $places[0]['kanjiName'], 'The local name was not paired with the romanised one.');
         $this->assertSame('Kyoto', $places[0]['locality']);
         $this->assertSame('Kyoto', $places[0]['prefecture'], 'The long form Photon returns was not named.');
         $this->assertSame('Kiyomizu Slope, Kyoto, 605-0862, Japan', $places[0]['address'], 'The address was not composed from what Photon returned.');
@@ -250,7 +250,7 @@ class GeocoderTest extends TestCase
 
         $places = $geocoder->search('kiyomizu');
 
-        $this->assertSame('清水寺', $places[0]['japaneseName'], 'A local answer split across chunks was abandoned.');
+        $this->assertSame('清水寺', $places[0]['kanjiName'], 'A local answer split across chunks was abandoned.');
     }
 
     public function test_the_local_answer_is_asked_for_a_wider_net(): void
@@ -292,7 +292,7 @@ class GeocoderTest extends TestCase
         $places = $geocoder->search('somewhere');
 
         $this->assertCount(1, $places);
-        $this->assertSame('', $places[0]['japaneseName'], 'A missing local name became something else.');
+        $this->assertSame('', $places[0]['kanjiName'], 'A missing local name became something else.');
     }
 
     public function test_an_address_leaves_out_what_photon_did_not_return(): void
@@ -344,7 +344,7 @@ class GeocoderTest extends TestCase
         $places = $geocoder->search('kiyomizu');
 
         $this->assertCount(1, $places, 'A failing local answer lost the romanised results.');
-        $this->assertSame('', $places[0]['japaneseName']);
+        $this->assertSame('', $places[0]['kanjiName']);
     }
 
     public function test_it_asks_the_configured_host_in_both_languages(): void

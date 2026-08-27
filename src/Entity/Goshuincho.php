@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Entity\Interface\Identified;
 use App\Attribute\Upload;
 use App\Repository\GoshuinchoRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -17,8 +18,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: GoshuinchoRepository::class)]
 #[ORM\Table(name: 'gos_goshuincho')]
-#[ORM\UniqueConstraint(name: 'gos_goshuincho_owner_slug', columns: ['owner_id', 'slug'])]
-class Goshuincho
+class Goshuincho implements Identified
 {
     #[ORM\Id]
     #[ORM\Column(type: Types::STRING, length: 36, unique: true, options: ['fixed' => true])]
@@ -28,10 +28,6 @@ class Goshuincho
     #[Assert\NotBlank]
     #[Assert\Length(max: 255)]
     private ?string $title = null;
-
-    #[ORM\Column(type: Types::STRING, length: 255)]
-    #[Gedmo\Slug(fields: ['title'], unique: true, unique_base: 'owner')]
-    private ?string $slug = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
@@ -148,18 +144,6 @@ class Goshuincho
     public function setTitle(?string $title): Goshuincho
     {
         $this->title = $title;
-
-        return $this;
-    }
-
-    public function getSlug(): ?string
-    {
-        return $this->slug;
-    }
-
-    public function setSlug(?string $slug): Goshuincho
-    {
-        $this->slug = $slug;
 
         return $this;
     }

@@ -7,6 +7,7 @@ namespace App\Form\DataTransformer;
 use App\Entity\City;
 use App\Repository\CityRepository;
 use Symfony\Component\Form\DataTransformerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * @implements DataTransformerInterface<City, string>
@@ -15,6 +16,7 @@ final readonly class CityName implements DataTransformerInterface
 {
     public function __construct(
         private CityRepository $cities,
+        private RequestStack $requests,
     ) {
     }
 
@@ -24,7 +26,7 @@ final readonly class CityName implements DataTransformerInterface
     #[\Override]
     public function transform(mixed $value): string
     {
-        return $value instanceof City ? (string) $value->getName() : '';
+        return $value instanceof City ? (string) $value->getDisplayName($this->locale()) : '';
     }
 
     /**
@@ -39,6 +41,10 @@ final readonly class CityName implements DataTransformerInterface
             return null;
         }
 
-        return $this->cities->namedExactly($name) ?? new City()->setName($name);
+        return $this->cities->namedExactly($name) ?? new City()->setDisplayName($this->locale(), $name);
+    }
+    private function locale(): string
+    {
+        return $this->requests->getCurrentRequest()?->getLocale() ?? 'en';
     }
 }

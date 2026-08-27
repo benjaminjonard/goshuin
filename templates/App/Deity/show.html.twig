@@ -1,15 +1,15 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ deity.name }} · Goshuin{% endblock %}
+{% block title %}{{ deity.displayName(app.request.locale) }} · Goshuin{% endblock %}
 
 {% block bar %}
     {% embed 'App/_partials/_bar.html.twig' with {
-        title: deity.name,
+        title: deity.displayName(app.request.locale),
         kicker: [{label: 'label.deities'|trans, href: path('app_deity_index')}],
     } %}
         {% block tools %}
-            {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_deity_edit', {slug: deity.slug}), aria: 'label.edit'|trans}) }}
-            {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_deity_delete', {slug: deity.slug}), aria: 'label.delete'|trans}) }}
+            {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_deity_edit', {id: deity.id}), aria: 'label.edit'|trans}) }}
+            {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_deity_delete', {id: deity.id}), aria: 'label.delete'|trans}) }}
         {% endblock %}
     {% endembed %}
 {% endblock %}
@@ -24,7 +24,7 @@
                 {% if deity.photographFull %}
                     <section class="tile stage">
                         <a href="{{ deity.photograph|image }}" class="block" data-action="lightbox#open">
-                            <img src="{{ deity.photographFull|image }}" alt="{{ deity.name }}"
+                            <img src="{{ deity.photographFull|image }}" alt="{{ deity.displayName(app.request.locale) }}"
                                  class="photograph">
                         </a>
                     </section>
@@ -59,14 +59,14 @@
                     <ul class="grid gap-0">
                         {% for location in locations %}
                             <li class="not-first:border-t not-first:border-line">
-                                <a href="{{ path('app_location_show', {slug: location.slug}) }}"
+                                <a href="{{ path('app_location_show', {id: location.id}) }}"
                                    class="flex items-center gap-3 rounded-xl px-2 py-2.5 no-underline hover:bg-tile-2">
                                     <span class="grid size-8 shrink-0 place-items-center rounded-[10px] bg-accent-soft text-accent-text" aria-hidden="true">
                                         {{ include('App/_partials/_icon.html.twig', {name: 'pin', small: true}) }}
                                     </span>
                                     <span class="min-w-0 flex-auto">
-                                        <span class="block truncate text-[13.5px] font-semibold text-fg">{{ location.romanizedName }}</span>
-                                        {% set below = [location.japaneseName, location.city ? location.city.name : null, location.prefecture ? location.prefecture.name : null]|filter(part => part is not empty)|join(' · ') %}
+                                        <span class="block truncate text-[13.5px] font-semibold text-fg">{{ location.displayName(app.request.locale) }}</span>
+                                        {% set below = [location.secondaryName(app.request.locale), location.city ? location.city.displayName(app.request.locale) : null, location.prefecture ? location.prefecture.displayName(app.request.locale) : null]|filter(part => part is not empty)|join(' · ') %}
                                         {% if below is not empty %}
                                             <span class="block truncate text-xs text-fg-3">{{ below }}</span>
                                         {% endif %}

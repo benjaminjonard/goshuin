@@ -34,24 +34,24 @@ class DeityController extends AbstractController
         }
 
         return $this->render('App/Deity/index.html.twig', [
-            'deities' => $this->deities->browse($term, $page),
+            'deities' => $this->deities->browse($request->getLocale(), $term, $page),
             'term' => $term,
             'page' => $page,
             'pages' => $pages,
         ]);
     }
 
-    #[Route(path: '/deity/{slug}', name: 'app_deity_show', methods: ['GET'])]
-    public function show(#[MapEntity(mapping: ['slug' => 'slug'])] Deity $deity): Response
+    #[Route(path: '/deity/{id}', name: 'app_deity_show', methods: ['GET'])]
+    public function show(Request $request, #[MapEntity(expr: 'repository.findById(id)')] Deity $deity): Response
     {
         return $this->render('App/Deity/show.html.twig', [
             'deity' => $deity,
-            'locations' => $this->locations->enshrining($deity),
+            'locations' => $this->locations->enshrining($deity, $request->getLocale()),
         ]);
     }
 
-    #[Route(path: '/deity/{slug}/edit', name: 'app_deity_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Deity $deity): Response
+    #[Route(path: '/deity/{id}/edit', name: 'app_deity_edit', methods: ['GET', 'POST'])]
+    public function edit(Request $request, #[MapEntity(expr: 'repository.findById(id)')] Deity $deity): Response
     {
         $form = $this->createForm(DeityType::class, $deity);
         $form->handleRequest($request);
@@ -59,7 +59,7 @@ class DeityController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->entityManager->flush();
 
-            return $this->redirectToRoute('app_deity_show', ['slug' => $deity->getSlug()]);
+            return $this->redirectToRoute('app_deity_show', ['id' => $deity->getId()]);
         }
 
         return $this->render('App/Deity/edit.html.twig', [
@@ -68,9 +68,9 @@ class DeityController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/deity/{slug}/delete', name: 'app_deity_delete', methods: ['GET', 'POST'])]
-    public function delete(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Deity $deity): Response
+    #[Route(path: '/deity/{id}/delete', name: 'app_deity_delete', methods: ['GET', 'POST'])]
+    public function delete(Request $request, #[MapEntity(expr: 'repository.findById(id)')] Deity $deity): Response
     {
-        return $this->deleteSluggable($request, $deity, 'deity', $this->uses->of($deity));
+        return $this->deleteSubject($request, $deity, 'deity', $this->uses->of($deity));
     }
 }

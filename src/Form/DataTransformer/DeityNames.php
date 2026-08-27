@@ -8,6 +8,7 @@ use App\Entity\Deity;
 use App\Repository\DeityRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Form\DataTransformerInterface;
 
 /**
@@ -17,6 +18,7 @@ final readonly class DeityNames implements DataTransformerInterface
 {
     public function __construct(
         private DeityRepository $deities,
+        private RequestStack $requests,
     ) {
     }
 
@@ -32,7 +34,8 @@ final readonly class DeityNames implements DataTransformerInterface
             return [''];
         }
 
-        $named = array_values($value->map(static fn (Deity $deity): string => (string) $deity->getName())->toArray());
+        $named = array_values($value->map(fn (Deity $deity): string => (string) $deity->getDisplayName($this->locale()))->toArray());
+        sort($named);
 
         return $named === [] ? [''] : $named;
     }
@@ -54,9 +57,13 @@ final readonly class DeityNames implements DataTransformerInterface
                 continue;
             }
 
-            $named[mb_strtolower($name)] = $this->deities->namedExactly($name) ?? new Deity()->setName($name);
+            $named[mb_strtolower($name)] = $this->deities->namedExactly($name) ?? new Deity()->setDisplayName($this->locale(), $name);
         }
 
         return new ArrayCollection(array_values($named));
+    }
+    private function locale(): string
+    {
+        return $this->requests->getCurrentRequest()?->getLocale() ?? 'en';
     }
 }

@@ -10,6 +10,7 @@ use Symfony\Component\Intl\Languages;
 final readonly class LocaleHelper
 {
     private const int REGIONAL_OFFSET = 0x1F1A5;
+    private const array REGIONS = ['en' => 'GB'];
 
     /**
      * @param list<string> $locales
@@ -47,7 +48,7 @@ final readonly class LocaleHelper
 
     private function flag(string $locale): string
     {
-        $region = \Locale::getRegion(\Locale::addLikelySubtags($locale));
+        $region = self::REGIONS[$locale] ?? \Locale::getRegion(\Locale::addLikelySubtags($locale));
 
         if (mb_strlen($region) !== 2) {
             return '';

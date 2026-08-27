@@ -5,14 +5,14 @@
 {% block bar %}
     {{ include('App/_partials/_bar.html.twig', {
         kicker: [{label: 'label.deities'|trans, href: path('app_deity_index')}],
-        title: deity.name,
+        title: deity.displayName(app.request.locale),
     }) }}
 {% endblock %}
 
 {% block body %}
     {{ include('App/_partials/_delete.html.twig', {
-        subject: deity.name,
-        back: path('app_deity_show', {slug: deity.slug}),
+        subject: deity.displayName(app.request.locale),
+        back: path('app_deity_show', {id: deity.id}),
         referenced: 'error.deity_referenced',
         confirm: 'label.delete_deity',
     }) }}

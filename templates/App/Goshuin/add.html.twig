@@ -7,5 +7,5 @@
 {% endblock %}
 
 {% block body %}
-    {{ include('App/Goshuin/_form.html.twig', {cancel: path('app_goshuincho_show', {slug: goshuincho.slug})}) }}
+    {{ include('App/Goshuin/_form.html.twig', {cancel: path('app_goshuincho_show', {id: goshuincho.id})}) }}
 {% endblock %}

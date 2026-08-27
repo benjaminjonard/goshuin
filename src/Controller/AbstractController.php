@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\City;
-use App\Entity\Interface\Sluggable;
+use App\Entity\Interface\Identified;
+use App\Entity\Interface\Named;
 use App\Entity\Prefecture;
 use App\Entity\Tag;
 use App\Model\Scope;
@@ -53,13 +54,13 @@ abstract class AbstractController extends SymfonyAbstractController
     protected function scopeOf(Request $request, array $narrowings): ?Scope
     {
         foreach ($narrowings as $key => $narrowing) {
-            $slug = trim($request->query->getString($key));
+            $id = trim($request->query->getString($key));
 
-            if ($slug === '') {
+            if ($id === '') {
                 continue;
             }
 
-            $place = $narrowing['repository']->findOneBy(['slug' => $slug]);
+            $place = $narrowing['repository']->find($id);
 
             if ($place === null) {
                 throw $this->createNotFoundException();
@@ -67,10 +68,10 @@ abstract class AbstractController extends SymfonyAbstractController
 
             return new Scope(
                 key: $key,
-                value: $slug,
+                value: $id,
                 icon: $key,
-                label: $place->getName(),
-                href: $this->generateUrl($narrowing['route'], ['slug' => $slug]),
+                label: $place instanceof Named ? (string) $place->getDisplayName($request->getLocale()) : (string) $place->getName(),
+                href: $this->generateUrl($narrowing['route'], ['id' => $id]),
                 subject: $place,
             );
         }
@@ -78,15 +79,15 @@ abstract class AbstractController extends SymfonyAbstractController
         return null;
     }
 
-    protected function deleteSluggable(Request $request, Sluggable $subject, string $name, int $held, ?string $blocked = null): Response
+    protected function deleteSubject(Request $request, Identified $subject, string $name, int $held, ?string $blocked = null): Response
     {
-        $slug = $subject->getSlug();
-        $form = $this->createDeleteForm('app_'.$name.'_delete', ['slug' => $slug]);
+        $id = $subject->getId();
+        $form = $this->createDeleteForm('app_'.$name.'_delete', ['id' => $id]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             if ($held > 0) {
-                return $this->redirectToRoute($blocked ?? 'app_'.$name.'_show', ['slug' => $slug]);
+                return $this->redirectToRoute($blocked ?? 'app_'.$name.'_show', ['id' => $id]);
             }
 
             $this->entityManager->remove($subject);

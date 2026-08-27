@@ -7,7 +7,9 @@
         <div class="flex justify-end">{{ form_widget(form.removePhotograph) }}</div>
     </div>
 
-    {{ form_row(form.name) }}
+    {% for field in form|filter(child => child.vars.name in ['romanizedName', 'kanjiName', 'kanaName']) %}
+        {{ form_row(field) }}
+    {% endfor %}
 
     {% set control = 'grid size-9 shrink-0 cursor-pointer place-items-center rounded-xl border border-line-2 bg-tile text-fg-2' %}
     <div class="grid gap-1.5">

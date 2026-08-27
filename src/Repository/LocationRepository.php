@@ -8,6 +8,7 @@ use App\Entity\City;
 use App\Entity\Deity;
 use App\Entity\Location;
 use App\Entity\Prefecture;
+use App\Repository\Trait\FindsByName;
 use App\Repository\Trait\Paginates;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
@@ -18,6 +19,7 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class LocationRepository extends ServiceEntityRepository
 {
+    use FindsByName;
     use Paginates;
 
     public function __construct(ManagerRegistry $registry)
@@ -28,10 +30,9 @@ class LocationRepository extends ServiceEntityRepository
     /**
      * @return list<Location>
      */
-    public function browse(?string $term = null, int $page = 1, City|Prefecture|null $narrow = null): array
+    public function browse(string $locale, ?string $term = null, int $page = 1, City|Prefecture|null $narrow = null): array
     {
-        return $this->paginate($this->listing($term, $narrow), $page)
-            ->orderBy('l.romanizedName', 'ASC')
+        return $this->orderedByName($this->paginate($this->listing($term, $narrow), $page), 'l', $locale)
             ->getQuery()
             ->getResult()
         ;
@@ -52,12 +53,22 @@ class LocationRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    public function findById(string $id): ?Location
+    {
+        return $this->createQueryBuilder('l')
+            ->andWhere('l.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
     private function listing(?string $term, City|Prefecture|null $narrow): QueryBuilder
     {
         $builder = $this->createQueryBuilder('l');
 
         if ($term !== null && $term !== '') {
-            $this->named($builder, $term);
+            $this->matchingName($builder, 'l', $term);
         }
 
         if ($narrow !== null) {
@@ -73,13 +84,12 @@ class LocationRepository extends ServiceEntityRepository
     /**
      * @return list<Location>
      */
-    public function enshrining(Deity $deity): array
+    public function enshrining(Deity $deity, string $locale): array
     {
-        return $this->createQueryBuilder('l')
+        return $this->orderedByName($this->createQueryBuilder('l')
             ->innerJoin('l.deities', 'd')
             ->andWhere('d = :deity')
-            ->setParameter('deity', $deity)
-            ->orderBy('l.romanizedName', 'ASC')
+            ->setParameter('deity', $deity), 'l', $locale)
             ->getQuery()
             ->getResult()
         ;
@@ -88,21 +98,12 @@ class LocationRepository extends ServiceEntityRepository
     /**
      * @return list<Location>
      */
-    public function search(string $term, int $limit = 8): array
+    public function search(string $term, string $locale, int $limit = 8): array
     {
-        return $this->named($this->createQueryBuilder('l'), $term)
-            ->orderBy('l.romanizedName', 'ASC')
+        return $this->orderedByName($this->matchingName($this->createQueryBuilder('l'), 'l', $term), 'l', $locale)
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult()
-        ;
-    }
-
-    private function named(QueryBuilder $builder, string $term): QueryBuilder
-    {
-        return $builder
-            ->andWhere('LOWER(l.romanizedName) LIKE :term OR LOWER(l.japaneseName) LIKE :term')
-            ->setParameter('term', '%'.mb_strtolower($term).'%')
         ;
     }
 
@@ -111,9 +112,7 @@ class LocationRepository extends ServiceEntityRepository
      */
     public function namedExactly(string $name): array
     {
-        return $this->createQueryBuilder('l')
-            ->andWhere('LOWER(l.romanizedName) = :name')
-            ->setParameter('name', mb_strtolower($name))
+        return $this->matchingName($this->createQueryBuilder('l'), 'l', $name, exact: true)
             ->getQuery()
             ->getResult()
         ;

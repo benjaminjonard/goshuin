@@ -42,15 +42,15 @@ class PrefectureController extends AbstractController
         }
 
         return $this->render('App/Prefecture/index.html.twig', [
-            'prefectures' => $this->prefectures->browse($term, $page),
+            'prefectures' => $this->prefectures->browse($request->getLocale(), $term, $page),
             'term' => $term,
             'page' => $page,
             'pages' => $pages,
         ]);
     }
 
-    #[Route(path: '/prefecture/{slug}', name: 'app_prefecture_show', methods: ['GET'])]
-    public function show(#[MapEntity(mapping: ['slug' => 'slug'])] Prefecture $prefecture): Response
+    #[Route(path: '/prefecture/{id}', name: 'app_prefecture_show', methods: ['GET'])]
+    public function show(#[MapEntity(expr: 'repository.findById(id)')] Prefecture $prefecture): Response
     {
         return $this->render('App/Prefecture/show.html.twig', [
             'prefecture' => $prefecture,
@@ -61,8 +61,8 @@ class PrefectureController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/prefecture/{slug}/edit', name: 'app_prefecture_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Prefecture $prefecture): Response
+    #[Route(path: '/prefecture/{id}/edit', name: 'app_prefecture_edit', methods: ['GET', 'POST'])]
+    public function edit(Request $request, #[MapEntity(expr: 'repository.findById(id)')] Prefecture $prefecture): Response
     {
         $form = $this->createForm(PrefectureType::class, $prefecture);
         $form->handleRequest($request);
@@ -71,7 +71,7 @@ class PrefectureController extends AbstractController
             $this->entityManager->flush();
             $this->set->applyFrom($request, $prefecture, 'prefecture');
 
-            return $this->redirectToRoute('app_prefecture_show', ['slug' => $prefecture->getSlug()]);
+            return $this->redirectToRoute('app_prefecture_show', ['id' => $prefecture->getId()]);
         }
 
         return $this->render('App/Prefecture/edit.html.twig', [
@@ -80,9 +80,9 @@ class PrefectureController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/prefecture/{slug}/delete', name: 'app_prefecture_delete', methods: ['GET', 'POST'])]
-    public function delete(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Prefecture $prefecture): Response
+    #[Route(path: '/prefecture/{id}/delete', name: 'app_prefecture_delete', methods: ['GET', 'POST'])]
+    public function delete(Request $request, #[MapEntity(expr: 'repository.findById(id)')] Prefecture $prefecture): Response
     {
-        return $this->deleteSluggable($request, $prefecture, 'prefecture', $this->uses->of($prefecture));
+        return $this->deleteSubject($request, $prefecture, 'prefecture', $this->uses->of($prefecture));
     }
 }

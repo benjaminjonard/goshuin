@@ -1,15 +1,15 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ prefecture.name }} · Goshuin{% endblock %}
+{% block title %}{{ prefecture.displayName(app.request.locale) }} · Goshuin{% endblock %}
 
 {% block bar %}
     {% embed 'App/_partials/_bar.html.twig' with {
-        title: prefecture.name,
+        title: prefecture.displayName(app.request.locale),
         kicker: [{label: 'label.prefectures'|trans, href: path('app_prefecture_index')}],
     } %}
         {% block tools %}
-            {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_prefecture_edit', {slug: prefecture.slug}), aria: 'label.edit'|trans}) }}
-            {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_prefecture_delete', {slug: prefecture.slug}), aria: 'label.delete'|trans}) }}
+            {{ include('App/_partials/_button.html.twig', {icon: 'edit', href: path('app_prefecture_edit', {id: prefecture.id}), aria: 'label.edit'|trans}) }}
+            {{ include('App/_partials/_button.html.twig', {icon: 'trash', href: path('app_prefecture_delete', {id: prefecture.id}), aria: 'label.delete'|trans}) }}
         {% endblock %}
     {% endembed %}
 {% endblock %}
@@ -20,7 +20,7 @@
             {% if prefecture.photographFull %}
                 <section class="tile stage">
                     <a href="{{ prefecture.photograph|image }}" class="block" data-action="lightbox#open">
-                        <img src="{{ prefecture.photographFull|image }}" alt="{{ prefecture.name }}"
+                        <img src="{{ prefecture.photographFull|image }}" alt="{{ prefecture.displayName(app.request.locale) }}"
                              class="photograph">
                     </a>
                 </section>
@@ -29,8 +29,8 @@
             <div class="{{ prefecture.photographFull ? 'min-[1060px]:relative' }}">
                 <div class="flex flex-col gap-[clamp(12px,1.4vw,18px)]{{ prefecture.photographFull ? ' min-[1060px]:absolute min-[1060px]:inset-0' }}">
                     {{ include('App/_partials/_totals.html.twig', {totals: [
-                        {icon: 'city', value: cities, label: 'label.stat_cities', href: path('app_city_index', {prefecture: prefecture.slug})},
-                        {icon: 'pin', value: locations, label: 'label.stat_locations', href: path('app_location_index', {prefecture: prefecture.slug})},
+                        {icon: 'city', value: cities, label: 'label.stat_cities', href: path('app_city_index', {prefecture: prefecture.id})},
+                        {icon: 'pin', value: locations, label: 'label.stat_locations', href: path('app_location_index', {prefecture: prefecture.id})},
                     ]}) }}
 
                     {% if prefecture.notes is not empty %}

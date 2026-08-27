@@ -28,10 +28,9 @@ class CityRepository extends ServiceEntityRepository
     /**
      * @return list<City>
      */
-    public function browse(?string $term = null, int $page = 1, ?Prefecture $narrow = null): array
+    public function browse(string $locale, ?string $term = null, int $page = 1, ?Prefecture $narrow = null): array
     {
-        return $this->paginate($this->listing($term, $narrow), $page)
-            ->orderBy('c.name', 'ASC')
+        return $this->orderedByName($this->paginate($this->listing($term, $narrow), $page), 'c', $locale)
             ->getQuery()
             ->getResult()
         ;
@@ -57,15 +56,22 @@ class CityRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    public function findById(string $id): ?City
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
     private function listing(?string $term, ?Prefecture $narrow): QueryBuilder
     {
         $builder = $this->createQueryBuilder('c');
 
         if ($term !== null && $term !== '') {
-            $builder
-                ->andWhere('LOWER(c.name) LIKE :term')
-                ->setParameter('term', '%'.mb_strtolower($term).'%')
-            ;
+            $this->matchingName($builder, 'c', $term);
         }
 
         if ($narrow !== null) {

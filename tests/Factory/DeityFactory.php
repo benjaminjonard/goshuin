@@ -22,7 +22,7 @@ final class DeityFactory extends PersistentObjectFactory
     protected function defaults(): array
     {
         return [
-            'name' => self::faker()->unique()->words(2, true),
+            'romanizedName' => self::faker()->unique()->words(2, true),
         ];
     }
 }

@@ -14,12 +14,12 @@
         noun: 'label.cities',
         back: 'label.all_cities',
         cards: cities|map(city => {
-            href: path('app_city_show', {slug: city.slug}),
+            href: path('app_city_show', {id: city.id}),
             image: city.photographCard,
             crop: true,
             icon: 'city',
-            title: city.name,
-            below: city.prefecture ? city.prefecture.name : null,
+            title: city.displayName(app.request.locale),
+            below: city.prefecture ? city.prefecture.displayName(app.request.locale) : null,
         }),
     }) }}
 {% endblock %}

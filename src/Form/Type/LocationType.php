@@ -18,6 +18,7 @@ use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -25,25 +26,32 @@ use Symfony\UX\LiveComponent\Form\Type\LiveCollectionType;
 
 class LocationType extends AbstractType
 {
+    private const array NAME_LABELS = [
+        'romanizedName' => 'label.romanized_name',
+        'kanjiName' => 'label.kanji_name',
+        'kanaName' => 'label.kana_name',
+    ];
+
     public function __construct(
         private readonly DeityNames $names,
         private readonly CityName $city,
         private readonly PrefectureName $prefecture,
+        private readonly RequestStack $requests,
     ) {
     }
 
     #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $builder
-            ->add('romanizedName', TextType::class, [
-                'label' => 'label.romanized_name',
-                'attr' => ['autofocus' => true],
-            ])
-            ->add('japaneseName', TextType::class, [
-                'label' => 'label.japanese_name',
+        foreach (Location::displayFields($this->locale()) as $rank => $field) {
+            $builder->add($field, TextType::class, [
+                'label' => self::NAME_LABELS[$field],
                 'required' => false,
-            ])
+                'attr' => $rank === 0 ? ['autofocus' => true] : [],
+            ]);
+        }
+
+        $builder
             ->add('type', EnumType::class, [
                 'label' => 'label.location_type',
                 'class' => Kind::class,
@@ -160,5 +168,9 @@ class LocationType extends AbstractType
             ->setDefaults(['data_class' => Location::class, 'editing' => true])
             ->setAllowedTypes('editing', 'bool')
         ;
+    }
+    private function locale(): string
+    {
+        return $this->requests->getCurrentRequest()?->getLocale() ?? 'en';
     }
 }

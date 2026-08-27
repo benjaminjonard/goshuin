@@ -7,6 +7,7 @@ namespace App\Form\DataTransformer;
 use App\Entity\Prefecture;
 use App\Repository\PrefectureRepository;
 use Symfony\Component\Form\DataTransformerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * @implements DataTransformerInterface<Prefecture, string>
@@ -15,6 +16,7 @@ final readonly class PrefectureName implements DataTransformerInterface
 {
     public function __construct(
         private PrefectureRepository $prefectures,
+        private RequestStack $requests,
     ) {
     }
 
@@ -24,7 +26,7 @@ final readonly class PrefectureName implements DataTransformerInterface
     #[\Override]
     public function transform(mixed $value): string
     {
-        return $value instanceof Prefecture ? (string) $value->getName() : '';
+        return $value instanceof Prefecture ? (string) $value->getDisplayName($this->locale()) : '';
     }
 
     /**
@@ -39,6 +41,10 @@ final readonly class PrefectureName implements DataTransformerInterface
             return null;
         }
 
-        return $this->prefectures->namedExactly($name) ?? new Prefecture()->setName($name);
+        return $this->prefectures->namedExactly($name) ?? new Prefecture()->setDisplayName($this->locale(), $name);
+    }
+    private function locale(): string
+    {
+        return $this->requests->getCurrentRequest()?->getLocale() ?? 'en';
     }
 }
