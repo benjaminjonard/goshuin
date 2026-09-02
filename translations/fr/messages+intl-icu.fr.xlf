@@ -1087,5 +1087,89 @@
         <target>Nom en kana</target>
       </segment>
     </unit>
+    <unit id="izV_UZv" name="label.statistics">
+      <segment state="translated">
+        <source>Statistics</source>
+        <target>Statistiques</target>
+      </segment>
+    </unit>
+    <unit id="lDnPYHr" name="label.coverage">
+      <segment state="translated">
+        <source>Coverage</source>
+        <target>Couverture</target>
+      </segment>
+    </unit>
+    <unit id="FSVJBDP" name="label.over_time">
+      <segment state="translated">
+        <source>Over time</source>
+        <target>Dans le temps</target>
+      </segment>
+    </unit>
+    <unit id="3mk2FDd" name="label.by_year">
+      <segment state="translated">
+        <source>By year</source>
+        <target>Par année</target>
+      </segment>
+    </unit>
+    <unit id="4bJkGYe" name="label.by_month">
+      <segment state="translated">
+        <source>By month</source>
+        <target>Par mois</target>
+      </segment>
+    </unit>
+    <unit id="0RkySST" name="label.by_weekday">
+      <segment state="translated">
+        <source>By day of the week</source>
+        <target>Par jour de la semaine</target>
+      </segment>
+    </unit>
+    <unit id="AG4OxaB" name="label.unlocated_goshuin">
+      <segment state="translated">
+        <source>{count} goshuin not on the map</source>
+        <target>{count} goshuin hors carte</target>
+      </segment>
+    </unit>
+    <unit id="ajKeBth" name="label.undated_goshuin">
+      <segment state="translated">
+        <source>{count} goshuin without a date</source>
+        <target>{count} goshuin sans date</target>
+      </segment>
+    </unit>
+    <unit id="WQoUY.F" name="label.all">
+      <segment state="translated">
+        <source>All</source>
+        <target>Tous</target>
+      </segment>
+    </unit>
+    <unit id="KRDVAzn" name="label.unlocated_goshuincho">
+      <segment state="translated">
+        <source>{count} goshuincho not on the map</source>
+        <target>{count} goshuincho hors carte</target>
+      </segment>
+    </unit>
+    <unit id="g9Lq9CV" name="label.undated_goshuincho">
+      <segment state="translated">
+        <source>{count} goshuincho without a date</source>
+        <target>{count} goshuincho sans date</target>
+      </segment>
+    </unit>
+    <unit id="4nEHwrD" name="label.stats_empty_both">
+      <segment state="translated">
+        <source>Nothing to count yet.</source>
+        <target>Rien à compter pour l'instant.</target>
+      </segment>
+    </unit>
+    <unit id="htRnngm" name="label.stats_empty_goshuin">
+      <segment state="translated">
+        <source>No goshuin yet.</source>
+        <target>Aucun goshuin pour l'instant.</target>
+      </segment>
+    </unit>
+    <unit id="HwrotS8" name="label.stats_empty_goshuincho">
+      <segment state="translated">
+        <source>No goshuincho yet.</source>
+        <target>Aucun goshuincho pour l'instant.</target>
+      </segment>
+    </unit>
   </file>
 </xliff>

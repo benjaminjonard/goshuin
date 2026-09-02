@@ -1,0 +1,25 @@
+<div data-controller="map"
+     data-map-mode-value="regions"
+     data-map-tiles-value="{{ map_tiles }}"
+     data-map-attribution-value="{{ attribution }}"
+     data-map-layers-value="{{ layers|map(layer => {
+         url: layer.url,
+         count: layer.zones|length|format_number,
+         zones: layer.zones,
+         frames: layer.frames|default(false),
+     })|json_encode }}">
+    <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-1.5">
+            {% for layer in layers %}
+                {{ include('App/_partials/_button.html.twig', {
+                    label: layer.label|trans,
+                    class: 'aria-pressed:border-accent aria-pressed:bg-accent aria-pressed:text-white dark:aria-pressed:text-[#24100d]',
+                    attributes: 'aria-pressed="' ~ (loop.first ? 'true' : 'false')
+                        ~ '" data-map-target="switch" data-action="map#show" data-map-level-param="' ~ loop.index0 ~ '"',
+                }) }}
+            {% endfor %}
+        </div>
+        <span class="text-[12.5px] tabular-nums text-fg-3" aria-live="polite" data-map-target="held">{{ layers[0].zones|length|format_number }}</span>
+    </div>
+    <div class="minimap h-[clamp(360px,64vh,660px)]" data-map-target="canvas"></div>
+</div>

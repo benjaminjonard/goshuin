@@ -1,0 +1,65 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'label.statistics'|trans }} · Goshuin{% endblock %}
+
+{% block bar %}
+    {{ include('App/_partials/_bar.html.twig', {kicker: [{label: app.user.name}], title: 'label.statistics'|trans}) }}
+{% endblock %}
+
+{% block body %}
+    <main class="page grid gap-[clamp(12px,1.4vw,18px)]">
+        {{ include('App/_partials/_pills.html.twig', {pills: [
+            {text: 'label.all'|trans, href: path('app_stats'), hot: shown.value == 'both', current: shown.value == 'both'},
+            {text: 'label.goshuin'|trans, href: path('app_stats', {show: 'goshuin'}), hot: shown.value == 'goshuin', current: shown.value == 'goshuin'},
+            {text: 'label.goshuincho'|trans, href: path('app_stats', {show: 'goshuincho'}), hot: shown.value == 'goshuincho', current: shown.value == 'goshuincho'},
+        ]}) }}
+
+        {% if counted == 0 %}
+            <div class="tile px-[clamp(20px,2.6vw,38px)] py-[clamp(24px,3.6vw,44px)] text-center">
+                <span class="mx-auto mb-5 grid size-[62px] place-items-center rounded-[18px] bg-accent-soft" aria-hidden="true">
+                    {{ include('App/_partials/_icon.html.twig', {name: 'stats', class: 'size-10 text-accent-text'}) }}
+                </span>
+                <h2 class="text-[clamp(22px,2.8vw,28px)] font-bold leading-tight tracking-[-0.025em]">{{ ('label.stats_empty_' ~ shown.value)|trans }}</h2>
+            </div>
+        {% else %}
+            {{ include('App/_partials/_totals.html.twig', {totals: [
+                shown.showsGoshuin ? {icon: 'goshuin', value: tally.goshuin, label: 'label.stat_goshuin', href: path('app_goshuin_index')},
+                shown.showsGoshuincho ? {icon: 'goshuincho', value: tally.goshuincho, label: 'label.stat_goshuincho', href: path('app_goshuincho_index')},
+                {icon: 'prefecture', value: zones.prefectures|length, label: 'label.stat_prefectures', href: path('app_prefecture_index')},
+                {icon: 'city', value: zones.municipalities|length, label: 'label.stat_cities', href: path('app_city_index')},
+            ]|filter(total => total)}) }}
+
+            {% embed 'App/_partials/_section.html.twig' with {title: 'label.coverage'|trans} %}
+                {% block content %}
+                    {{ include('App/Stats/_map.html.twig', {
+                        attribution: attribution,
+                        layers: [
+                            {label: 'label.prefectures', zones: zones.prefectures, url: geo.prefectures},
+                            {label: 'label.cities', zones: zones.municipalities, url: geo.municipalities, frames: true},
+                        ],
+                    }) }}
+
+                    {{ include('App/Stats/_missing.html.twig', {lines: [
+                        {label: 'label.unlocated_goshuin', count: coverage.unlocatedGoshuin, on: shown.showsGoshuin},
+                        {label: 'label.unlocated_goshuincho', count: coverage.unlocatedGoshuincho, on: shown.showsGoshuincho},
+                    ]}) }}
+                {% endblock %}
+            {% endembed %}
+
+            {% embed 'App/_partials/_section.html.twig' with {title: 'label.over_time'|trans} %}
+                {% block content %}
+                    <div class="grid gap-[clamp(12px,1.4vw,18px)] lg:grid-cols-3">
+                        {{ include('App/Stats/_distribution.html.twig', {title: 'label.by_year'|trans, spans: spans.years, kind: 'year', shown: shown}) }}
+                        {{ include('App/Stats/_distribution.html.twig', {title: 'label.by_month'|trans, spans: spans.months, kind: 'month', shown: shown}) }}
+                        {{ include('App/Stats/_distribution.html.twig', {title: 'label.by_weekday'|trans, spans: spans.weekdays, kind: 'weekday', shown: shown}) }}
+                    </div>
+
+                    {{ include('App/Stats/_missing.html.twig', {lines: [
+                        {label: 'label.undated_goshuin', count: spans.undatedGoshuin, on: shown.showsGoshuin},
+                        {label: 'label.undated_goshuincho', count: spans.undatedGoshuincho, on: shown.showsGoshuincho},
+                    ]}) }}
+                {% endblock %}
+            {% endembed %}
+        {% endif %}
+    </main>
+{% endblock %}

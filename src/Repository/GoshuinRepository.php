@@ -11,6 +11,7 @@ use App\Entity\Location;
 use App\Entity\Prefecture;
 use App\Entity\Tag;
 use App\Model\Pin;
+use App\Repository\Trait\Distributes;
 use App\Repository\Trait\Paginates;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
@@ -21,6 +22,7 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class GoshuinRepository extends ServiceEntityRepository
 {
+    use Distributes;
     use Paginates;
 
     public function __construct(ManagerRegistry $registry)
@@ -150,6 +152,35 @@ class GoshuinRepository extends ServiceEntityRepository
             ),
             $rows,
         );
+    }
+
+    /**
+     * @return array{zones: array<string, int>, unlocated: int}
+     */
+    public function coverage(): array
+    {
+        return $this->zonesOf($this->createQueryBuilder('g')
+            ->select('location.municipalityCode AS code')
+            ->addSelect('COUNT(g.id) AS held')
+            ->innerJoin('g.location', 'location')
+            ->groupBy('location.municipalityCode')
+            ->orderBy('location.municipalityCode', 'ASC')
+            ->getQuery()
+            ->getArrayResult());
+    }
+
+    /**
+     * @return array{years: array<int, int>, months: array<int, int>, weekdays: array<int, int>, undated: int}
+     */
+    public function spans(): array
+    {
+        return $this->spansOf($this->createQueryBuilder('g')
+            ->select('g.receivedOn AS day')
+            ->addSelect('COUNT(g.id) AS held')
+            ->groupBy('g.receivedOn')
+            ->orderBy('g.receivedOn', 'ASC')
+            ->getQuery()
+            ->getArrayResult());
     }
 
     public function atPosition(Goshuincho $goshuincho, int $position): ?Goshuin

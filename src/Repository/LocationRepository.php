@@ -43,6 +43,21 @@ class LocationRepository extends ServiceEntityRepository
         return $this->pagesOf($this->listing($term, $narrow));
     }
 
+    /**
+     * @return list<Location>
+     */
+    public function withoutMunicipalityCode(): array
+    {
+        return $this->createQueryBuilder('l')
+            ->andWhere('l.municipalityCode IS NULL')
+            ->andWhere('l.latitude IS NOT NULL')
+            ->andWhere('l.longitude IS NOT NULL')
+            ->orderBy('l.id', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
     public function countIn(City|Prefecture $place): int
     {
         return (int) $this->createQueryBuilder('l')

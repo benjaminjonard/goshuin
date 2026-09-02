@@ -32,7 +32,8 @@
         "build": "encore production --progress"
     },
     "dependencies": {
-        "@symfony/ux-live-component": "file:../vendor/symfony/ux-live-component/assets",
-        "leaflet": "^1.9.4"
+        "@symfony/ux-live-component": "link:../vendor/symfony/ux-live-component/assets",
+        "leaflet": "^1.9.4",
+        "topojson-client": "3.1.0"
     }
 }

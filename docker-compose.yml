@@ -15,7 +15,7 @@ services:
             - DB_PORT=5432
             - DB_NAME=goshuin
             - DB_USER=postgres
-            - DB_PASSWORD=password
+            - DB_PASSWORD=Xej8DKgoIDAxYxgOLgUpxXVoL
             - DB_VERSION=18
             - PHP_TZ=Europe/Paris
             - PHP_MEMORY_LIMIT=1G

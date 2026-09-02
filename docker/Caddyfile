@@ -30,7 +30,7 @@
 	    X-Frame-Options Deny
 	}
 
-	@immutable path /build/* /uploads/*
+	@immutable path /build/* /uploads/* /geo/*
 	header @immutable Cache-Control "public, max-age=31536000, immutable"
 
 	request_body {

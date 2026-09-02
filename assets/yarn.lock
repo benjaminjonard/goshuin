@@ -1240,14 +1240,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@symfony/ux-live-component@file:../vendor/symfony/ux-live-component/assets::locator=goshuin%40workspace%3A.":
-  version: 3.2.0
-  resolution: "@symfony/ux-live-component@file:../vendor/symfony/ux-live-component/assets#../vendor/symfony/ux-live-component/assets::hash=e3b0f9&locator=goshuin%40workspace%3A."
-  peerDependencies:
-    "@hotwired/stimulus": ^3.0.0
-  checksum: 10/af32b2435b8dd1888c6e9766a57e2fef315c1ef628b91e5059386416bca3d6165905ff1150d67bced9bb8c942c8e9140a37c77c1a35f3f3f0a99c1f3b1339cd0
+"@symfony/ux-live-component@link:../vendor/symfony/ux-live-component/assets::locator=goshuin%40workspace%3A.":
+  version: 0.0.0-use.local
+  resolution: "@symfony/ux-live-component@link:../vendor/symfony/ux-live-component/assets::locator=goshuin%40workspace%3A."
   languageName: node
-  linkType: hard
+  linkType: soft
 
 "@symfony/webpack-encore@npm:7.2.0":
   version: 7.2.0
@@ -1945,6 +1942,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"commander@npm:2, commander@npm:^2.20.0":
+  version: 2.20.3
+  resolution: "commander@npm:2.20.3"
+  checksum: 10/90c5b6898610cd075984c58c4f88418a4fb44af08c1b1415e9854c03171bec31b336b7f3e4cefe33de994b3f12b03c5e2d638da4316df83593b9e82554e7e95b
+  languageName: node
+  linkType: hard
+
 "commander@npm:^11.1.0":
   version: 11.1.0
   resolution: "commander@npm:11.1.0"
@@ -1956,13 +1960,6 @@ __metadata:
   version: 14.0.3
   resolution: "commander@npm:14.0.3"
   checksum: 10/dfa9ebe2a433d277de5cb0252d23b10a543d245d892db858d23b516336a835c50fd4f52bee4cd13c705cc8acb6f03dc632c73dd806f7d06d3353eb09953dd17a
-  languageName: node
-  linkType: hard
-
-"commander@npm:^2.20.0":
-  version: 2.20.3
-  resolution: "commander@npm:2.20.3"
-  checksum: 10/90c5b6898610cd075984c58c4f88418a4fb44af08c1b1415e9854c03171bec31b336b7f3e4cefe33de994b3f12b03c5e2d638da4316df83593b9e82554e7e95b
   languageName: node
   linkType: hard
 
@@ -2490,7 +2487,7 @@ __metadata:
     "@babel/preset-env": "npm:8.0.2"
     "@hotwired/stimulus": "npm:3.2.2"
     "@symfony/stimulus-bridge": "npm:4.0.1"
-    "@symfony/ux-live-component": "file:../vendor/symfony/ux-live-component/assets"
+    "@symfony/ux-live-component": "link:../vendor/symfony/ux-live-component/assets"
     "@symfony/webpack-encore": "npm:7.2.0"
     "@tailwindcss/postcss": "npm:4.3.3"
     cssnano: "npm:8.0.5"
@@ -2498,6 +2495,7 @@ __metadata:
     postcss: "npm:8.5.26"
     postcss-loader: "npm:8.2.1"
     tailwindcss: "npm:4.3.3"
+    topojson-client: "npm:3.1.0"
     webpack: "npm:5.109.2"
     webpack-cli: "npm:7.2.2"
   languageName: unknown
@@ -3888,6 +3886,19 @@ __metadata:
   version: 0.2.7
   resolution: "tmp@npm:0.2.7"
   checksum: 10/0a3bc90beb0c6275273c3475fb57e466eaab1c9c4a101d029ff62b18146ce136e7f75d09de34863d9f2c2a492751402508f9e028bc98eb34a1416195d4b15619
+  languageName: node
+  linkType: hard
+
+"topojson-client@npm:3.1.0":
+  version: 3.1.0
+  resolution: "topojson-client@npm:3.1.0"
+  dependencies:
+    commander: "npm:2"
+  bin:
+    topo2geo: bin/topo2geo
+    topomerge: bin/topomerge
+    topoquantize: bin/topoquantize
+  checksum: 10/a0bd2f313dfeb2893ccbe00492f47518c62f0da41f6ee16a9d362dced57f79ba5bd51ae62038387b446463cd8e033d68a217c98c62d8b5fe2b807d9dd18406fc
   languageName: node
   linkType: hard
 

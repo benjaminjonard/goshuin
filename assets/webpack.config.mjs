@@ -22,4 +22,10 @@ Encore
     })
 ;
 
-export default await Encore.getWebpackConfig();
+const config = await Encore.getWebpackConfig();
+
+// @symfony/ux-live-component is linked from vendor/, so webpack has to keep the
+// node_modules path to resolve the @hotwired/stimulus import it carries.
+config.resolve.symlinks = false;
+
+export default config;

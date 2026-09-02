@@ -22,6 +22,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: LocationRepository::class)]
 #[ORM\Table(name: 'gos_location')]
+#[ORM\Index(name: 'idx_location_municipality_code', columns: ['municipality_code'])]
 #[AtLeastOneName]
 class Location implements Named, Identified, Photographed
 {
@@ -69,6 +70,9 @@ class Location implements Named, Identified, Photographed
     #[ORM\Column(type: Types::FLOAT, nullable: true)]
     #[Assert\Range(min: -180, max: 180)]
     private ?float $longitude = null;
+
+    #[ORM\Column(type: Types::STRING, length: 5, nullable: true, options: ['fixed' => true])]
+    private ?string $municipalityCode = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $notes = null;
@@ -239,6 +243,18 @@ class Location implements Named, Identified, Photographed
     public function hasCoordinates(): bool
     {
         return $this->latitude !== null && $this->longitude !== null;
+    }
+
+    public function getMunicipalityCode(): ?string
+    {
+        return $this->municipalityCode;
+    }
+
+    public function setMunicipalityCode(?string $municipalityCode): Location
+    {
+        $this->municipalityCode = $municipalityCode;
+
+        return $this;
     }
 
     public function getNotes(): ?string

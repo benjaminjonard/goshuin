@@ -1087,5 +1087,89 @@
         <target>Kana name</target>
       </segment>
     </unit>
+    <unit id="izV_UZv" name="label.statistics">
+      <segment state="translated">
+        <source>Statistics</source>
+        <target>Statistics</target>
+      </segment>
+    </unit>
+    <unit id="lDnPYHr" name="label.coverage">
+      <segment state="translated">
+        <source>Coverage</source>
+        <target>Coverage</target>
+      </segment>
+    </unit>
+    <unit id="FSVJBDP" name="label.over_time">
+      <segment state="translated">
+        <source>Over time</source>
+        <target>Over time</target>
+      </segment>
+    </unit>
+    <unit id="3mk2FDd" name="label.by_year">
+      <segment state="translated">
+        <source>By year</source>
+        <target>By year</target>
+      </segment>
+    </unit>
+    <unit id="4bJkGYe" name="label.by_month">
+      <segment state="translated">
+        <source>By month</source>
+        <target>By month</target>
+      </segment>
+    </unit>
+    <unit id="0RkySST" name="label.by_weekday">
+      <segment state="translated">
+        <source>By day of the week</source>
+        <target>By day of the week</target>
+      </segment>
+    </unit>
+    <unit id="AG4OxaB" name="label.unlocated_goshuin">
+      <segment state="translated">
+        <source>{count} goshuin not on the map</source>
+        <target>{count} goshuin not on the map</target>
+      </segment>
+    </unit>
+    <unit id="ajKeBth" name="label.undated_goshuin">
+      <segment state="translated">
+        <source>{count} goshuin without a date</source>
+        <target>{count} goshuin without a date</target>
+      </segment>
+    </unit>
+    <unit id="WQoUY.F" name="label.all">
+      <segment state="translated">
+        <source>All</source>
+        <target>All</target>
+      </segment>
+    </unit>
+    <unit id="KRDVAzn" name="label.unlocated_goshuincho">
+      <segment state="translated">
+        <source>{count} goshuincho not on the map</source>
+        <target>{count} goshuincho not on the map</target>
+      </segment>
+    </unit>
+    <unit id="g9Lq9CV" name="label.undated_goshuincho">
+      <segment state="translated">
+        <source>{count} goshuincho without a date</source>
+        <target>{count} goshuincho without a date</target>
+      </segment>
+    </unit>
+    <unit id="4nEHwrD" name="label.stats_empty_both">
+      <segment state="translated">
+        <source>Nothing to count yet.</source>
+        <target>Nothing to count yet.</target>
+      </segment>
+    </unit>
+    <unit id="htRnngm" name="label.stats_empty_goshuin">
+      <segment state="translated">
+        <source>No goshuin yet.</source>
+        <target>No goshuin yet.</target>
+      </segment>
+    </unit>
+    <unit id="HwrotS8" name="label.stats_empty_goshuincho">
+      <segment state="translated">
+        <source>No goshuincho yet.</source>
+        <target>No goshuincho yet.</target>
+      </segment>
+    </unit>
   </file>
 </xliff>

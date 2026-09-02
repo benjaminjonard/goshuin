@@ -7,7 +7,7 @@
                        {{ pill.hot|default(false) ? 'border-accent-line bg-accent-soft text-accent-text' : 'border-line bg-tile-2 text-fg-2' }}">
                 {%- if pill.icon is defined %}{{ include('App/_partials/_icon.html.twig', {name: pill.icon, small: true}) }}{% endif -%}
                 {%- if pill.href|default(null) -%}
-                    <a href="{{ pill.href }}" class="no-underline hover:underline{{ pill.jp|default(false) ? ' font-jp' }}">{{ pill.text }}</a>
+                    <a href="{{ pill.href }}"{% if pill.current|default(false) %} aria-current="page"{% endif %} class="no-underline hover:underline{{ pill.jp|default(false) ? ' font-jp' }}">{{ pill.text }}</a>
                 {%- else -%}
                     <span{{ pill.jp|default(false) ? ' class=font-jp'|raw }}>{{ pill.text }}</span>
                 {%- endif -%}

@@ -1,0 +1,38 @@
+{% set series = [
+    {name: 'goshuin', tint: 'bg-accent', on: shown.showsGoshuin},
+    {name: 'goshuincho', tint: 'bg-plum', on: shown.showsGoshuincho},
+]|filter(one => one.on) %}
+
+{% set totals = spans|map(span => series|reduce((stacked, one) => stacked + attribute(span, one.name), 0)) %}
+{% set top = totals is empty ? 0 : max(totals) %}
+
+<div class="grid content-start gap-2" data-distribution="{{ kind }}">
+    <span class="text-[12.5px] font-semibold text-fg-2">{{ title }}</span>
+    <ul class="grid gap-1.5">
+        {% for span in spans %}
+            <li class="grid items-center gap-2.5 {{ series|length > 1 ? 'grid-cols-[3.4rem_1fr_4.4rem]' : 'grid-cols-[3.4rem_1fr_2.6rem]' }}">
+                <span class="truncate text-[12px] tabular-nums text-fg-3">
+                    {%- if kind == 'month' -%}
+                        {{ ('2026-%02d-01'|format(span.key))|format_datetime(pattern: 'LLL') }}
+                    {%- elseif kind == 'weekday' -%}
+                        {{ ('2026-01-%02d'|format(4 + span.key))|format_datetime(pattern: 'ccc') }}
+                    {%- else -%}
+                        {{ span.key }}
+                    {%- endif -%}
+                </span>
+                <span class="flex h-2 overflow-hidden rounded-full bg-tile-2">
+                    {%- for one in series|filter(one => attribute(span, one.name) > 0) -%}
+                        <span class="block h-full {{ one.tint }}" data-segment="{{ one.name }}"
+                              style="width: {{ (attribute(span, one.name) * 100 / top)|round(2) }}%"></span>
+                    {%- endfor -%}
+                </span>
+                <span class="flex items-center justify-end gap-1 text-[11.5px] tabular-nums">
+                    {%- for one in series -%}
+                        {%- if not loop.first %}<span class="text-fg-3" aria-hidden="true">·</span>{% endif -%}
+                        <span class="font-semibold text-fg-2" data-series="{{ one.name }}">{{ attribute(span, one.name)|format_number }}</span>
+                    {%- endfor -%}
+                </span>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
