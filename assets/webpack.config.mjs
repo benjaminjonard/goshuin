@@ -16,7 +16,6 @@ Encore
     .enableSourceMaps(!Encore.isProduction())
     .enableVersioning(Encore.isProduction())
 
-    // Encore 7 ships no CSS minifier of its own.
     .configureCssMinimizerPlugin((options, MinimizerPlugin) => {
         options.minify = MinimizerPlugin.cssnanoMinify;
     })
@@ -24,8 +23,6 @@ Encore
 
 const config = await Encore.getWebpackConfig();
 
-// @symfony/ux-live-component is linked from vendor/, so webpack has to keep the
-// node_modules path to resolve the @hotwired/stimulus import it carries.
 config.resolve.symlinks = false;
 
 export default config;
