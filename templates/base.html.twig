@@ -11,7 +11,7 @@
     <link rel="manifest" href="{{ asset('site.webmanifest') }}">
     <meta name="theme-color" content="#c0574a">
 
-    {{ encore_entry_link_tags('app') }}
+    {{ reprise_entry_link_tags('app') }}
 </head>
 <body>
     {{ include('App/_partials/_icons.html.twig') }}
@@ -20,6 +20,6 @@
 
     {% block body %}{% endblock %}
 
-    {{ encore_entry_script_tags('app') }}
+    {{ reprise_entry_script_tags('app') }}
 </body>
 </html>

@@ -149,6 +149,20 @@
             "config/packages/property_info.yaml"
         ]
     },
+    "symfony/reprise": {
+        "version": "1.1",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "0.1",
+            "ref": "21dd404be875f26b8384e81a3764e9bd02381e33"
+        },
+        "files": [
+            "assets/app.js",
+            "assets/styles/app.css",
+            "config/packages/reprise.yaml"
+        ]
+    },
     "symfony/routing": {
         "version": "8.1",
         "recipe": {
@@ -272,22 +286,6 @@
         "files": [
             "config/packages/web_profiler.yaml",
             "config/routes/web_profiler.yaml"
-        ]
-    },
-    "symfony/webpack-encore-bundle": {
-        "version": "2.4",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "main",
-            "version": "2.2",
-            "ref": "b618bf5f17ed61f523da7153025bf58ec9502f65"
-        },
-        "files": [
-            "assets/app.js",
-            "assets/styles/app.css",
-            "config/packages/webpack_encore.yaml",
-            "package.json",
-            "webpack.config.js"
         ]
     },
     "twig/extra-bundle": {

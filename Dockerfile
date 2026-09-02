@@ -57,7 +57,6 @@ COPY ./templates/ /app/templates/
 COPY ./src/ /app/src/
 
 RUN set -eux ; \
-    mkdir -p /app/public/build ; \
     yarn build
 
 FROM goshuin-base AS goshuin-final
