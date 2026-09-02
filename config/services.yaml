@@ -1,6 +1,6 @@
 parameters:
     default_locale: 'en'
-    app.release: '1.0.2'
+    app.release: '1.0.3'
     app.map_tile_url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
     app.map_attribution: '© OpenStreetMap contributors'
     app.map_boundaries_attribution: '国土数値情報（行政区域データ）国土交通省'

@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.0.3] / 2026-09-02
+### Features
+- Add statistics page (benjaminjonard)
+
+### Miscellaneous
+- Update PHP and JS dependencies (benjaminjonard)
+
 ## [1.0.2] / 2026-08-27
 ### Features
 - Add japanese language support (benjaminjonard)
