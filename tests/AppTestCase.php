@@ -21,6 +21,15 @@ abstract class AppTestCase extends WebTestCase
         $this->client = static::createClient();
     }
 
+    #[\Override]
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        unset($this->client);
+        gc_collect_cycles();
+    }
+
     protected function signIn(User $user): void
     {
         static::getContainer()->get('security.token_storage')
