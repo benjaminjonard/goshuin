@@ -33,7 +33,14 @@ RUN set -eux ; \
     apt-get clean ; \
     rm -rf /var/lib/apt/lists/* ; \
     rm -rf /usr/local/bin/composer ; \
+    rm -rf /app/public/public/uploads ; \
+    mkdir -p /uploads/thumbnails /app/public/var ; \
+    ln -s /uploads /app/public/public/uploads ; \
     chown -R "$USER":"$USER" /app/public ; \
+    chown -R "$USER":0 /app/public/var /uploads /data /config ; \
+    chgrp 0 /app/public ; \
+    chmod -R g=u /app/public/var /uploads /data /config ; \
+    chmod g=u /app/public ; \
     chmod +x /app/public/docker/entrypoint.sh ; \
     mkdir /run/php ; \
     cp /app/public/docker/php.ini /usr/local/etc/php/conf.d/php.ini
