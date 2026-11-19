@@ -49,7 +49,7 @@ services:
 # APP_DEBUG=1 displays detailed error messages
 #
 # APP_SECRET is a random string used for security, you can use for example openssl rand -base64 21
-# APP_SECRET is automatically generated when using Docker
+# APP_SECRET is mandatory
 #
 # PHP_TZ, see possible values here https://www.w3schools.com/php/php_ref_timezones.asp
 #
@@ -58,7 +58,7 @@ services:
 
 APP_DEBUG=0
 APP_ENV=prod
-#APP_SECRET=
+APP_SECRET=
 
 HTTPS_ENABLED=1
 UPLOAD_MAX_FILESIZE=20M
