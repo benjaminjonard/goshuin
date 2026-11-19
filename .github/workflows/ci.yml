@@ -87,6 +87,7 @@ jobs:
           docker run -d --name goshuin \
             --add-host=host.docker.internal:host-gateway \
             -p 8080:80 \
+            -e APP_SECRET=changeMe \
             -e DB_NAME=goshuin \
             -e DB_HOST=host.docker.internal \
             -e DB_PORT=5432 \
