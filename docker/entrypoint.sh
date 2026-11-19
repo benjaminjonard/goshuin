@@ -8,6 +8,18 @@ else
     RUN_AS_USER=""
 fi
 
+MISSING_VARS=""
+for VAR in APP_SECRET DB_HOST DB_NAME DB_USER DB_PASSWORD; do
+	if [ -z "$(printenv "$VAR")" ]; then
+		MISSING_VARS="$MISSING_VARS $VAR"
+	fi
+done
+
+if [ -n "$MISSING_VARS" ]; then
+	echo "ERROR: the following mandatory environment variables are not set:$MISSING_VARS"
+	exit 1
+fi
+
 echo "**** 1/8 - Make sure the /uploads folder exists ****"
 mkdir -p /uploads
 
@@ -26,7 +38,7 @@ touch /app/public/.env.local
 
 echo "APP_ENV=${APP_ENV:-prod}" >> "/app/public/.env.local"
 echo "APP_DEBUG=${APP_DEBUG:-0}" >> "/app/public/.env.local"
-echo "APP_SECRET=${APP_SECRET:-$(openssl rand -base64 21)}" >> "/app/public/.env.local"
+echo "APP_SECRET=${APP_SECRET:-}" >> "/app/public/.env.local"
 
 echo "DB_HOST=${DB_HOST:-}" >> "/app/public/.env.local"
 echo "DB_PORT=${DB_PORT:-5432}" >> "/app/public/.env.local"
