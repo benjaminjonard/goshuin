@@ -7,11 +7,14 @@ namespace App\Tests\App\Service;
 use App\Exception\ImageRefused;
 use App\Model\StoredImage;
 use App\Service\ImageStore;
+use App\Tests\FileTrait;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\File\File;
 
 class ImageStoreTest extends TestCase
 {
+    use FileTrait;
+
     private string $root;
 
     #[\Override]
@@ -29,7 +32,7 @@ class ImageStoreTest extends TestCase
 
     public function test_it_keeps_the_original_and_writes_every_derivative(): void
     {
-        $stored = $this->store()->store($this->jpeg(2000, 1000));
+        $stored = $this->store()->store($this->createImage(2000, 1000));
 
         $this->assertFileExists($this->root.'/'.$stored->path, 'The original was not retained.');
 
@@ -42,7 +45,7 @@ class ImageStoreTest extends TestCase
 
     public function test_every_derivative_is_named_on_the_answer(): void
     {
-        $stored = $this->store()->store($this->jpeg(2000, 1000));
+        $stored = $this->store()->store($this->createImage(2000, 1000));
 
         $this->assertNotSame($stored->path, $stored->mini, 'The derivatives were not distinguished from the original.');
         $this->assertSame([$stored->mini, $stored->card, $stored->full], array_values($this->derivatives($stored)));
@@ -53,7 +56,7 @@ class ImageStoreTest extends TestCase
     {
         $store = $this->store();
 
-        $stored = $store->store($this->jpeg(1500, 1000));
+        $stored = $store->store($this->createImage(1500, 1000));
 
         $this->assertFileExists($this->root.'/'.$stored->full, 'A derivative was left for later.');
     }
@@ -62,7 +65,7 @@ class ImageStoreTest extends TestCase
     {
         $store = $this->store();
 
-        $stored = $store->store($this->jpeg(200, 100));
+        $stored = $store->store($this->createImage(200, 100));
 
         $this->assertSame(200, getimagesize($this->root.'/'.$stored->full)[0], 'A small image was blown up.');
         $this->assertSame(96, getimagesize($this->root.'/'.$stored->mini)[0]);
@@ -71,7 +74,7 @@ class ImageStoreTest extends TestCase
     public function test_it_accepts_png_and_webp(): void
     {
         foreach (['png', 'webp'] as $format) {
-            $stored = $this->store()->store($this->image(300, 200, $format));
+            $stored = $this->store()->store($this->createImage(300, 200, $format));
 
             $this->assertFileExists($this->root.'/'.$stored->path, sprintf('%s was refused.', $format));
             $this->assertStringEndsWith('.'.$format, $stored->path);
@@ -131,7 +134,7 @@ class ImageStoreTest extends TestCase
     public function test_removing_deletes_exactly_the_path_it_is_given(): void
     {
         $store = $this->store();
-        $stored = $store->store($this->jpeg(400, 300));
+        $stored = $store->store($this->createImage(400, 300));
 
         $store->remove($stored->mini);
 
@@ -153,33 +156,9 @@ class ImageStoreTest extends TestCase
         return new ImageStore($this->root);
     }
 
-    private function jpeg(int $width, int $height): File
-    {
-        return $this->image($width, $height, 'jpg');
-    }
-
-    private function image(int $width, int $height, string $format): File
-    {
-        $image = imagecreatetruecolor($width, $height);
-
-        for ($x = 0; $x < $width; $x += 40) {
-            imagefilledrectangle($image, $x, 0, $x + 20, $height, imagecolorallocate($image, $x % 255, 120, 200));
-        }
-
-        $path = sys_get_temp_dir().'/fixture-'.bin2hex(random_bytes(6)).'.'.$format;
-
-        match ($format) {
-            'jpg' => imagejpeg($image, $path, 92),
-            'png' => imagepng($image, $path),
-            'webp' => imagewebp($image, $path, 92),
-        };
-
-        return new File($path);
-    }
-
     private function rotatedJpeg(int $width, int $height, int $orientation): File
     {
-        $file = $this->jpeg($width, $height);
+        $file = $this->createImage($width, $height);
         $bytes = file_get_contents($file->getPathname());
 
         $exif = "Exif\0\0MM\0*\0\0\0\x08\0\x01\x01\x12\0\x03\0\0\0\x01".pack('n', $orientation)."\0\0";
@@ -191,7 +170,7 @@ class ImageStoreTest extends TestCase
 
     private function jpegWithMetadata(): File
     {
-        $file = $this->jpeg(600, 400);
+        $file = $this->createImage(600, 400);
         $bytes = file_get_contents($file->getPathname());
 
         $exif = "Exif\0\0MM\0*\0\0\0\x08\0\x01\x01\x12\0\x03\0\0\0\x01\0\x06\0\0";

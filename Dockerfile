@@ -1,4 +1,4 @@
-FROM dunglas/frankenphp:php8.5 AS goshuin-base
+FROM dunglas/frankenphp:php8.6 AS goshuin-base
 
 ENV APP_ENV=prod
 ENV PUID=1001
@@ -23,7 +23,7 @@ RUN set -eux ; \
     curl \
     openssl \
     unzip ; \
-    install-php-extensions opcache pdo_pgsql intl gd zip apcu exif ; \
+    install-php-extensions opcache pdo_pgsql intl gd zip exif mbstring ; \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer ; \
     cd /app/public ; \
     COMPOSER_MEMORY_LIMIT=-1 composer install --classmap-authoritative ; \
