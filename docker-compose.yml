@@ -24,7 +24,7 @@ services:
         depends_on:
             - database
         volumes:
-            - "./docker/volumes/goshuin/uploads:/uploads"
+            - "./docker/volumes/goshuin/uploads:/app/public/public/uploads"
             - ./:/app/public
 
     database:
